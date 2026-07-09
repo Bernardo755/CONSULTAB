@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi App con Google Sheets</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .usuario { background: #f0f0f0; margin: 10px 0; padding: 10px; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Mi Base de Datos de Google Sheets</h1>
+    <div id="contenedor-datos">Cargando datos...</div>
+
+    <script>
+        // Pega aquí la URL que te dio Google Apps Script
+        const API_URL = 'https://script.google.com/macros/s/AKfycbypo0g-j6YZbjONlD3HfNiL6uMP-Rxm3DClDAXpOuVJwLeip85HCvw2Ve83yjg5Zne-/exec';
+
+        // Hacer la petición a Google Sheets
+        fetch(API_URL)
+            .then(response => response.json())
+            .then(data => {
+                const contenedor = document.getElementById('contenedor-datos');
+                contenedor.innerHTML = ''; // Borramos el texto de "Cargando..."
+                
+                // Recorremos los datos y creamos HTML para cada fila
+                data.forEach(fila => {
+                    const div = document.createElement('div');
+                    div.className = 'usuario';
+                    // Nota: 'Nombre' y 'Edad' deben coincidir exactamente con los títulos de tus columnas
+                    div.innerHTML = `<strong>${fila.Nombre}</strong> - ${fila.Edad} años`;
+                    contenedor.appendChild(div);
+                });
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('contenedor-datos').innerHTML = 'Hubo un error al cargar los datos.';
+            });
+    </script>
+</body>
+</html>
