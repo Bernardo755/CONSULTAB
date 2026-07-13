@@ -5,69 +5,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema Control de Registros</title>
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: rgb(30, 91, 79); 
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            padding: 20px 0;
-        }
-        .tarjeta {
-            background: white;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-            text-align: center;
-            width: 95%;
-            max-width: 900px;
-            margin-bottom: 20px;
-        }
-        .logo-app { 
-            width: 50%; 
-            height: auto; 
-            margin-bottom: 20px;
-        }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: rgb(30, 91, 79); margin: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 20px 0; }
+        .tarjeta { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.3); text-align: center; width: 95%; max-width: 900px; margin-bottom: 20px; }
+        .logo-app { width: 50%; height: auto; margin-bottom: 20px; }
         #login-section { display: block; max-width: 400px; margin: 0 auto; }
         #app-section { display: none; }
-        
         .sub-panel { display: none; border-top: 2px solid #eee; margin-top: 20px; padding-top: 20px; text-align: left; }
-        
-        .controles-busqueda, .form-edicion, .form-admin {
-            display: flex;
-            flex-direction: row;
-            gap: 10px;
-            justify-content: center;
-            flex-wrap: wrap;
-            margin-top: 15px;
-        }
+        .controles-busqueda, .form-edicion, .form-admin { display: flex; flex-direction: row; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 15px; }
         .form-edicion { flex-direction: column; max-width: 600px; margin: 15px auto 0 auto; }
-        
         input, select, button, textarea { padding: 12px; font-size: 16px; border: 1px solid #ccc; border-radius: 6px; }
         textarea { resize: vertical; font-family: inherit; }
-        
         button { background-color: rgb(156, 35, 72); color: white; border: none; cursor: pointer; font-weight: bold; transition: background 0.3s; }
         button:hover { background-color: rgb(120, 25, 55); }
-        
         .btn-add { background-color: #2e7d32; }
-        .btn-add:hover { background-color: #1b5e20; }
         .btn-send-block { background-color: #0288d1; width: 100%; font-size: 18px; margin-top: 15px; }
-        .btn-send-block:hover { background-color: #01579b; }
         .btn-logout { background-color: #555; width: 100%; margin-top: 30px;}
-        .btn-logout:hover { background-color: #333; }
-        
-        .panel-bloqueo { background-color: #ffebee; border: 1px solid #ffcdd2; padding: 15px; border-radius: 8px; }
-
+        .panel-bloqueo { background-color: #f4f4f4; border: 1px solid #ddd; padding: 15px; border-radius: 8px; }
         .contenedor-tabla { overflow-x: auto; margin-top: 20px; border: 1px solid #ddd; border-radius: 8px; }
         table { width: 100%; border-collapse: collapse; font-size: 14px; }
         th { background: rgb(30, 91, 79); color: white; padding: 12px; text-transform: uppercase; }
         td { padding: 10px; border-bottom: 1px solid #eee; white-space: nowrap; color: #333;}
         tr:hover { background-color: #f1f8e9; }
-        
-        .tabla-lote th { background: #37474f; }
         .btn-del { background: #c62828; padding: 5px 10px; font-size: 12px; }
     </style>
 </head>
@@ -87,10 +45,8 @@
 
     <!-- CUERPO CENTRAL -->
     <div id="app-section" class="tarjeta">
-        <img src="Imagen11.png" alt="Logo" class="logo-app">
-        <h2 id="saludo-usuario">Buscador de Registros</h2>
+        <h2 id="saludo-usuario">Panel del Sistema</h2>
         
-        <!-- CONSULTAS -->
         <div id="panel-busqueda">
             <h3>Módulo de Consulta</h3>
             <div class="controles-busqueda">
@@ -105,50 +61,53 @@
             <div id="contenedor-resultados"></div>
         </div>
 
-        <!-- CAPTURA INTERMEDIA (LOTES) -->
         <div id="panel-edicion" class="sub-panel">
-            <h3>Módulo de Edición Avanzada (Captura por Bloques)</h3>
+            <h3>Módulo de Edición</h3>
             <div class="form-edicion">
-                <label style="font-weight: bold;">Actividad a realizar</label>
                 <select id="actividadRealizar" onchange="cambiarOpcionesEstatus()">
-                    <option value="">-- Selecciona una actividad --</option>
+                    <option value="">-- Selecciona actividad --</option>
                     <option value="SOBRANTES">REGISTRO DE SOBRANTES</option>
                     <option value="ENTREGADAS">REGISTRO DE ENTREGADAS</option>
                 </select>
-
-                <div id="campos-edicion" style="display: none; flex-direction: column; gap: 15px; margin-top: 15px; background: #f9f9f9; padding: 15px; border-radius: 8px; border: 1px dashed #ccc;">
-                    <h4 style="margin:0;">Agregar registro al bloque temporal:</h4>
-                    <input type="text" id="editFolio" placeholder="Escribe o escanea el Folio">
+                <div id="campos-edicion" style="display: none; flex-direction: column; gap: 10px;">
+                    <input type="text" id="editFolio" placeholder="Escribe Folio">
                     <select id="editEstatus"></select>
-                    <textarea id="editObservaciones" placeholder="Observaciones (Opcional)" rows="2"></textarea>
-                    <button class="btn-add" onclick="agregarAlBloqueLocal()">+ Agregar a la Lista</button>
+                    <textarea id="editObservaciones" placeholder="Obs."></textarea>
+                    <button class="btn-add" onclick="agregarAlBloqueLocal()">+ Agregar</button>
                 </div>
-                
                 <div id="area-lote-temporal" style="display:none; margin-top:20px;">
-                    <h4 style="margin:0; color: #37474f;">Registros acumulados listos para enviar (<span id="contador-lote">0</span>):</h4>
-                    <div class="contenedor-tabla">
-                        <table class="tabla-lote">
-                            <thead>
-                                <tr>
-                                    <th>Folio</th><th>Estatus a Asignar</th><th>Observaciones</th><th>Acción</th>
-                                </tr>
-                            </thead>
-                            <tbody id="lote-body"></tbody>
-                        </table>
-                    </div>
-                    <button class="btn-send-block" id="btnEnviarBloque" onclick="enviarLoteAlServidor()">🚀 Enviar todo el Bloque a Sheets</button>
+                    <h4>Lista de espera (<span id="contador-lote">0</span>):</h4>
+                    <table class="tabla-lote">
+                        <thead><tr><th>Folio</th><th>Estatus</th><th>Acción</th></tr></thead>
+                        <tbody id="lote-body"></tbody>
+                    </table>
+                    <button class="btn-send-block" id="btnEnviarBloque" onclick="enviarLoteAlServidor()">🚀 Enviar Bloque</button>
                 </div>
             </div>
         </div>
 
-        <!-- ADMINISTRADORES -->
         <div id="panel-admin" class="sub-panel">
             <div class="panel-bloqueo">
-                <h3>Control de Seguridad (Solo Administradores)</h3>
-                <p>Selecciona un usuario del sistema para revocar sus accesos de forma permanente:</p>
+                <h3>Administración</h3>
+                <p><b>Crear / Editar Usuario:</b></p>
                 <div class="form-admin">
-                    <select id="listaUsuariosAdmin"><option>Cargando usuarios...</option></select>
-                    <button style="background-color: #d32f2f;" onclick="ejecutarBloqueo()">Bloquear Acceso</button>
+                    <input type="text" id="adminUser" placeholder="Usuario">
+                    <input type="password" id="adminPass" placeholder="Contraseña">
+                    <select id="adminRol">
+                        <option value="USER">Usuario</option>
+                        <option value="ATENCION">Atención</option>
+                        <option value="ADMIN">Administrador</option>
+                    </select>
+                    <button class="btn-add" onclick="guardarUsuarioAdmin()">Guardar</button>
+                </div>
+                <p style="margin-top:20px;"><b>Bloquear Usuario:</b></p>
+                <div class="form-admin">
+                    <select id="listaUsuariosAdmin"><option>Cargando...</option></select>
+                    <button style="background-color: #d32f2f;" onclick="ejecutarBloqueo()">Bloquear</button>
+                </div>
+                <button style="margin-top:20px; width:100%; background: #555;" onclick="cargarBitacora()">Ver Bitácora</button>
+                <div id="contenedor-bitacora" style="display:none; margin-top:10px; max-height:200px; overflow-y:auto; background:white; padding:5px;">
+                    <table id="tabla-bitacora" style="font-size:11px;"></table>
                 </div>
             </div>
         </div>
@@ -157,338 +116,105 @@
     </div>
 
     <script>
-        // REEMPLAZA ESTA URL CON TU ENLACE DE IMPLEMENTACIÓN ACTUALIZADO DE GOOGLE
-        const API_URL = 'https://script.google.com/macros/s/AKfycbz3Nv2vFddY9eYBxUwIpO7bYXRek8GSVjfLJjXBcNUl_fYN6aehERRAJuuze8G-0dEt4Q/exec';
-        
-        let usuarioActual = ""; 
-        let rolActual = "";
-        let datosDispositivo = { ip: "Obteniendo...", ubicacion: "Obteniendo..." };
-        let loteTemporal = [];
-
-        // ==============================================================
-        // INICIO DE SOLUCIÓN: CONTROL DE LA TECLA ENTER
-        // ==============================================================
-
-        // 1. En el campo de contraseña SÍ queremos que inicie sesión con Enter
-        document.getElementById('pass').addEventListener('keypress', e => { 
-            if (e.key === 'Enter') iniciarSesion(); 
-        });
-
-        // 2. En la Búsqueda, bloqueamos el Enter de la lectora para que espere al botón
-        document.getElementById('valorBusqueda').addEventListener('keydown', e => { 
-            if (e.key === 'Enter' || e.keyCode === 13) {
-                e.preventDefault(); // Anulamos el Enter
-            }
-        });
-
-        // 3. En la Captura de Folio, bloqueamos el Enter de la lectora
-        document.getElementById('editFolio').addEventListener('keydown', e => { 
-            if (e.key === 'Enter' || e.keyCode === 13) {
-                e.preventDefault(); // Anulamos el Enter
-            }
-        });
-
-        // ==============================================================
-        // FIN DE SOLUCIÓN
-        // ==============================================================
-
-        window.onload = async function() {
-            if(sessionStorage.getItem("usuarioActual")) {
-                usuarioActual = sessionStorage.getItem("usuarioActual");
-                rolActual = sessionStorage.getItem("rolActual");
-                configurarVistasPorRol(rolActual);
-            }
-            try {
-                const response = await fetch('https://ipapi.co/json/');
-                const data = await response.json();
-                datosDispositivo.ip = data.ip || "No disponible";
-                datosDispositivo.ubicacion = data.city ? `${data.city}, ${data.region}, ${data.country_name}` : "No disponible";
-            } catch (error) {
-                datosDispositivo.ip = "No disponible"; datosDispositivo.ubicacion = "No disponible";
-            }
-        };
+        const API_URL = 'https://script.google.com/macros/s/AKfycbwrxoYtHemwFj0qpF03Dsc8v-G6-ZMvV3I3AyKysCNPvuYzlOeBgUQjukMZhjTJP-mR4g/exec';
+        let usuarioActual = "", rolActual = "", loteTemporal = [];
+        let datosDispositivo = { ip: "...", ubicacion: "..." };
 
         async function enviarPeticion(datos) {
             datos.usuario = usuarioActual;
             datos.ip = datosDispositivo.ip;
             datos.ubicacion = datosDispositivo.ubicacion;
-            const respuesta = await fetch(API_URL, {
-                method: 'POST',
-                body: JSON.stringify(datos),
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' }
-            });
-            return await respuesta.json();
-        }
-
-        function configurarVistasPorRol(rol) {
-            document.getElementById('login-section').style.display = 'none';
-            document.getElementById('app-section').style.display = 'block';
-            document.getElementById('saludo-usuario').innerText = `Panel del Sistema [Rol: ${rol}]`;
-            document.getElementById('panel-edicion').style.display = 'none';
-            document.getElementById('panel-admin').style.display = 'none';
-
-            if (rol === "ATENCION" || rol === "ADMIN") {
-                document.getElementById('panel-edicion').style.display = 'block';
-            }
-            if (rol === "ADMIN") {
-                document.getElementById('panel-admin').style.display = 'block';
-                cargarUsuariosParaAdmin();
-            }
+            const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(datos) });
+            return await res.json();
         }
 
         async function iniciarSesion() {
             const user = document.getElementById('user').value.trim();
             const pass = document.getElementById('pass').value.trim();
-            const msj = document.getElementById('login-mensaje');
-            if (!user || !pass) return msj.innerText = "Por favor, llena ambos campos.";
-            msj.innerText = "Validando...";
-
-            try {
-                usuarioActual = user;
-                const res = await enviarPeticion({ action: "login", password: pass });
-                if (res.exito) {
-                    rolActual = res.rol;
-                    sessionStorage.setItem("usuarioActual", user);
-                    sessionStorage.setItem("rolActual", rolActual);
-                    msj.innerText = "";
-                    configurarVistasPorRol(rolActual);
-                } else {
-                    msj.innerText = res.error;
-                    usuarioActual = "";
-                }
-            } catch (e) { msj.innerText = "Error en conexión con el servidor."; }
+            const res = await enviarPeticion({ action: "login", password: pass, usuario: user });
+            if(res.exito) {
+                usuarioActual = user; rolActual = res.rol;
+                configurarVistasPorRol(rolActual);
+            } else { alert(res.error); }
         }
 
-        function cambiarOpcionesEstatus() {
-            const actividad = document.getElementById('actividadRealizar').value;
-            const contenedorCampos = document.getElementById('campos-edicion');
-            const selectorEstatus = document.getElementById('editEstatus');
-            
-            if(!actividad) { contenedorCampos.style.display = 'none'; return; }
-            
-            contenedorCampos.style.display = 'flex';
-            selectorEstatus.innerHTML = '';
-
-            let opciones = [];
-            if(actividad === "SOBRANTES") {
-                opciones = ["SOBRANTE", "SOBRANTE CON OBSERVACIONES"];
-            } else if(actividad === "ENTREGADAS") {
-                opciones = ["ENTREGADA", "ENVIADA A OTRO ESTADO", "ENVIADA A OTRA SARE"];
-            }
-
-            opciones.forEach(opt => {
-                let el = document.createElement('option');
-                el.value = opt; el.innerText = opt;
-                selectorEstatus.appendChild(el);
-            });
-        }
-
-        function agregarAlBloqueLocal() {
-            const folioInput = document.getElementById('editFolio');
-            const estatusInput = document.getElementById('editEstatus');
-            const obsInput = document.getElementById('editObservaciones');
-
-            const folio = folioInput.value.trim();
-            const estatus = estatusInput.value;
-            const observaciones = obsInput.value.trim();
-
-            if(!folio) return alert("Por favor ingresa o escanea un folio.");
-
-            if(loteTemporal.some(item => item.folio === folio)) {
-                alert("Este folio ya está agregado en la lista de espera actual.");
-                return;
-            }
-
-            loteTemporal.push({ folio: folio, estatus: estatus, observaciones: observaciones });
-            folioInput.value = "";
-            obsInput.value = "";
-            folioInput.focus(); 
-
-            actualizarTablaInterfazLote();
-        }
-
-        function eliminarDelBloqueLocal(index) {
-            loteTemporal.splice(index, 1);
-            actualizarTablaInterfazLote();
-        }
-
-        function actualizarTablaInterfazLote() {
-            const area = document.getElementById('area-lote-temporal');
-            const tbody = document.getElementById('lote-body');
-            const contador = document.getElementById('contador-lote');
-
-            contador.innerText = loteTemporal.length;
-
-            if(loteTemporal.length === 0) {
-                area.style.display = 'none';
-                tbody.innerHTML = '';
-                return;
-            }
-
-            area.style.display = 'block';
-            tbody.innerHTML = '';
-
-            loteTemporal.forEach((item, index) => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td><b>${escaparHTML(item.folio)}</b></td>
-                    <td>${escaparHTML(item.estatus)}</td>
-                    <td><span style="color:#666; font-style:italic;">${escaparHTML(item.observaciones) || 'Sin observaciones'}</span></td>
-                    <td><button class="btn-del" onclick="eliminarDelBloqueLocal(${index})">Quitar</button></td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        async function enviarLoteAlServidor() {
-            if(loteTemporal.length === 0) return;
-            
-            const btn = document.getElementById('btnEnviarBloque');
-            if(!confirm(`¿Deseas enviar este bloque de ${loteTemporal.length} registros a la base de datos de Google Sheets?`)) return;
-
-            btn.innerText = "Procesando bloque en el servidor...";
-            btn.disabled = true;
-
-            try {
-                const res = await enviarPeticion({
-                    action: "actualizar_lote",
-                    lote: loteTemporal
-                });
-
-                if(res.exito) {
-                    let msgResumen = `${res.mensaje}\n\n• Registros actualizados con éxito: ${res.exitosos}`;
-                    if(res.noEncontrados.length > 0) {
-                        msgResumen += `\n• Folios NO encontrados en la base: ${res.noEncontrados.join(", ")}`;
-                    }
-                    alert(msgResumen);
-                    loteTemporal = [];
-                    actualizarTablaInterfazLote();
-                } else {
-                    alert("Error devuelto: " + res.error);
-                }
-            } catch(e) {
-                alert("Error de red al procesar el lote.");
-            } finally {
-                btn.innerText = "🚀 Enviar todo el Bloque a Sheets";
-                btn.disabled = false;
-            }
+        function configurarVistasPorRol(rol) {
+            document.getElementById('login-section').style.display = 'none';
+            document.getElementById('app-section').style.display = 'block';
+            if(rol === "ATENCION" || rol === "ADMIN") document.getElementById('panel-edicion').style.display = 'block';
+            if(rol === "ADMIN") { document.getElementById('panel-admin').style.display = 'block'; cargarUsuariosParaAdmin(); }
         }
 
         async function cargarUsuariosParaAdmin() {
             const select = document.getElementById('listaUsuariosAdmin');
-            try {
-                const usuarios = await enviarPeticion({ action: "obtener_usuarios" });
-                
-                if(usuarios.error) {
-                    select.innerHTML = `<option>${escaparHTML(usuarios.error)}</option>`;
-                    return;
-                }
+            const users = await enviarPeticion({ action: "obtener_usuarios" });
+            select.innerHTML = '';
+            users.forEach(u => select.innerHTML += `<option value="${u.usuario}">${u.usuario} [${u.estado}]</option>`);
+        }
 
-                if(!Array.isArray(usuarios)) {
-                    select.innerHTML = '<option>Error: Respuesta inválida</option>';
-                    return;
-                }
+        async function guardarUsuarioAdmin() {
+            const user = document.getElementById('adminUser').value.trim();
+            const pass = document.getElementById('adminPass').value.trim();
+            const rol = document.getElementById('adminRol').value;
+            const res = await enviarPeticion({ action: "guardar_usuario", usuarioAEditar: user, nuevoPassword: pass, nuevoRol: rol, nuevoEstado: "Activo" });
+            alert(res.mensaje);
+            cargarUsuariosParaAdmin();
+        }
 
-                select.innerHTML = '';
-                if(usuarios.length === 0) {
-                    select.innerHTML = '<option>No hay otros usuarios registrados</option>';
-                    return;
-                }
-
-                usuarios.forEach(u => {
-                    if(u.usuario !== usuarioActual) { 
-                        let opt = document.createElement('option');
-                        opt.value = u.usuario;
-                        opt.innerText = `${u.usuario} [${u.estado}]`;
-                        select.appendChild(opt);
-                    }
-                });
-            } catch(e) { 
-                select.innerHTML = '<option>Error al procesar la lista en la app</option>'; 
-            }
+        async function cargarBitacora() {
+            const cont = document.getElementById('contenedor-bitacora');
+            const tabla = document.getElementById('tabla-bitacora');
+            if(cont.style.display === 'block') { cont.style.display = 'none'; return; }
+            cont.style.display = 'block';
+            const logs = await enviarPeticion({ action: "obtener_bitacora" });
+            tabla.innerHTML = "<tr><th>Fecha</th><th>Usuario</th><th>Acción</th></tr>";
+            logs.reverse().forEach(f => {
+                tabla.innerHTML += `<tr><td>${f[0].substring(0,16)}</td><td>${f[1]}</td><td>${f[2]}</td></tr>`;
+            });
         }
 
         async function ejecutarBloqueo() {
-            const userParaBloquear = document.getElementById('listaUsuariosAdmin').value;
-            if(!userParaBloquear || userParaBloquear.includes("Error") || userParaBloquear.includes("Cargando")) {
-                return alert("Por favor selecciona un usuario válido.");
-            }
-
-            if(!confirm(`Atención: El usuario "${userParaBloquear}" perderá el acceso de inmediato. ¿Proceder?`)) return;
-
-            try {
-                const res = await enviarPeticion({ action: "bloquear_usuario", usuarioAQuitar: userParaBloquear });
-                if(res.exito) {
-                    alert(`El usuario ${userParaBloquear} ha sido bloqueado.`);
-                    cargarUsuariosParaAdmin();
-                } else { alert("Error: " + res.error); }
-            } catch(e) { alert("Error de comunicación."); }
+            const user = document.getElementById('listaUsuariosAdmin').value;
+            const res = await enviarPeticion({ action: "bloquear_usuario", usuarioAQuitar: user });
+            alert(res.exito ? "Bloqueado" : "Error");
+            cargarUsuariosParaAdmin();
         }
 
-        function escaparHTML(t) { return t ? String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;") : ""; }
+        function agregarAlBloqueLocal() {
+            loteTemporal.push({ folio: document.getElementById('editFolio').value, estatus: document.getElementById('editEstatus').value, observaciones: document.getElementById('editObservaciones').value });
+            actualizarTablaInterfazLote();
+        }
+
+        async function enviarLoteAlServidor() {
+            const res = await enviarPeticion({ action: "actualizar_lote", lote: loteTemporal });
+            alert(res.mensaje);
+            loteTemporal = [];
+            actualizarTablaInterfazLote();
+        }
+
+        function actualizarTablaInterfazLote() {
+            const tbody = document.getElementById('lote-body');
+            tbody.innerHTML = "";
+            loteTemporal.forEach((item, i) => {
+                tbody.innerHTML += `<tr><td>${item.folio}</td><td>${item.estatus}</td><td><button onclick="loteTemporal.splice(${i},1); actualizarTablaInterfazLote()">X</button></td></tr>`;
+            });
+            document.getElementById('contador-lote').innerText = loteTemporal.length;
+        }
+
+        function cambiarOpcionesEstatus() {
+            const act = document.getElementById('actividadRealizar').value;
+            const sel = document.getElementById('editEstatus');
+            sel.innerHTML = act === "SOBRANTES" ? '<option>SOBRANTE</option>' : '<option>ENTREGADA</option>';
+            document.getElementById('campos-edicion').style.display = 'flex';
+        }
 
         async function ejecutarBusqueda() {
-            const valor = document.getElementById('valorBusqueda').value.trim();
-            const columna = document.getElementById('columnaBusqueda').value;
+            const res = await enviarPeticion({ action: "buscar", columna: document.getElementById('columnaBusqueda').value, valor: document.getElementById('valorBusqueda').value });
             const contenedor = document.getElementById('contenedor-resultados');
-
-            if (!valor) return alert("Por favor ingresa un valor.");
-            contenedor.innerHTML = '<p style="font-weight:bold; color: #555;">Consultando servidor...</p>';
-
-            try {
-                const resultados = await enviarPeticion({ action: "buscar", columna: columna, valor: valor });
-
-                if (resultados && resultados.error) {
-                    contenedor.innerHTML = `<p style="color:red; font-weight:bold;">Error: ${escaparHTML(resultados.error)}</p>`;
-                    return;
-                }
-
-                if (Array.isArray(resultados) && resultados.length > 0 && resultados[0].error) {
-                    contenedor.innerHTML = `<p style="color:red; font-weight:bold;">Aviso: ${escaparHTML(resultados[0].error)}</p>`;
-                    return;
-                }
-
-                if (!Array.isArray(resultados) || resultados.length === 0) {
-                    contenedor.innerHTML = '<p style="color:orange; font-weight:bold;">No se encontraron registros.</p>';
-                    return;
-                }
-
-                let html = `<div class="contenedor-tabla"><table><thead><tr>
-                    <th>FOLIO</th><th>NOMBRE</th><th>ESTATUS</th><th>SARE</th><th>MUNICIPIO</th><th>CCT</th><th>ESCUELA</th><th>NIVEL</th><th>CURP</th><th>MES_REMESA</th><th>OBSERVACIONES</th>
-                    </tr></thead><tbody id="tabla-body"></tbody></table></div>`;
-                contenedor.innerHTML = html;
-
-                const tbody = document.getElementById('tabla-body');
-                resultados.forEach(f => {
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td><b>${escaparHTML(f.FOLIO || f.Folio || '')}</b></td>
-                        <td>${escaparHTML(f.NOMBRE)}</td><td>${escaparHTML(f.ESTATUS)}</td>
-                        <td>${escaparHTML(f.SARE)}</td><td>${escaparHTML(f.MUNICIPIO)}</td>
-                        <td>${escaparHTML(f.CCT)}</td><td>${escaparHTML(f.ESCUELA)}</td>
-                        <td>${escaparHTML(f.NIVEL)}</td><td>${escaparHTML(f.CURP)}</td>
-                        <td>${escaparHTML(f.MES_REMESA)}</td>
-                        <td>${escaparHTML(f.OBSERVACIONES || f.Observaciones || '')}</td>`;
-                    tbody.appendChild(tr);
-                });
-            } catch (error) { 
-                contenedor.innerHTML = `<p style="color:red; font-weight:bold;">Error de comunicación: Ocurrió un problema al procesar la respuesta.</p>`; 
-            }
+            contenedor.innerHTML = JSON.stringify(res);
         }
 
-        async function cerrarSesion() {
-            if(loteTemporal.length > 0) {
-                if(!confirm("Tienes registros en la lista que no has enviado. Si sales se borrarán de la pantalla. ¿Cerrar de todas formas?")) return;
-            }
-            if(usuarioActual) { await enviarPeticion({ action: "logout" }); }
-            sessionStorage.clear();
-            usuarioActual = ""; rolActual = ""; loteTemporal = [];
-            document.getElementById('contenedor-resultados').innerHTML = '';
-            document.getElementById('valorBusqueda').value = '';
-            document.getElementById('area-lote-temporal').style.display = 'none';
-            document.getElementById('app-section').style.display = 'none';
-            document.getElementById('login-section').style.display = 'block';
-        }
+        function cerrarSesion() { location.reload(); }
     </script>
 </body>
 </html>
