@@ -69,7 +69,7 @@
 </head>
 <body>
 
-    <!-- SECCIÓN DE LOGIN -->
+    <!-- CONTROL DE ACCESO -->
     <div id="login-section" class="tarjeta">
         <img src="LOG12.png" alt="Logo" class="logo-app">
         <h2>Acceso al Sistema</h2>
@@ -81,12 +81,12 @@
         <div id="login-mensaje" style="color: red; font-weight: bold; margin-top: 10px;"></div>
     </div>
 
-    <!-- SECCIÓN PRINCIPAL DE LA APP -->
+    <!-- CUERPO CENTRAL -->
     <div id="app-section" class="tarjeta">
         <img src="LOG12.png" alt="Logo" class="logo-app">
         <h2 id="saludo-usuario">Buscador de Registros</h2>
         
-        <!-- PANEL DE BÚSQUEDA -->
+        <!-- CONSULTAS -->
         <div id="panel-busqueda">
             <h3>Módulo de Consulta</h3>
             <div class="controles-busqueda">
@@ -101,7 +101,7 @@
             <div id="contenedor-resultados"></div>
         </div>
 
-        <!-- PANEL DE EDICIÓN ACUMULATIVA POR LOTES -->
+        <!-- CAPTURA INTERMEDIA (LOTES) -->
         <div id="panel-edicion" class="sub-panel">
             <h3>Módulo de Edición Avanzada (Captura por Bloques)</h3>
             <div class="form-edicion">
@@ -120,7 +120,6 @@
                     <button class="btn-add" onclick="agregarAlBloqueLocal()">+ Agregar a la Lista</button>
                 </div>
                 
-                <!-- Tabla del acumulador local -->
                 <div id="area-lote-temporal" style="display:none; margin-top:20px;">
                     <h4 style="margin:0; color: #37474f;">Registros acumulados listos para enviar (<span id="contador-lote">0</span>):</h4>
                     <div class="contenedor-tabla">
@@ -138,7 +137,7 @@
             </div>
         </div>
 
-        <!-- PANEL DE ADMINISTRACIÓN -->
+        <!-- ADMINISTRADORES -->
         <div id="panel-admin" class="sub-panel">
             <div class="panel-bloqueo">
                 <h3>Control de Seguridad (Solo Administradores)</h3>
@@ -154,16 +153,14 @@
     </div>
 
     <script>
-        const API_URL = 'https://script.google.com/macros/s/AKfycbyRk3ofK6vITcwXxs9_O04VakbZdVq2lKZ-DR1eXgw3CEVSMitMXV8vRBdggLuMuqFuQg/exec';
+        // REEMPLAZA ESTA URL CON TU ENLACE DE IMPLEMENTACIÓN ACTUALIZADO DE GOOGLE
+        const API_URL = 'https://script.google.com/macros/s/AKfycbxbkv93o5GnkFSzaIZUDbDTjHzqwRMYetE_Ys0eeiI6b9SoAFUBy-EYlDXkpFh61AMDlg/exec';
         
         let usuarioActual = ""; 
         let rolActual = "";
         let datosDispositivo = { ip: "Obteniendo...", ubicacion: "Obteniendo..." };
-        
-        // MATRIZ LOCAL PARA ACUMULAR EL BLOQUE
         let loteTemporal = [];
 
-        // Triggers de teclado para agilidad
         document.getElementById('pass').addEventListener('keypress', e => { if (e.key === 'Enter') iniciarSesion(); });
         document.getElementById('valorBusqueda').addEventListener('keypress', e => { if (e.key === 'Enter') ejecutarBusqueda(); });
         document.getElementById('editFolio').addEventListener('keypress', e => { if (e.key === 'Enter') agregarAlBloqueLocal(); });
@@ -200,7 +197,6 @@
             document.getElementById('login-section').style.display = 'none';
             document.getElementById('app-section').style.display = 'block';
             document.getElementById('saludo-usuario').innerText = `Panel del Sistema [Rol: ${rol}]`;
-
             document.getElementById('panel-edicion').style.display = 'none';
             document.getElementById('panel-admin').style.display = 'none';
 
@@ -260,7 +256,6 @@
             });
         }
 
-        // --- FLUJO LOCAL ACUMULATIVO ---
         function agregarAlBloqueLocal() {
             const folioInput = document.getElementById('editFolio');
             const estatusInput = document.getElementById('editEstatus');
@@ -272,19 +267,15 @@
 
             if(!folio) return alert("Por favor ingresa o escanea un folio.");
 
-            // Validar que no se duplique en la lista de espera actual
             if(loteTemporal.some(item => item.folio === folio)) {
                 alert("Este folio ya está agregado en la lista de espera actual.");
                 return;
             }
 
-            // Inyectar al arreglo de memoria
             loteTemporal.push({ folio: folio, estatus: estatus, observaciones: observaciones });
-
-            // Limpiar cajas de texto para el siguiente escaneo rápido
             folioInput.value = "";
             obsInput.value = "";
-            folioInput.focus(); // Re-enfocar para pistolas de código de barras
+            folioInput.focus(); 
 
             actualizarTablaInterfazLote();
         }
@@ -343,8 +334,6 @@
                         msgResumen += `\n• Folios NO encontrados en la base: ${res.noEncontrados.join(", ")}`;
                     }
                     alert(msgResumen);
-                    
-                    // Limpieza total tras confirmación exitosa
                     loteTemporal = [];
                     actualizarTablaInterfazLote();
                 } else {
@@ -358,13 +347,11 @@
             }
         }
 
-        // --- SISTEMA ADMIN REPARADO CONTRA CRASHES ---
         async function cargarUsuariosParaAdmin() {
             const select = document.getElementById('listaUsuariosAdmin');
             try {
                 const usuarios = await enviarPeticion({ action: "obtener_usuarios" });
                 
-                // Si el servidor nos mandó un error estructurado, lo exponemos directamente
                 if(usuarios.error) {
                     select.innerHTML = `<option>${escaparHTML(usuarios.error)}</option>`;
                     return;
@@ -397,7 +384,7 @@
         async function ejecutarBloqueo() {
             const userParaBloquear = document.getElementById('listaUsuariosAdmin').value;
             if(!userParaBloquear || userParaBloquear.includes("Error") || userParaBloquear.includes("Cargando")) {
-                return alert("Por favor selecciona un usuario válido de la lista.");
+                return alert("Por favor selecciona un usuario válido.");
             }
 
             if(!confirm(`Atención: El usuario "${userParaBloquear}" perderá el acceso de inmediato. ¿Proceder?`)) return;
@@ -411,7 +398,6 @@
             } catch(e) { alert("Error de comunicación."); }
         }
 
-        // MÓDULO DE CONSULTAS
         function escaparHTML(t) { return t ? String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;") : ""; }
 
         async function ejecutarBusqueda() {
@@ -420,15 +406,26 @@
             const contenedor = document.getElementById('contenedor-resultados');
 
             if (!valor) return alert("Por favor ingresa un valor.");
-            contenedor.innerHTML = '<p style="font-weight:bold; color: #555;">Consultando servidor de alto volumen...</p>';
+            contenedor.innerHTML = '<p style="font-weight:bold; color: #555;">Consultando servidor...</p>';
 
             try {
                 const resultados = await enviarPeticion({ action: "buscar", columna: columna, valor: valor });
 
-                if (resultados.length > 0 && resultados[0].error) {
-                    contenedor.innerHTML = `<p style="color:red; font-weight:bold;">${resultados[0].error}</p>`;
+                if (resultados && resultados.error) {
+                    contenedor.innerHTML = `<p style="color:red; font-weight:bold;">Error: ${escaparHTML(resultados.error)}</p>`;
                     return;
                 }
+
+                if (Array.isArray(resultados) && resultados.length > 0 && resultados[0].error) {
+                    contenedor.innerHTML = `<p style="color:red; font-weight:bold;">Aviso: ${escaparHTML(resultados[0].error)}</p>`;
+                    return;
+                }
+
+                if (!Array.isArray(resultados) || resultados.length === 0) {
+                    contenedor.innerHTML = '<p style="color:orange; font-weight:bold;">No se encontraron registros.</p>';
+                    return;
+                }
+
                 let html = `<div class="contenedor-tabla"><table><thead><tr>
                     <th>NOMBRE</th><th>ESTATUS</th><th>SARE</th><th>MUNICIPIO</th><th>CCT</th><th>ESCUELA</th><th>NIVEL</th><th>CURP</th><th>MES_REMESA</th>
                     </tr></thead><tbody id="tabla-body"></tbody></table></div>`;
@@ -445,12 +442,14 @@
                         <td>${escaparHTML(f.MES_REMESA)}</td>`;
                     tbody.appendChild(tr);
                 });
-            } catch (error) { contenedor.innerHTML = '<p style="color:red;">Error de lectura.</p>'; }
+            } catch (error) { 
+                contenedor.innerHTML = `<p style="color:red; font-weight:bold;">Error de comunicación: Ocurrió un problema al procesar la respuesta.</p>`; 
+            }
         }
 
         async function cerrarSesion() {
             if(loteTemporal.length > 0) {
-                if(!confirm("Tienes registros en la lista que no has enviado a Google Sheets. Si cierras sesión se borrarán de la pantalla. ¿Deseas salir de todas formas?")) return;
+                if(!confirm("Tienes registros en la lista que no has enviado. Si sales se borrarán de la pantalla. ¿Cerrar de todas formas?")) return;
             }
             if(usuarioActual) { await enviarPeticion({ action: "logout" }); }
             sessionStorage.clear();
