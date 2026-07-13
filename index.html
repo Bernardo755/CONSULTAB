@@ -431,7 +431,7 @@
                 }
 
                 let html = `<div class="contenedor-tabla"><table><thead><tr>
-                    <th>FOLIO</th><th>NOMBRE</th><th>ESTATUS</th><th>SARE</th><th>MUNICIPIO</th><th>CCT</th><th>ESCUELA</th><th>NIVEL</th><th>CURP</th><th>MES_REMESA</th>
+                    <th>FOLIO</th><th>NOMBRE</th><th>ESTATUS</th><th>SARE</th><th>MUNICIPIO</th><th>CCT</th><th>ESCUELA</th><th>NIVEL</th><th>CURP</th><th>MES_REMESA</th><th>OBSERVACIONES</th>
                     </tr></thead><tbody id="tabla-body"></tbody></table></div>`;
                 contenedor.innerHTML = html;
 
@@ -444,7 +444,8 @@
                         <td>${escaparHTML(f.SARE)}</td><td>${escaparHTML(f.MUNICIPIO)}</td>
                         <td>${escaparHTML(f.CCT)}</td><td>${escaparHTML(f.ESCUELA)}</td>
                         <td>${escaparHTML(f.NIVEL)}</td><td>${escaparHTML(f.CURP)}</td>
-                        <td>${escaparHTML(f.MES_REMESA)}</td>`;
+                        <td>${escaparHTML(f.MES_REMESA)}</td>
+                        <td>${escaparHTML(f.OBSERVACIONES || f.Observaciones || '')}</td>`;
                     tbody.appendChild(tr);
                 });
             } catch (error) { 
