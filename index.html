@@ -26,11 +26,11 @@
             max-width: 900px;
             margin-bottom: 20px;
         }
-       .logo-app { 
-    width: 50%; 
-    height: auto; 
-    margin-bottom: 20px;
-} }
+        .logo-app { 
+            width: 50%; 
+            height: auto; 
+            margin-bottom: 20px;
+        }
         #login-section { display: block; max-width: 400px; margin: 0 auto; }
         #app-section { display: none; }
         
@@ -431,7 +431,7 @@
                 }
 
                 let html = `<div class="contenedor-tabla"><table><thead><tr>
-                    <th>NOMBRE</th><th>ESTATUS</th><th>SARE</th><th>MUNICIPIO</th><th>CCT</th><th>ESCUELA</th><th>NIVEL</th><th>CURP</th><th>MES_REMESA</th>
+                    <th>FOLIO</th><th>NOMBRE</th><th>ESTATUS</th><th>SARE</th><th>MUNICIPIO</th><th>CCT</th><th>ESCUELA</th><th>NIVEL</th><th>CURP</th><th>MES_REMESA</th>
                     </tr></thead><tbody id="tabla-body"></tbody></table></div>`;
                 contenedor.innerHTML = html;
 
@@ -439,6 +439,7 @@
                 resultados.forEach(f => {
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
+                        <td><b>${escaparHTML(f.FOLIO || f.Folio || '')}</b></td>
                         <td>${escaparHTML(f.NOMBRE)}</td><td>${escaparHTML(f.ESTATUS)}</td>
                         <td>${escaparHTML(f.SARE)}</td><td>${escaparHTML(f.MUNICIPIO)}</td>
                         <td>${escaparHTML(f.CCT)}</td><td>${escaparHTML(f.ESCUELA)}</td>
