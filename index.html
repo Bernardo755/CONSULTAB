@@ -165,9 +165,32 @@
         let datosDispositivo = { ip: "Obteniendo...", ubicacion: "Obteniendo..." };
         let loteTemporal = [];
 
-        document.getElementById('pass').addEventListener('keypress', e => { if (e.key === 'Enter') iniciarSesion(); });
-        document.getElementById('valorBusqueda').addEventListener('keypress', e => { if (e.key === 'Enter') ejecutarBusqueda(); });
-        document.getElementById('editFolio').addEventListener('keypress', e => { if (e.key === 'Enter') agregarAlBloqueLocal(); });
+        // ==============================================================
+        // INICIO DE SOLUCIÓN: CONTROL DE LA TECLA ENTER
+        // ==============================================================
+
+        // 1. En el campo de contraseña SÍ queremos que inicie sesión con Enter
+        document.getElementById('pass').addEventListener('keypress', e => { 
+            if (e.key === 'Enter') iniciarSesion(); 
+        });
+
+        // 2. En la Búsqueda, bloqueamos el Enter de la lectora para que espere al botón
+        document.getElementById('valorBusqueda').addEventListener('keydown', e => { 
+            if (e.key === 'Enter' || e.keyCode === 13) {
+                e.preventDefault(); // Anulamos el Enter
+            }
+        });
+
+        // 3. En la Captura de Folio, bloqueamos el Enter de la lectora
+        document.getElementById('editFolio').addEventListener('keydown', e => { 
+            if (e.key === 'Enter' || e.keyCode === 13) {
+                e.preventDefault(); // Anulamos el Enter
+            }
+        });
+
+        // ==============================================================
+        // FIN DE SOLUCIÓN
+        // ==============================================================
 
         window.onload = async function() {
             if(sessionStorage.getItem("usuarioActual")) {
