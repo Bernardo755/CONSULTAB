@@ -59,8 +59,8 @@
         .btn-logout { background-color: #555; width: 100%; margin-top: 30px;}
         .btn-logout:hover { background-color: #333; }
         
-        .panel-bloqueo { background-color: #ffebee; border: 1px solid #ffcdd2; padding: 15px; border-radius: 8px; }
-        .panel-bitacora { background-color: #f5f5f5; border: 1px solid #e0e0e0; padding: 20px; border-radius: 8px; margin-top: 20px; }
+        .panel-bloqueo { background-color: #ffebee; border: 1px solid #ffcdd2; padding: 15px; border-radius: 8px; margin-top: 20px; }
+        .panel-bitacora { background-color: #f5f5f5; border: 1px solid #e0e0e0; padding: 20px; border-radius: 8px; }
 
         .contenedor-tabla { overflow-x: auto; margin-top: 20px; border: 1px solid #ddd; border-radius: 8px; }
         table { width: 100%; border-collapse: collapse; font-size: 14px; background: white; }
@@ -144,16 +144,8 @@
 
         <!-- ADMINISTRADORES -->
         <div id="panel-admin" class="sub-panel">
-            <div class="panel-bloqueo">
-                <h3>Control de Seguridad (Solo Administradores)</h3>
-                <p>Selecciona un usuario del sistema para revocar sus accesos de forma permanente:</p>
-                <div class="form-admin">
-                    <select id="listaUsuariosAdmin"><option>Cargando usuarios...</option></select>
-                    <button style="background-color: #d32f2f;" onclick="ejecutarBloqueo()">Bloquear Acceso</button>
-                </div>
-            </div>
-
-            <!-- NUEVA PANTALLA: PANELES DE AUDITORÍA Y BITÁCORA -->
+            
+            <!-- LA BITÁCORA SE MOVIÓ AQUÍ ARRIBA (ANTES DEL BOTÓN DE BLOQUEO) -->
             <div class="panel-bitacora">
                 <h3>Visualizador Estratégico de Bitácora</h3>
                 <p>Filtra y analiza los movimientos realizados en la plataforma en tiempo real:</p>
@@ -173,23 +165,33 @@
                     </div>
                 </div>
                 
+                <!-- Este contenedor iniciará completamente vacío hasta que se presione un botón -->
                 <div id="contenedor-bitacora"></div>
             </div>
+
+            <!-- PANEL DE SEGURIDAD (AHORA ABAJO DE LA BITÁCORA) -->
+            <div class="panel-bloqueo">
+                <h3>Control de Seguridad (Solo Administradores)</h3>
+                <p>Selecciona un usuario del sistema para revocar sus accesos de forma permanente:</p>
+                <div class="form-admin">
+                    <select id="listaUsuariosAdmin"><option>Cargando usuarios...</option></select>
+                    <button style="background-color: #d32f2f;" onclick="ejecutarBloqueo()">Bloquear Acceso</button>
+                </div>
+            </div>
+            
         </div>
 
         <button class="btn-logout" onclick="cerrarSesion()">Cerrar Sesión</button>
     </div>
 
     <script>
-        // REEMPLAZA ESTA URL CON TU ENLACE DE IMPLEMENTACIÓN ACTUALIZADO DE GOOGLE
-        const API_URL = 'https://script.google.com/macros/s/AKfycbzAK4SP87CxC9SMewEzIxvXRwVmFJKfbnD0zbivB3RIrPQuxEyobOskyXwNDG6i5oDBrQ/exec';
+        const API_URL = 'https://script.google.com/macros/s/AKfycbzBP1x440Zzq7HbHKNyqUuWj194LP04OKGUlcnqi027d_RiIFz1qjS_HnNQb6nQ4R5G/exec';
         
         let usuarioActual = ""; 
         let rolActual = "";
         let datosDispositivo = { ip: "Obteniendo...", ubicacion: "Obteniendo..." };
         let loteTemporal = [];
 
-        // CONTROL DE ENTER
         document.getElementById('pass').addEventListener('keypress', e => { 
             if (e.key === 'Enter') iniciarSesion(); 
         });
@@ -241,7 +243,7 @@
             if (rol === "ADMIN") {
                 document.getElementById('panel-admin').style.display = 'block';
                 cargarUsuariosParaAdmin();
-                limpiarYVerTodoBitacora(); // Ejecuta la primera carga de bitácora limpia
+                // Eliminado: ya no carga la bitácora automáticamente al entrar
             }
         }
 
@@ -268,7 +270,6 @@
             } catch (e) { msj.innerText = "Error en conexión con el servidor."; }
         }
 
-        // MÓDULO BITÁCORA (FRONT-END)
         async function consultarBitacoraServidor(fFecha, fUsuario) {
             const contenedor = document.getElementById('contenedor-bitacora');
             contenedor.innerHTML = '<p style="font-weight:bold; color:#00796b;">Extrayendo registros de auditoría...</p>';
@@ -298,7 +299,6 @@
                             </thead>
                             <tbody>`;
                 
-                // Iterar a la inversa para mostrar los registros más nuevos arriba
                 logs.reverse().forEach(l => {
                     html += `<tr>
                                 <td>${escaparHTML(l.fecha)}</td>
@@ -318,7 +318,7 @@
         }
 
         function buscarEnBitacora() {
-            const fecha = document.getElementById('filtroBitacoraFecha').value; // Retorna YYYY-MM-DD
+            const fecha = document.getElementById('filtroBitacoraFecha').value; 
             const usuario = document.getElementById('filtroBitacoraUsuario').value.trim();
             consultarBitacoraServidor(fecha, usuario);
         }
@@ -390,7 +390,6 @@
                     if(res.noEncontrados.length > 0) msg += `\nFolios no hallados: ${res.noEncontrados.join(", ")}`;
                     alert(msg);
                     loteTemporal = []; actualizarTablaInterfazLote();
-                    if (rolActual === "ADMIN") buscarEnBitacora(); // Refresca bitácora automáticamente si eres administrador
                 } else { alert("Error: " + res.error); }
             } catch(e) { alert("Error de red."); } 
             finally { btn.innerText = "🚀 Enviar todo el Bloque a Sheets"; btn.disabled = false; }
@@ -417,7 +416,7 @@
             if(!confirm(`¿Revocar acceso permanentemente a ${userParaBloquear}?`)) return;
             try {
                 const res = await enviarPeticion({ action: "bloquear_usuario", usuarioAQuitar: userParaBloquear });
-                if(res.exito) { alert("Usuario bloqueado."); cargarUsuariosParaAdmin(); buscarEnBitacora(); }
+                if(res.exito) { alert("Usuario bloqueado."); cargarUsuariosParaAdmin(); }
             } catch(e) { alert("Error."); }
         }
 
@@ -449,9 +448,9 @@
 
         async function cerrarSesion() {
             if(loteTemporal.length > 0 && !confirm("Perderás los cambios no enviados. ¿Salir?")) return;
-            if(usuarioActual) { await enviarPeticion({ action: "logout" }); }
             sessionStorage.clear(); usuarioActual = ""; rolActual = ""; loteTemporal = [];
             document.getElementById('contenedor-resultados').innerHTML = '';
+            document.getElementById('contenedor-bitacora').innerHTML = '';
             document.getElementById('valorBusqueda').value = '';
             document.getElementById('area-lote-temporal').style.display = 'none';
             document.getElementById('app-section').style.display = 'none';
