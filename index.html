@@ -145,7 +145,7 @@
         <!-- ADMINISTRADORES -->
         <div id="panel-admin" class="sub-panel">
             
-            <!-- LA BITÁCORA SE MOVIÓ AQUÍ ARRIBA (ANTES DEL BOTÓN DE BLOQUEO) -->
+            <!-- LA BITÁCORA SE MANTIENE ANTES DEL BLOQUEO -->
             <div class="panel-bitacora">
                 <h3>Visualizador Estratégico de Bitácora</h3>
                 <p>Filtra y analiza los movimientos realizados en la plataforma en tiempo real:</p>
@@ -165,11 +165,11 @@
                     </div>
                 </div>
                 
-                <!-- Este contenedor iniciará completamente vacío hasta que se presione un botón -->
+                <!-- Permanece vacío por defecto hasta interactuar con los botones superiores -->
                 <div id="contenedor-bitacora"></div>
             </div>
 
-            <!-- PANEL DE SEGURIDAD (AHORA ABAJO DE LA BITÁCORA) -->
+            <!-- PANEL DE SEGURIDAD -->
             <div class="panel-bloqueo">
                 <h3>Control de Seguridad (Solo Administradores)</h3>
                 <p>Selecciona un usuario del sistema para revocar sus accesos de forma permanente:</p>
@@ -185,7 +185,8 @@
     </div>
 
     <script>
-        const API_URL = 'https://script.google.com/macros/s/AKfycbzBP1x440Zzq7HbHKNyqUuWj194LP04OKGUlcnqi027d_RiIFz1qjS_HnNQb6nQ4R5G/exec';
+        // REEMPLAZA ESTA URL CON TU ENLACE DE IMPLEMENTACIÓN DE GOOGLE APPS SCRIPT
+        const API_URL = 'https://script.google.com/macros/s/AKfycbxZl8SQsVUeXrwV0IyeokP5XBvbE1xiX0on2DWvcqlnMbJ2rugNXJ8ax-R878pFNwb5tg/exec';
         
         let usuarioActual = ""; 
         let rolActual = "";
@@ -243,7 +244,6 @@
             if (rol === "ADMIN") {
                 document.getElementById('panel-admin').style.display = 'block';
                 cargarUsuariosParaAdmin();
-                // Eliminado: ya no carga la bitácora automáticamente al entrar
             }
         }
 
@@ -320,6 +320,12 @@
         function buscarEnBitacora() {
             const fecha = document.getElementById('filtroBitacoraFecha').value; 
             const usuario = document.getElementById('filtroBitacoraUsuario').value.trim();
+            
+            // Validación para asegurar carga controlada bajo demanda
+            if (!fecha && !usuario) {
+                alert("Por favor, selecciona una fecha o escribe un usuario para filtrar. Si deseas ver todo el historial completo sin filtros, presiona el botón 'Ver Todo'.");
+                return;
+            }
             consultarBitacoraServidor(fecha, usuario);
         }
 
@@ -381,13 +387,13 @@
             if(loteTemporal.length === 0) return;
             const btn = document.getElementById('btnEnviarBloque');
             if(!confirm(`¿Deseas sincronizar este bloque de ${loteTemporal.length} registros con Google Sheets?`)) return;
-            btn.innerText = "Transfiriendo paquete de datos masivo..."; btn.disabled = true;
+            btn.innerText = "Transfiriendo paquete mediante búsqueda activa..."; btn.disabled = true;
 
             try {
                 const res = await enviarPeticion({ action: "actualizar_lote", lote: loteTemporal });
                 if(res.exito) {
-                    let msg = `Procesados: ${res.exitosos} registros con éxito.`;
-                    if(res.noEncontrados.length > 0) msg += `\nFolios no hallados: ${res.noEncontrados.join(", ")}`;
+                    let msg = `Procesados: ${res.exitosos} registros con éxito en Google Sheets.`;
+                    if(res.noEncontrados.length > 0) msg += `\n\nFolios no hallados en la base: ${res.noEncontrados.join(", ")}`;
                     alert(msg);
                     loteTemporal = []; actualizarTablaInterfazLote();
                 } else { alert("Error: " + res.error); }
