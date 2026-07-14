@@ -145,27 +145,28 @@
         <!-- ADMINISTRADORES -->
         <div id="panel-admin" class="sub-panel">
             
-            <!-- LA BITÁCORA SE MANTIENE ANTES DEL BLOQUEO -->
             <div class="panel-bitacora">
                 <h3>Visualizador Estratégico de Bitácora</h3>
                 <p>Filtra y analiza los movimientos realizados en la plataforma en tiempo real:</p>
                 
                 <div style="display: flex; flex-direction: row; gap: 15px; flex-wrap: wrap; background: #e0f2f1; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
                     <div style="display: flex; flex-direction: column; gap: 5px;">
-                        <label style="font-weight: bold; font-size: 13px; color: #004d40;">Por Día:</label>
-                        <input type="date" id="filtroBitacoraFecha">
+                        <label style="font-weight: bold; font-size: 13px; color: #004d40;">Por Día Registrado:</label>
+                        <select id="filtroBitacoraFecha" onchange="buscarEnBitacora()">
+                            <option value="">Cargando fechas...</option>
+                        </select>
                     </div>
                     <div style="display: flex; flex-direction: column; gap: 5px;">
-                        <label style="font-weight: bold; font-size: 13px; color: #004d40;">Por Usuario:</label>
-                        <input type="text" id="filtroBitacoraUsuario" placeholder="Nombre de usuario...">
+                        <label style="font-weight: bold; font-size: 13px; color: #004d40;">Por Usuario Activo:</label>
+                        <select id="filtroBitacoraUsuario" onchange="buscarEnBitacora()">
+                            <option value="">Cargando usuarios...</option>
+                        </select>
                     </div>
-                    <div style="display: flex; align-items: flex-end; gap: 10px;">
-                        <button onclick="buscarEnBitacora()" style="background-color: #00796b;">Filtrar Bitácora</button>
-                        <button onclick="limpiarYVerTodoBitacora()" style="background-color: #757575;">Ver Todo</button>
+                    <div style="display: flex; align-items: flex-end;">
+                        <button onclick="limpiarYVerTodoBitacora()" style="background-color: #757575;">Ver Todo / Limpiar</button>
                     </div>
                 </div>
                 
-                <!-- Permanece vacío por defecto hasta interactuar con los botones superiores -->
                 <div id="contenedor-bitacora"></div>
             </div>
 
@@ -186,7 +187,7 @@
 
     <script>
         // REEMPLAZA ESTA URL CON TU ENLACE DE IMPLEMENTACIÓN DE GOOGLE APPS SCRIPT
-        const API_URL = 'https://script.google.com/macros/s/AKfycbxZl8SQsVUeXrwV0IyeokP5XBvbE1xiX0on2DWvcqlnMbJ2rugNXJ8ax-R878pFNwb5tg/exec';
+        const API_URL = 'https://script.google.com/macros/s/AKfycbzmSnSBhw2QTNQesrJgLju1xrE754t5s_foOtioXoCeQPKX5_hcrbQvDFEuJ1ral-3cJA/exec';
         
         let usuarioActual = ""; 
         let rolActual = "";
@@ -244,6 +245,7 @@
             if (rol === "ADMIN") {
                 document.getElementById('panel-admin').style.display = 'block';
                 cargarUsuariosParaAdmin();
+                cargarFiltrosDesplegablesBitacora();
             }
         }
 
@@ -270,9 +272,40 @@
             } catch (e) { msj.innerText = "Error en conexión con el servidor."; }
         }
 
+        async function cargarFiltrosDesplegablesBitacora() {
+            const selectFecha = document.getElementById('filtroBitacoraFecha');
+            const selectUsuario = document.getElementById('filtroBitacoraUsuario');
+            
+            try {
+                const filtros = await enviarPeticion({ action: "obtener_filtros_bitacora" });
+                
+                selectFecha.innerHTML = '<option value="">-- Todas las fechas --</option>';
+                selectUsuario.innerHTML = '<option value="">-- Todos los usuarios --</option>';
+                
+                if (filtros.fechas && filtros.fechas.length > 0) {
+                    filtros.fechas.forEach(f => {
+                        let opt = document.createElement('option');
+                        opt.value = f; opt.innerText = f;
+                        selectFecha.appendChild(opt);
+                    });
+                }
+                
+                if (filtros.usuarios && filtros.usuarios.length > 0) {
+                    filtros.usuarios.forEach(u => {
+                        let opt = document.createElement('option');
+                        opt.value = u; opt.innerText = u;
+                        selectUsuario.appendChild(opt);
+                    });
+                }
+            } catch (e) {
+                selectFecha.innerHTML = '<option value="">Error al cargar</option>';
+                selectUsuario.innerHTML = '<option value="">Error al cargar</option>';
+            }
+        }
+
         async function consultarBitacoraServidor(fFecha, fUsuario) {
             const contenedor = document.getElementById('contenedor-bitacora');
-            contenedor.innerHTML = '<p style="font-weight:bold; color:#00796b;">Extrayendo registros de auditoría...</p>';
+            contenedor.innerHTML = '<p style="font-weight:bold; color:#00796b;">Filtrando registros de auditoría...</p>';
             
             try {
                 const logs = await enviarPeticion({
@@ -287,7 +320,7 @@
                 }
 
                 if(!Array.isArray(logs) || logs.length === 0) {
-                    contenedor.innerHTML = '<p style="color:orange; font-weight:bold;">No se encontraron eventos en la bitácora con los filtros especificados.</p>';
+                    contenedor.innerHTML = '<p style="color:orange; font-weight:bold;">No se encontraron eventos en la bitácora para esta selección.</p>';
                     return;
                 }
 
@@ -313,17 +346,17 @@
                 contenedor.innerHTML = html;
 
             } catch(e) {
-                contenedor.innerHTML = '<p style="color:red; font-weight:bold;">Error crítico de comunicación al procesar la bitácora.</p>';
+                contenedor.innerHTML = '<p style="color:red; font-weight:bold;">Error de comunicación al procesar la bitácora.</p>';
             }
         }
 
         function buscarEnBitacora() {
             const fecha = document.getElementById('filtroBitacoraFecha').value; 
-            const usuario = document.getElementById('filtroBitacoraUsuario').value.trim();
+            const usuario = document.getElementById('filtroBitacoraUsuario').value;
             
-            // Validación para asegurar carga controlada bajo demanda
+            // Si ambos están vacíos, no despliega nada por defecto
             if (!fecha && !usuario) {
-                alert("Por favor, selecciona una fecha o escribe un usuario para filtrar. Si deseas ver todo el historial completo sin filtros, presiona el botón 'Ver Todo'.");
+                document.getElementById('contenedor-bitacora').innerHTML = '';
                 return;
             }
             consultarBitacoraServidor(fecha, usuario);
@@ -332,7 +365,10 @@
         function limpiarYVerTodoBitacora() {
             document.getElementById('filtroBitacoraFecha').value = "";
             document.getElementById('filtroBitacoraUsuario').value = "";
+            // Carga completa bajo demanda explícita
             consultarBitacoraServidor("", "");
+            // Recargamos los filtros por si hubo nuevas acciones en la sesión
+            cargarFiltrosDesplegablesBitacora();
         }
 
         function cambiarOpcionesEstatus() {
@@ -387,17 +423,17 @@
             if(loteTemporal.length === 0) return;
             const btn = document.getElementById('btnEnviarBloque');
             if(!confirm(`¿Deseas sincronizar este bloque de ${loteTemporal.length} registros con Google Sheets?`)) return;
-            btn.innerText = "Transfiriendo paquete mediante búsqueda activa..."; btn.disabled = true;
+            btn.innerText = "Procesando matriz a alta velocidad..."; btn.disabled = true;
 
             try {
                 const res = await enviarPeticion({ action: "actualizar_lote", lote: loteTemporal });
                 if(res.exito) {
-                    let msg = `Procesados: ${res.exitosos} registros con éxito en Google Sheets.`;
+                    let msg = `¡Éxito total! Se actualizaron ${res.exitosos} registros instantáneamente en Google Sheets.`;
                     if(res.noEncontrados.length > 0) msg += `\n\nFolios no hallados en la base: ${res.noEncontrados.join(", ")}`;
                     alert(msg);
                     loteTemporal = []; actualizarTablaInterfazLote();
                 } else { alert("Error: " + res.error); }
-            } catch(e) { alert("Error de red."); } 
+            } catch(e) { alert("Error de red o timeout."); } 
             finally { btn.innerText = "🚀 Enviar todo el Bloque a Sheets"; btn.disabled = false; }
         }
 
