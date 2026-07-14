@@ -60,7 +60,8 @@
         .btn-logout:hover { background-color: #333; }
         
         .panel-bloqueo { background-color: #ffebee; border: 1px solid #ffcdd2; padding: 15px; border-radius: 8px; margin-top: 20px; }
-        .panel-bitacora { background-color: #f5f5f5; border: 1px solid #e0e0e0; padding: 20px; border-radius: 8px; }
+        .panel-bitacora { background-color: #f5f5f5; border: 1px solid #e0e0e0; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+        .panel-analisis { background-color: #e3f2fd; border: 1px solid #bbdefb; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
 
         .contenedor-tabla { overflow-x: auto; margin-top: 20px; border: 1px solid #ddd; border-radius: 8px; }
         table { width: 100%; border-collapse: collapse; font-size: 14px; background: white; }
@@ -70,6 +71,14 @@
         
         .tabla-lote th { background: #37474f; }
         .btn-del { background: #c62828; padding: 5px 10px; font-size: 12px; }
+
+        /* Estilos específicos para la sección de gráfica de barras nativa */
+        .grafica-contenedor { margin-top: 20px; background: white; padding: 15px; border-radius: 8px; border: 1px solid #cfd8dc; }
+        .barra-fila { display: flex; align-items: center; margin-bottom: 10px; font-size: 13px; }
+        .barra-etiqueta { width: 220px; font-weight: bold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: right; padding-right: 15px; color: #37474f; }
+        .barra-riel { flex-grow: 1; background: #eceff1; height: 22px; border-radius: 4px; position: relative; }
+        .barra-relleno { background: rgb(156, 35, 72); height: 100%; border-radius: 4px; transition: width 0.4s ease-out; }
+        .barra-valor { width: 60px; text-align: left; padding-left: 15px; font-weight: bold; color: #1a237e; }
     </style>
 </head>
 <body>
@@ -145,10 +154,10 @@
         <!-- ADMINISTRADORES -->
         <div id="panel-admin" class="sub-panel">
             
+            <!-- SECCIÓN 1: BITÁCORA -->
             <div class="panel-bitacora">
                 <h3>Visualizador Estratégico de Bitácora</h3>
                 <p>Filtra y analiza los movimientos realizados en la plataforma en tiempo real:</p>
-                
                 <div style="display: flex; flex-direction: row; gap: 15px; flex-wrap: wrap; background: #e0f2f1; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
                     <div style="display: flex; flex-direction: column; gap: 5px;">
                         <label style="font-weight: bold; font-size: 13px; color: #004d40;">Por Día Registrado:</label>
@@ -166,11 +175,50 @@
                         <button onclick="limpiarYVerTodoBitacora()" style="background-color: #757575;">Ver Todo / Limpiar</button>
                     </div>
                 </div>
-                
                 <div id="contenedor-bitacora"></div>
             </div>
 
-            <!-- PANEL DE SEGURIDAD -->
+            <!-- NUEVA SECCIÓN 2: TABLA DINÁMICA ANALÍTICA Y GRÁFICO (SOLO ADMIN) -->
+            <div class="panel-analisis">
+                <h3>Módulo Analítico Estilo Tabla Dinámica</h3>
+                <p>Cruza múltiples criterios de la Base de datos para obtener frecuencias cuantitativas y gráficas instantáneas:</p>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; background: #ffffff; padding: 15px; border-radius: 8px; border: 1px solid #b2dfdb;">
+                    <div style="display: flex; flex-direction: column; gap: 4px;">
+                        <label style="font-weight: bold; font-size: 12px; color: #0d47a1;">Mes de Remesa (Col Q):</label>
+                        <select id="anlRemesa" onchange="ejecutarAnalisisDinamico()"><option value="">-- Todos --</option></select>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 4px;">
+                        <label style="font-weight: bold; font-size: 12px; color: #0d47a1;">Estatus (Col S):</label>
+                        <select id="anlEstatus" onchange="ejecutarAnalisisDinamico()"><option value="">-- Todos --</option></select>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 4px;">
+                        <label style="font-weight: bold; font-size: 12px; color: #0d47a1;">Programa (Col M):</label>
+                        <select id="anlPrograma" onchange="ejecutarAnalisisDinamico()"><option value="">-- Todos --</option></select>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 4px;">
+                        <label style="font-weight: bold; font-size: 12px; color: #0d47a1;">Municipio (Col D):</label>
+                        <select id="anlMunicipio" onchange="ejecutarAnalisisDinamico()"><option value="">-- Todos --</option></select>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 4px;">
+                        <label style="font-weight: bold; font-size: 12px; color: #0d47a1;">CCT (Col F):</label>
+                        <select id="anlCct" onchange="ejecutarAnalisisDinamico()"><option value="">-- Todos --</option></select>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 4px;">
+                        <label style="font-weight: bold; font-size: 12px; color: #0d47a1;">ID SARE (Col B):</label>
+                        <select id="anlSare" onchange="ejecutarAnalisisDinamico()"><option value="">-- Todos --</option></select>
+                    </div>
+                </div>
+
+                <div style="margin-top: 15px; text-align: right;">
+                    <button onclick="limpiarFiltrosAnalisis()" style="background-color: #607d8b; padding: 8px 15px; font-size: 14px;">Restablecer Filtros</button>
+                </div>
+
+                <!-- Panel de Carga de Métricas -->
+                <div id="contenedor-resultados-analisis" style="margin-top: 20px;"></div>
+            </div>
+
+            <!-- SECCIÓN 3: PANEL DE SEGURIDAD -->
             <div class="panel-bloqueo">
                 <h3>Control de Seguridad (Solo Administradores)</h3>
                 <p>Selecciona un usuario del sistema para revocar sus accesos de forma permanente:</p>
@@ -186,23 +234,16 @@
     </div>
 
     <script>
-        // REEMPLAZA ESTA URL CON TU ENLACE DE IMPLEMENTACIÓN DE GOOGLE APPS SCRIPT
-        const API_URL = 'https://script.google.com/macros/s/AKfycbzmSnSBhw2QTNQesrJgLju1xrE754t5s_foOtioXoCeQPKX5_hcrbQvDFEuJ1ral-3cJA/exec';
+        const API_URL = 'https://script.google.com/macros/s/AKfycby-ly9-xdCRenwXi_MVj6ZSGukXXNg5FD4gaNKOquhKVfg_m2lLXAYaWQc2XS4nG5rzQA/exec';
         
         let usuarioActual = ""; 
         let rolActual = "";
         let datosDispositivo = { ip: "Obteniendo...", ubicacion: "Obteniendo..." };
         let loteTemporal = [];
 
-        document.getElementById('pass').addEventListener('keypress', e => { 
-            if (e.key === 'Enter') iniciarSesion(); 
-        });
-        document.getElementById('valorBusqueda').addEventListener('keydown', e => { 
-            if (e.key === 'Enter') e.preventDefault();
-        });
-        document.getElementById('editFolio').addEventListener('keydown', e => { 
-            if (e.key === 'Enter') e.preventDefault();
-        });
+        document.getElementById('pass').addEventListener('keypress', e => { if (e.key === 'Enter') iniciarSesion(); });
+        document.getElementById('valorBusqueda').addEventListener('keydown', e => { if (e.key === 'Enter') e.preventDefault(); });
+        document.getElementById('editFolio').addEventListener('keydown', e => { if (e.key === 'Enter') e.preventDefault(); });
 
         window.onload = async function() {
             if(sessionStorage.getItem("usuarioActual")) {
@@ -246,6 +287,7 @@
                 document.getElementById('panel-admin').style.display = 'block';
                 cargarUsuariosParaAdmin();
                 cargarFiltrosDesplegablesBitacora();
+                cargarListasDesplegablesAnalisis();
             }
         }
 
@@ -275,99 +317,160 @@
         async function cargarFiltrosDesplegablesBitacora() {
             const selectFecha = document.getElementById('filtroBitacoraFecha');
             const selectUsuario = document.getElementById('filtroBitacoraUsuario');
-            
             try {
-                const filtros = await enviarPeticion({ action: "obtener_filtros_bitacora" });
-                
+                const filtros = await enviarPeticion({ action: "obtener_filters_bitacora" });
                 selectFecha.innerHTML = '<option value="">-- Todas las fechas --</option>';
                 selectUsuario.innerHTML = '<option value="">-- Todos los usuarios --</option>';
+                if (filtros.fechas) filtros.fechas.forEach(f => { let opt = document.createElement('option'); opt.value = f; opt.innerText = f; selectFecha.appendChild(opt); });
+                if (filtros.usuarios) filtros.usuarios.forEach(u => { let opt = document.createElement('option'); opt.value = u; opt.innerText = u; selectUsuario.appendChild(opt); });
+            } catch (e) {}
+        }
+
+        // --- MÓDULO NUEVO: INICIALIZAR DESPLEGABLES DE LA TABLA DINÁMICA ---
+        async function cargarListasDesplegablesAnalisis() {
+            const ids = ['anlRemesa', 'anlEstatus', 'anlPrograma', 'anlMunicipio', 'anlCct', 'anlSare'];
+            ids.forEach(id => document.getElementById(id).innerHTML = '<option value="">Cargando datos...</option>');
+            
+            try {
+                const f = await enviarPeticion({ action: "obtener_filtros_analisis" });
                 
-                if (filtros.fechas && filtros.fechas.length > 0) {
-                    filtros.fechas.forEach(f => {
-                        let opt = document.createElement('option');
-                        opt.value = f; opt.innerText = f;
-                        selectFecha.appendChild(opt);
-                    });
-                }
-                
-                if (filtros.usuarios && filtros.usuarios.length > 0) {
-                    filtros.usuarios.forEach(u => {
-                        let opt = document.createElement('option');
-                        opt.value = u; opt.innerText = u;
-                        selectUsuario.appendChild(opt);
-                    });
-                }
+                llenarCombo('anlRemesa', f.remesa, '-- Todas las Remesas --');
+                llenarCombo('anlEstatus', f.estatus, '-- Todos los Estatus --');
+                llenarCombo('anlPrograma', f.programa, '-- Todos los Programas --');
+                llenarCombo('anlMunicipio', f.municipio, '-- Todos los Municipios --');
+                llenarCombo('anlCct', f.cct, '-- Todos los CCT --');
+                llenarCombo('anlSare', f.sare, '-- Todos los SARE --');
+
+                // Ejecución inicial con todo en blanco para mostrar panorámica inicial
+                ejecutarAnalisisDinamico();
             } catch (e) {
-                selectFecha.innerHTML = '<option value="">Error al cargar</option>';
-                selectUsuario.innerHTML = '<option value="">Error al cargar</option>';
+                ids.forEach(id => document.getElementById(id).innerHTML = '<option value="">Error al cargar</option>');
             }
+        }
+
+        function llenarCombo(id, lista, textoDefault) {
+            const select = document.getElementById(id);
+            select.innerHTML = `<option value="">${textoDefault}</option>`;
+            if(lista) {
+                lista.forEach(val => {
+                    let opt = document.createElement('option');
+                    opt.value = val; opt.innerText = val;
+                    select.appendChild(opt);
+                });
+            }
+        }
+
+        // --- MÓDULO NUEVO: EJECUTAR ANÁLISIS DINÁMICO ---
+        async function ejecutarAnalisisDinamico() {
+            const contenedor = document.getElementById('contenedor-resultados-analisis');
+            contenedor.innerHTML = '<p style="color:#0d47a1; font-weight:bold;">Calculando cruces dinámicos en memoria...</p>';
+
+            var params = {
+                action: "ejecutar_analisis_base",
+                fRemesa: document.getElementById('anlRemesa').value,
+                fEstatus: document.getElementById('anlEstatus').value,
+                fPrograma: document.getElementById('anlPrograma').value,
+                fMunicipio: document.getElementById('anlMunicipio').value,
+                fCct: document.getElementById('anlCct').value,
+                fSare: document.getElementById('anlSare').value
+            };
+
+            try {
+                const res = await enviarPeticion(params);
+                
+                if(res.total === 0) {
+                    contenedor.innerHTML = '<div style="background:#fff3e0; color:#e65100; padding:15px; border-radius:6px; font-weight:bold; border:1px solid #ffe0b2;">Ningún registro de la base de datos coincide con el cruce de filtros seleccionado.</div>';
+                    return;
+                }
+
+                // ESTRUCTURACIÓN DE TABLA DINÁMICA MUESTRA
+                let html = `
+                    <div style="background:white; padding:20px; border-radius:8px; border:1px solid #b2ebf2; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+                        <div style="font-size:20px; font-weight:bold; color:#0d47a1; margin-bottom:15px;">
+                            Total Coincidencias Cruzadas: <span style="background:#0d47a1; color:white; padding:2px 10px; border-radius:12px;">${res.total}</span>
+                        </div>
+                        
+                        <h4 style="margin:20px 0 5px 0; color:#37474f;">Resumen de Frecuencias por Estatus</h4>
+                        <div class="contenedor-tabla">
+                            <table>
+                                <thead>
+                                    <tr style="background:#1976d2; color:white;">
+                                        <th>Variable Estatus</th><th>Cantidad Conteo</th><th>Distribución Porcentual</th>
+                                    </tr>
+                                </thead>
+                                <tbody>`;
+
+                for(let est in res.breakdownEstatus) {
+                    let cant = res.breakdownEstatus[est];
+                    let porc = ((cant / res.total) * 100).toFixed(1);
+                    html += `<tr><td><b>${escaparHTML(est)}</b></td><td>${cant}</td><td><span style="color:#00796b; font-weight:bold;">${porc}%</span></td></tr>`;
+                }
+
+                html += `        </tbody>
+                            </table>
+                        </div>
+
+                        <!-- GRÁFICA DINÁMICA AUTO-RENDERIZABLE -->
+                        <h4 style="margin:25px 0 5px 0; color:#37474f;">Representación Gráfica del Análisis</h4>
+                        <div class="grafica-contenedor">`;
+
+                for(let est in res.breakdownEstatus) {
+                    let cant = res.breakdownEstatus[est];
+                    let porc = ((cant / res.total) * 100).toFixed(1);
+                    html += `
+                        <div class="barra-fila">
+                            <div class="barra-etiqueta" title="${escaparHTML(est)}">${escaparHTML(est)}</div>
+                            <div class="barra-riel">
+                                <div class="barra-relleno" style="width: ${porc}%;"></div>
+                            </div>
+                            <div class="barra-valor">${cant} <small style="color:#777; font-weight:normal;">(${porc}%)</small></div>
+                        </div>`;
+                }
+
+                html += `</div></div>`;
+                contenedor.innerHTML = html;
+
+            } catch(e) {
+                contenedor.innerHTML = '<div style="color:red; font-weight:bold;">Error al intentar compilar la tabla analítica.</div>';
+            }
+        }
+
+        function limpiarFiltrosAnalisis() {
+            document.getElementById('anlRemesa').value = "";
+            document.getElementById('anlEstatus').value = "";
+            document.getElementById('anlPrograma').value = "";
+            document.getElementById('anlMunicipio').value = "";
+            document.getElementById('anlCct').value = "";
+            document.getElementById('anlSare').value = "";
+            ejecutarAnalisisDinamico();
         }
 
         async function consultarBitacoraServidor(fFecha, fUsuario) {
             const contenedor = document.getElementById('contenedor-bitacora');
             contenedor.innerHTML = '<p style="font-weight:bold; color:#00796b;">Filtrando registros de auditoría...</p>';
-            
             try {
-                const logs = await enviarPeticion({
-                    action: "obtener_bitacora",
-                    filtroFecha: fFecha,
-                    filtroUsuario: fUsuario
-                });
-
-                if(logs.error) {
-                    contenedor.innerHTML = `<p style="color:red; font-weight:bold;">${escaparHTML(logs.error)}</p>`;
-                    return;
-                }
-
-                if(!Array.isArray(logs) || logs.length === 0) {
-                    contenedor.innerHTML = '<p style="color:orange; font-weight:bold;">No se encontraron eventos en la bitácora para esta selección.</p>';
-                    return;
-                }
-
-                let html = `<div class="contenedor-tabla"><table>
-                            <thead>
-                                <tr style="background:#004d40; color:white;">
-                                    <th>Fecha / Hora</th><th>Usuario</th><th>Acción Ejecutada</th><th>Dirección IP</th><th>Ubicación</th>
-                                </tr>
-                            </thead>
-                            <tbody>`;
-                
+                const logs = await enviarPeticion({ action: "obtener_bitacora", filtroFecha: fFecha, filtroUsuario: fUsuario });
+                if(logs.error) { contenedor.innerHTML = `<p style="color:red; font-weight:bold;">${escaparHTML(logs.error)}</p>`; return; }
+                if(!Array.isArray(logs) || logs.length === 0) { contenedor.innerHTML = '<p style="color:orange; font-weight:bold;">No se encontraron eventos en la bitácora.</p>'; return; }
+                let html = `<div class="contenedor-tabla"><table><thead><tr style="background:#004d40; color:white;"><th>Fecha / Hora</th><th>Usuario</th><th>Acción Ejecutada</th><th>Dirección IP</th><th>Ubicación</th></tr></thead><tbody>`;
                 logs.reverse().forEach(l => {
-                    html += `<tr>
-                                <td>${escaparHTML(l.fecha)}</td>
-                                <td><b>${escaparHTML(l.usuario)}</b></td>
-                                <td><span style="color:#b71c1c; font-weight:600;">${escaparHTML(l.accion)}</span></td>
-                                <td><code>${escaparHTML(l.ip)}</code></td>
-                                <td><small style="color:#555;">${escaparHTML(l.ubicacion)}</small></td>
-                             </tr>`;
+                    html += `<tr><td>${escaparHTML(l.fecha)}</td><td><b>${escaparHTML(l.usuario)}</b></td><td><span style="color:#b71c1c; font-weight:600;">${escaparHTML(l.accion)}</span></td><td><code>${escaparHTML(l.ip)}</code></td><td><small style="color:#555;">${escaparHTML(l.ubicacion)}</small></td></tr>`;
                 });
-                
-                html += '</tbody></table></div>';
-                contenedor.innerHTML = html;
-
-            } catch(e) {
-                contenedor.innerHTML = '<p style="color:red; font-weight:bold;">Error de comunicación al procesar la bitácora.</p>';
-            }
+                html += '</tbody></table></div>'; contenedor.innerHTML = html;
+            } catch(e) { contenedor.innerHTML = '<p style="color:red; font-weight:bold;">Error de comunicación.</p>'; }
         }
 
         function buscarEnBitacora() {
             const fecha = document.getElementById('filtroBitacoraFecha').value; 
             const usuario = document.getElementById('filtroBitacoraUsuario').value;
-            
-            // Si ambos están vacíos, no despliega nada por defecto
-            if (!fecha && !usuario) {
-                document.getElementById('contenedor-bitacora').innerHTML = '';
-                return;
-            }
+            if (!fecha && !usuario) { document.getElementById('contenedor-bitacora').innerHTML = ''; return; }
             consultarBitacoraServidor(fecha, usuario);
         }
 
         function limpiarYVerTodoBitacora() {
             document.getElementById('filtroBitacoraFecha').value = "";
             document.getElementById('filtroBitacoraUsuario').value = "";
-            // Carga completa bajo demanda explícita
             consultarBitacoraServidor("", "");
-            // Recargamos los filtros por si hubo nuevas acciones en la sesión
             cargarFiltrosDesplegablesBitacora();
         }
 
@@ -379,11 +482,7 @@
             contenedorCampos.style.display = 'flex';
             selectorEstatus.innerHTML = '';
             let opciones = (actividad === "SOBRANTES") ? ["SOBRANTE", "SOBRANTE CON OBSERVACIONES"] : ["ENTREGADA", "ENVIADA A OTRO ESTADO", "ENVIADA A OTRA SARE"];
-            opciones.forEach(opt => {
-                let el = document.createElement('option');
-                el.value = opt; el.innerText = opt;
-                selectorEstatus.appendChild(el);
-            });
+            opciones.forEach(opt => { let el = document.createElement('option'); el.value = opt; el.innerText = opt; selectorEstatus.appendChild(el); });
         }
 
         function agregarAlBloqueLocal() {
@@ -393,16 +492,12 @@
             const folio = folioInput.value.trim();
             if(!folio) return alert("Por favor ingresa o escanea un folio.");
             if(loteTemporal.some(item => item.folio === folio)) return alert("Este folio ya está en la lista de espera.");
-            
             loteTemporal.push({ folio: folio, estatus: estatusInput.value, observaciones: obsInput.value.trim() });
             folioInput.value = ""; obsInput.value = ""; folioInput.focus();
             actualizarTablaInterfazLote();
         }
 
-        function eliminarDelBloqueLocal(index) {
-            loteTemporal.splice(index, 1);
-            actualizarTablaInterfazLote();
-        }
+        function eliminarDelBloqueLocal(index) { loteTemporal.splice(index, 1); actualizarTablaInterfazLote(); }
 
         function actualizarTablaInterfazLote() {
             const area = document.getElementById('area-lote-temporal');
@@ -412,9 +507,7 @@
             area.style.display = 'block'; tbody.innerHTML = '';
             loteTemporal.forEach((item, index) => {
                 const tr = document.createElement('tr');
-                tr.innerHTML = `<td><b>${escaparHTML(item.folio)}</b></td><td>${escaparHTML(item.estatus)}</td>
-                                <td><span style="color:#666; font-style:italic;">${escaparHTML(item.observaciones) || 'Sin observaciones'}</span></td>
-                                <td><button class="btn-del" onclick="eliminarDelBloqueLocal(${index})">Quitar</button></td>`;
+                tr.innerHTML = `<td><b>${escaparHTML(item.folio)}</b></td><td>${escaparHTML(item.estatus)}</td><td><span style="color:#666; font-style:italic;">${escaparHTML(item.observaciones) || 'Sin observaciones'}</span></td><td><button class="btn-del" onclick="eliminarDelBloqueLocal(${index})">Quitar</button></td>`;
                 tbody.appendChild(tr);
             });
         }
@@ -424,16 +517,15 @@
             const btn = document.getElementById('btnEnviarBloque');
             if(!confirm(`¿Deseas sincronizar este bloque de ${loteTemporal.length} registros con Google Sheets?`)) return;
             btn.innerText = "Procesando matriz a alta velocidad..."; btn.disabled = true;
-
             try {
                 const res = await enviarPeticion({ action: "actualizar_lote", lote: loteTemporal });
                 if(res.exito) {
-                    let msg = `¡Éxito total! Se actualizaron ${res.exitosos} registros instantáneamente en Google Sheets.`;
-                    if(res.noEncontrados.length > 0) msg += `\n\nFolios no hallados en la base: ${res.noEncontrados.join(", ")}`;
-                    alert(msg);
-                    loteTemporal = []; actualizarTablaInterfazLote();
+                    let msg = `¡Éxito total! Se actualizaron ${res.exitosos} registros instantáneamente.`;
+                    if(res.noEncontrados.length > 0) msg += `\n\nFolios no hallados: ${res.noEncontrados.join(", ")}`;
+                    alert(msg); loteTemporal = []; actualizarTablaInterfazLote();
+                    if(rolActual === "ADMIN") ejecutarAnalisisDinamico(); // Recalcula la gráfica automáticamente
                 } else { alert("Error: " + res.error); }
-            } catch(e) { alert("Error de red o timeout."); } 
+            } catch(e) { alert("Error de red."); } 
             finally { btn.innerText = "🚀 Enviar todo el Bloque a Sheets"; btn.disabled = false; }
         }
 
@@ -443,12 +535,7 @@
                 const usuarios = await enviarPeticion({ action: "obtener_usuarios" });
                 if(usuarios.error) return select.innerHTML = `<option>${escaparHTML(usuarios.error)}</option>`;
                 select.innerHTML = '';
-                usuarios.forEach(u => {
-                    if(u.usuario !== usuarioActual) {
-                        let opt = document.createElement('option'); opt.value = u.usuario;
-                        opt.innerText = `${u.usuario} [${u.estado}]`; select.appendChild(opt);
-                    }
-                });
+                usuarios.forEach(u => { if(u.usuario !== usuarioActual) { let opt = document.createElement('option'); opt.value = u.usuario; opt.innerText = `${u.usuario} [${u.estado}]`; select.appendChild(opt); } });
             } catch(e) { select.innerHTML = '<option>Error al cargar usuarios</option>'; }
         }
 
@@ -470,19 +557,13 @@
             const contenedor = document.getElementById('contenedor-resultados');
             if (!valor) return alert("Por favor ingresa un valor.");
             contenedor.innerHTML = '<p style="font-weight:bold; color: #555;">Consultando base de datos...</p>';
-
             try {
                 const resultados = await enviarPeticion({ action: "buscar", columna: columna, valor: valor });
                 if (resultados && resultados.error) { contenedor.innerHTML = `<p style="color:red; font-weight:bold;">${escaparHTML(resultados.error)}</p>`; return; }
                 if (!Array.isArray(resultados) || resultados.length === 0) { contenedor.innerHTML = '<p style="color:orange; font-weight:bold;">Sin coincidencias.</p>'; return; }
-
-                let html = `<div class="contenedor-tabla"><table><thead><tr>
-                            <th>FOLIO</th><th>NOMBRE</th><th>ESTATUS</th><th>SARE</th><th>MUNICIPIO</th><th>CCT</th><th>ESCUELA</th><th>NIVEL</th><th>CURP</th><th>MES_REMESA</th><th>OBSERVACIONES</th>
-                            </tr></thead><tbody>`;
+                let html = `<div class="contenedor-tabla"><table><thead><tr><th>FOLIO</th><th>NOMBRE</th><th>ESTATUS</th><th>SARE</th><th>MUNICIPIO</th><th>CCT</th><th>ESCUELA</th><th>NIVEL</th><th>CURP</th><th>MES_REMESA</th><th>OBSERVACIONES</th></tr></thead><tbody>`;
                 resultados.forEach(f => {
-                    html += `<tr><td><b>${escaparHTML(f.FOLIO || f.Folio || '')}</b></td><td>${escaparHTML(f.NOMBRE)}</td><td>${escaparHTML(f.ESTATUS)}</td>
-                             <td>${escaparHTML(f.SARE)}</td><td>${escaparHTML(f.MUNICIPIO)}</td><td>${escaparHTML(f.CCT)}</td><td>${escaparHTML(f.ESCUELA)}</td>
-                             <td>${escaparHTML(f.NIVEL)}</td><td>${escaparHTML(f.CURP)}</td><td>${escaparHTML(f.MES_REMESA)}</td><td>${escaparHTML(f.OBSERVACIONES || '')}</td></tr>`;
+                    html += `<tr><td><b>${escaparHTML(f.FOLIO || f.Folio || '')}</b></td><td>${escaparHTML(f.NOMBRE)}</td><td>${escaparHTML(f.ESTATUS)}</td><td>${escaparHTML(f.SARE)}</td><td>${escaparHTML(f.MUNICIPIO)}</td><td>${escaparHTML(f.CCT)}</td><td>${escaparHTML(f.ESCUELA)}</td><td>${escaparHTML(f.NIVEL)}</td><td>${escaparHTML(f.CURP)}</td><td>${escaparHTML(f.MES_REMESA)}</td><td>${escaparHTML(f.OBSERVACIONES || '')}</td></tr>`;
                 });
                 html += '</tbody></table></div>'; contenedor.innerHTML = html;
             } catch (error) { contenedor.innerHTML = '<p style="color:red; font-weight:bold;">Error de comunicación.</p>'; }
@@ -493,6 +574,7 @@
             sessionStorage.clear(); usuarioActual = ""; rolActual = ""; loteTemporal = [];
             document.getElementById('contenedor-resultados').innerHTML = '';
             document.getElementById('contenedor-bitacora').innerHTML = '';
+            document.getElementById('contenedor-resultados-analisis').innerHTML = '';
             document.getElementById('valorBusqueda').value = '';
             document.getElementById('area-lote-temporal').style.display = 'none';
             document.getElementById('app-section').style.display = 'none';
