@@ -1,585 +1,543 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema Control de Registros</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: rgb(30, 91, 79); 
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            padding: 20px 0;
-        }
-        .tarjeta {
-            background: white;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-            text-align: center;
-            width: 95%;
-            max-width: 950px;
-            margin-bottom: 20px;
-        }
-        .logo-app { 
-            width: 50%; 
-            height: auto; 
-            margin-bottom: 20px;
-        }
-        #login-section { display: block; max-width: 400px; margin: 0 auto; }
-        #app-section { display: none; }
-        
-        .sub-panel { display: none; border-top: 2px solid #eee; margin-top: 20px; padding-top: 20px; text-align: left; }
-        
-        .controles-busqueda, .form-edicion, .form-admin {
-            display: flex;
-            flex-direction: row;
-            gap: 10px;
-            justify-content: center;
-            flex-wrap: wrap;
-            margin-top: 15px;
-        }
-        .form-edicion { flex-direction: column; max-width: 600px; margin: 15px auto 0 auto; }
-        
-        input, select, button, textarea { padding: 12px; font-size: 16px; border: 1px solid #ccc; border-radius: 6px; }
-        textarea { resize: vertical; font-family: inherit; }
-        
-        button { background-color: rgb(156, 35, 72); color: white; border: none; cursor: pointer; font-weight: bold; transition: background 0.3s; }
-        button:hover { background-color: rgb(120, 25, 55); }
-        
-        .btn-add { background-color: #2e7d32; }
-        .btn-add:hover { background-color: #1b5e20; }
-        .btn-send-block { background-color: #0288d1; width: 100%; font-size: 18px; margin-top: 15px; }
-        .btn-send-block:hover { background-color: #01579b; }
-        .btn-logout { background-color: #555; width: 100%; margin-top: 30px;}
-        .btn-logout:hover { background-color: #333; }
-        
-        .panel-bloqueo { background-color: #ffebee; border: 1px solid #ffcdd2; padding: 15px; border-radius: 8px; margin-top: 20px; }
-        .panel-bitacora { background-color: #f5f5f5; border: 1px solid #e0e0e0; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
-        .panel-analisis { background-color: #e3f2fd; border: 1px solid #bbdefb; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
-
-        .contenedor-tabla { overflow-x: auto; margin-top: 20px; border: 1px solid #ddd; border-radius: 8px; }
-        table { width: 100%; border-collapse: collapse; font-size: 14px; background: white; }
-        th { background: rgb(30, 91, 79); color: white; padding: 12px; text-transform: uppercase; }
-        td { padding: 10px; border-bottom: 1px solid #eee; white-space: nowrap; color: #333;}
-        tr:hover { background-color: #f1f8e9; }
-        
-        .tabla-lote th { background: #37474f; }
-        .btn-del { background: #c62828; padding: 5px 10px; font-size: 12px; }
-
-        /* Estilos específicos para la sección de gráfica de barras nativa */
-        .grafica-contenedor { margin-top: 20px; background: white; padding: 15px; border-radius: 8px; border: 1px solid #cfd8dc; }
-        .barra-fila { display: flex; align-items: center; margin-bottom: 10px; font-size: 13px; }
-        .barra-etiqueta { width: 220px; font-weight: bold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: right; padding-right: 15px; color: #37474f; }
-        .barra-riel { flex-grow: 1; background: #eceff1; height: 22px; border-radius: 4px; position: relative; }
-        .barra-relleno { background: rgb(156, 35, 72); height: 100%; border-radius: 4px; transition: width 0.4s ease-out; }
-        .barra-valor { width: 60px; text-align: left; padding-left: 15px; font-weight: bold; color: #1a237e; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistema de Gestión de Padrones - Escala Masiva</title>
+  <!-- Tailwind CSS para un diseño ultra limpio y moderno -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons para iconos limpios -->
+  <script src="https://unpkg.com/lucide@latest"></script>
 </head>
-<body>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col font-sans">
 
-    <!-- CONTROL DE ACCESO -->
-    <div id="login-section" class="tarjeta">
-        <img src="Imagen11.png" alt="Logo" class="logo-app">
-        <h2>Acceso al Sistema</h2>
-        <div style="display: flex; flex-direction: column; gap: 15px;">
-            <input type="text" id="user" placeholder="Usuario">
-            <input type="password" id="pass" placeholder="Contraseña">
-            <button onclick="iniciarSesion()">Entrar</button>
+  <!-- URL de tu Web App (Reemplaza con tu URL de ejecución de Google Apps Script) -->
+  <script>
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzmSnSBhw2QTNQesrJgLju1xrE754t5s_foOtioXoCeQPKX5_hcrbQvDFEuJ1ral-3cJA/exec";
+    let USUARIO_ACTIVO = null;
+    let ROL_ACTIVO = null;
+    let LOTE_CAMBIOS = {}; // Almacena cambios temporales de edición: { folio: { estatus, observaciones } }
+  </script>
+
+  <!-- ================= PANTALLA DE ACCESO (LOGIN) ================= -->
+  <div id="vista-login" class="flex-1 flex items-center justify-center p-4">
+    <div class="bg-white p-8 rounded-2xl shadow-xl border border-slate-100 w-full max-w-md transform transition-all">
+      <div class="text-center mb-8">
+        <div class="bg-indigo-50 text-indigo-600 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <i data-lucide="shield-check" class="w-8 h-8"></i>
         </div>
-        <div id="login-mensaje" style="color: red; font-weight: bold; margin-top: 10px;"></div>
+        <h2 class="text-2xl font-bold text-slate-900">Control de Acceso</h2>
+        <p class="text-slate-500 text-sm mt-1">Ingresa tus credenciales para administrar el padrón</p>
+      </div>
+
+      <form id="form-login" class="space-y-5" onsubmit="procesarLogin(event)">
+        <div>
+          <label class="block text-sm font-semibold text-slate-700 mb-1.5">Usuario</label>
+          <input type="text" id="login-user" required class="w-full px-4 py-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition" placeholder="ej. admin01">
+        </div>
+        <div>
+          <label class="block text-sm font-semibold text-slate-700 mb-1.5">Contraseña</label>
+          <input type="password" id="login-pass" required class="w-full px-4 py-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition" placeholder="••••••••">
+        </div>
+        <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 rounded-lg transition-colors flex items-center justify-center gap-2">
+          <span>Ingresar al Sistema</span>
+          <i data-lucide="arrow-right" class="w-4 h-4"></i>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= PANEL PRINCIPAL (POST-LOGIN) ================= -->
+  <div id="vista-dashboard" class="hidden flex-1 flex flex-col">
+    <!-- Navbar -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-10">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <span class="bg-indigo-600 text-white p-2 rounded-lg"><i data-lucide="database" class="w-5 h-5"></i></span>
+          <span class="font-bold text-lg text-slate-900">PadrónMasivo <span class="text-xs text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full font-semibold">v2.0</span></span>
+        </div>
+        <div class="flex items-center gap-4">
+          <div class="text-right hidden sm:block">
+            <p id="lbl-usuario" class="font-semibold text-slate-900 text-sm"></p>
+            <p id="lbl-rol" class="text-xs text-slate-500 uppercase tracking-wider"></p>
+          </div>
+          <button onclick="cerrarSesion()" class="text-slate-400 hover:text-red-600 p-2 rounded-lg hover:bg-red-50 transition-colors">
+            <i data-lucide="log-out" class="w-5 h-5"></i>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Menú de Navegación por Pestañas -->
+    <div class="bg-white border-b border-slate-200">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <nav class="flex gap-6 -mb-px">
+          <button onclick="cambiarPestaña('pestaña-busqueda')" id="btn-tab-busqueda" class="py-4 border-b-2 border-indigo-600 text-indigo-600 font-medium text-sm flex items-center gap-2">
+            <i data-lucide="search" class="w-4 h-4"></i> Búsqueda y Edición
+          </button>
+          <button onclick="cambiarPestaña('pestaña-bitacora')" id="btn-tab-bitacora" class="py-4 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-medium text-sm flex items-center gap-2">
+            <i data-lucide="history" class="w-4 h-4"></i> Bitácora de Auditoría
+          </button>
+          <button onclick="cambiarPestaña('pestaña-admin')" id="btn-tab-admin" class="py-4 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-medium text-sm flex items-center gap-2 hidden">
+            <i data-lucide="users" class="w-4 h-4"></i> Usuarios
+          </button>
+        </nav>
+      </div>
     </div>
 
-    <!-- CUERPO CENTRAL -->
-    <div id="app-section" class="tarjeta">
-        <img src="Imagen11.png" alt="Logo" class="logo-app">
-        <h2 id="saludo-usuario">Buscador de Registros</h2>
+    <!-- Contenido Central -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
+
+      <!-- ================= PESTAÑA 1: BÚSQUEDA Y EDICIÓN POR LOTES ================= -->
+      <section id="pestaña-busqueda" class="space-y-6">
+        <!-- Barra de Búsqueda -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80">
+          <h3 class="text-lg font-bold text-slate-900 mb-4">Localizar Registros</h3>
+          <form onsubmit="ejecutarBusqueda(event)" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Buscar por</label>
+              <select id="buscar-columna" class="w-full px-4 py-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-indigo-500/20 outline-none text-sm bg-white">
+                <option value="Folio">Folio (Exacto)</option>
+                <option value="CURP">CURP (Exacto)</option>
+                <option value="Nombre">Nombre (Coincidencia parcial)</option>
+              </select>
+            </div>
+            <div class="md:col-span-2">
+              <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Valor de búsqueda</label>
+              <input type="text" id="buscar-valor" required class="w-full px-4 py-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-indigo-500/20 outline-none text-sm" placeholder="Ingresa el folio, CURP o nombre...">
+            </div>
+            <div class="flex items-end">
+              <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 rounded-lg transition-colors text-sm flex items-center justify-center gap-2">
+                <i data-lucide="search" class="w-4 h-4"></i> Buscar
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Resultados de Búsqueda -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden hidden" id="contenedor-resultados">
+          <div class="p-5 border-b border-slate-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div>
+              <h3 class="text-lg font-bold text-slate-900">Resultados de la consulta</h3>
+              <p class="text-slate-500 text-xs mt-0.5">Se muestran los primeros 25 resultados. Edita directamente las celdas deseadas.</p>
+            </div>
+            <button id="btn-guardar-lote" onclick="guardarLoteCambios()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-5 py-2 rounded-lg transition-colors text-sm flex items-center gap-2 shadow-sm disabled:opacity-50" disabled>
+              <i data-lucide="save" class="w-4 h-4"></i> Guardar Cambios (<span id="conteo-cambios">0</span>)
+            </button>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm border-collapse">
+              <thead>
+                <tr class="bg-slate-50 border-b border-slate-100 text-slate-500 font-semibold uppercase tracking-wider text-xs">
+                  <th class="p-4">Folio</th>
+                  <th class="p-4">Nombre / CURP</th>
+                  <th class="p-4">Ubicación (SARE/Mpio)</th>
+                  <th class="p-4">Escuela / CCT</th>
+                  <th class="p-4 w-48">Estatus</th>
+                  <th class="p-4 w-64">Observaciones</th>
+                </tr>
+              </thead>
+              <tbody id="tabla-resultados" class="divide-y divide-slate-100 text-slate-700">
+                <!-- Se inyecta dinámicamente -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= PESTAÑA 2: BITÁCORA DE AUDITORÍA ================= -->
+      <section id="pestaña-bitacora" class="space-y-6 hidden">
+        <!-- Filtros de Bitácora -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80">
+          <h3 class="text-lg font-bold text-slate-900 mb-4">Filtrar Historial</h3>
+          <form onsubmit="cargarBitacora(event)" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Fecha</label>
+              <select id="bitacora-filtro-fecha" class="w-full px-4 py-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-indigo-500/20 outline-none text-sm bg-white">
+                <option value="">Todas las fechas</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Usuario</label>
+              <select id="bitacora-filtro-usuario" class="w-full px-4 py-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-indigo-500/20 outline-none text-sm bg-white">
+                <option value="">Todos los usuarios</option>
+              </select>
+            </div>
+            <div class="flex items-end">
+              <button type="submit" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-medium py-2.5 rounded-lg transition-colors text-sm flex items-center justify-center gap-2">
+                <i data-lucide="filter" class="w-4 h-4"></i> Aplicar Filtros
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Tabla de Bitácora -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden">
+          <div class="p-5 border-b border-slate-100">
+            <h3 class="text-lg font-bold text-slate-900">Registro de Actividad</h3>
+            <p class="text-slate-500 text-xs mt-0.5">Muestra los últimos 200 movimientos del sistema filtrados</p>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm border-collapse">
+              <thead>
+                <tr class="bg-slate-50 border-b border-slate-100 text-slate-500 font-semibold uppercase tracking-wider text-xs">
+                  <th class="p-4">Fecha y Hora</th>
+                  <th class="p-4">Usuario</th>
+                  <th class="p-4">Acción</th>
+                  <th class="p-4">Dirección IP</th>
+                  <th class="p-4">Ubicación Detectada</th>
+                </tr>
+              </thead>
+              <tbody id="tabla-bitacora" class="divide-y divide-slate-100 text-slate-700">
+                <tr>
+                  <td colspan="5" class="p-8 text-center text-slate-400">Presiona "Aplicar Filtros" para cargar la actividad</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= PESTAÑA 3: ADMINISTRACIÓN DE USUARIOS ================= -->
+      <section id="pestaña-admin" class="space-y-6 hidden">
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden">
+          <div class="p-5 border-b border-slate-100">
+            <h3 class="text-lg font-bold text-slate-900">Usuarios del Sistema</h3>
+            <p class="text-slate-500 text-xs mt-0.5">Solo administradores pueden gestionar y bloquear accesos.</p>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm border-collapse">
+              <thead>
+                <tr class="bg-slate-50 border-b border-slate-100 text-slate-500 font-semibold uppercase tracking-wider text-xs">
+                  <th class="p-4">Nombre de Usuario</th>
+                  <th class="p-4">Rol</th>
+                  <th class="p-4">Estado</th>
+                  <th class="p-4 text-right">Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="tabla-usuarios" class="divide-y divide-slate-100 text-slate-700">
+                <!-- Se inyecta dinámicamente -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Footer general -->
+  <footer class="bg-white border-t border-slate-200 py-6 text-center text-xs text-slate-400">
+    Desarrollo Seguro de Alto Rendimiento con Procesamiento Delegado en C++ para Bases de Datos de Escala Masiva.
+  </footer>
+
+  <!-- ================= CONTROLADORES DE JAVASCRIPT ================= -->
+  <script>
+    // Inicialización de Iconos
+    lucide.createIcons();
+
+    // Helper centralizado para conectarse al Servidor Web App de Apps Script
+    async function apiRequest(action, data = {}) {
+      const payload = {
+        action: action,
+        usuario: USUARIO_ACTIVO,
+        ip: "N/A", // Si tienes un servicio de IP externo puedes añadirlo
+        ubicacion: "N/A",
+        ...data
+      };
+
+      try {
+        const response = await fetch(WEB_APP_URL, {
+          method: 'POST',
+          mode: 'cors',
+          redirect: 'follow',
+          body: JSON.stringify(payload)
+        });
+        const result = await response.json();
+        if (result && result.error) {
+          alert("Error del Servidor: " + result.error);
+          return null;
+        }
+        return result;
+      } catch (err) {
+        console.error("Error de conexión:", err);
+        alert("Fallo de comunicación con el backend. Asegúrate de configurar correctamente la URL de tu Web App.");
+        return null;
+      }
+    }
+
+    // --- SECCIÓN: LOGIN Y SESIÓN ---
+    async function procesarLogin(event) {
+      event.preventDefault();
+      const user = document.getElementById("login-user").value.trim();
+      const pass = document.getElementById("login-pass").value;
+
+      // Hacemos el llamado temporal de IP
+      let ip = "N/A";
+      let ubicacion = "N/A";
+      try {
+        const ipRes = await fetch("https://ipapi.co/json/").then(r => r.json());
+        ip = ipRes.ip || "N/A";
+        ubicacion = (ipRes.city && ipRes.country_name) ? `${ipRes.city}, ${ipRes.country_name}` : "N/A";
+      } catch(e){}
+
+      const res = await apiRequest("login", { usuario: user, password: pass, ip: ip, ubicacion: ubicacion });
+      
+      if (res && res.exito) {
+        USUARIO_ACTIVO = user;
+        ROL_ACTIVO = res.rol;
         
-        <!-- CONSULTAS -->
-        <div id="panel-busqueda">
-            <h3>Módulo de Consulta</h3>
-            <div class="controles-busqueda">
-                <input type="text" id="valorBusqueda" placeholder="Valor a buscar...">
-                <select id="columnaBusqueda">
-                    <option value="Nombre">Nombre</option>
-                    <option value="CURP">CURP</option>
-                    <option value="Folio">Folio</option>
-                </select>
-                <button onclick="ejecutarBusqueda()">Buscar</button>
-            </div>
-            <div id="contenedor-resultados"></div>
-        </div>
+        // Renderizamos labels
+        document.getElementById("lbl-usuario").innerText = user;
+        document.getElementById("lbl-rol").innerText = res.rol;
 
-        <!-- CAPTURA INTERMEDIA (LOTES) -->
-        <div id="panel-edicion" class="sub-panel">
-            <h3>Módulo de Edición Avanzada (Captura por Bloques)</h3>
-            <div class="form-edicion">
-                <label style="font-weight: bold;">Actividad a realizar</label>
-                <select id="actividadRealizar" onchange="cambiarOpcionesEstatus()">
-                    <option value="">-- Selecciona una actividad --</option>
-                    <option value="SOBRANTES">REGISTRO DE SOBRANTES</option>
-                    <option value="ENTREGADAS">REGISTRO DE ENTREGADAS</option>
-                </select>
+        // Ocultamos login y mostramos dashboard
+        document.getElementById("vista-login").classList.add("hidden");
+        document.getElementById("vista-dashboard").classList.remove("hidden");
 
-                <div id="campos-edicion" style="display: none; flex-direction: column; gap: 15px; margin-top: 15px; background: #f9f9f9; padding: 15px; border-radius: 8px; border: 1px dashed #ccc;">
-                    <h4 style="margin:0;">Agregar registro al bloque temporal:</h4>
-                    <input type="text" id="editFolio" placeholder="Escribe o escanea el Folio">
-                    <select id="editEstatus"></select>
-                    <textarea id="editObservaciones" placeholder="Observaciones (Opcional)" rows="2"></textarea>
-                    <button class="btn-add" onclick="agregarAlBloqueLocal()">+ Agregar a la Lista</button>
-                </div>
-                
-                <div id="area-lote-temporal" style="display:none; margin-top:20px;">
-                    <h4 style="margin:0; color: #37474f;">Registros acumulados listos para enviar (<span id="contador-lote">0</span>):</h4>
-                    <div class="contenedor-tabla">
-                        <table class="tabla-lote">
-                            <thead>
-                                <tr>
-                                    <th>Folio</th><th>Estatus a Asignar</th><th>Observaciones</th><th>Acción</th>
-                                </tr>
-                            </thead>
-                            <tbody id="lote-body"></tbody>
-                        </table>
-                    </div>
-                    <button class="btn-send-block" id="btnEnviarBloque" onclick="enviarLoteAlServidor()">🚀 Enviar todo el Bloque a Sheets</button>
-                </div>
-            </div>
-        </div>
+        // Si es Administrador, habilitar la pestaña de usuarios
+        if (res.rol.toLowerCase() === "administrador" || res.rol.toLowerCase() === "admin") {
+          document.getElementById("btn-tab-admin").classList.remove("hidden");
+        }
 
-        <!-- ADMINISTRADORES -->
-        <div id="panel-admin" class="sub-panel">
-            
-            <!-- SECCIÓN 1: BITÁCORA -->
-            <div class="panel-bitacora">
-                <h3>Visualizador Estratégico de Bitácora</h3>
-                <p>Filtra y analiza los movimientos realizados en la plataforma en tiempo real:</p>
-                <div style="display: flex; flex-direction: row; gap: 15px; flex-wrap: wrap; background: #e0f2f1; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
-                    <div style="display: flex; flex-direction: column; gap: 5px;">
-                        <label style="font-weight: bold; font-size: 13px; color: #004d40;">Por Día Registrado:</label>
-                        <select id="filtroBitacoraFecha" onchange="buscarEnBitacora()">
-                            <option value="">Cargando fechas...</option>
-                        </select>
-                    </div>
-                    <div style="display: flex; flex-direction: column; gap: 5px;">
-                        <label style="font-weight: bold; font-size: 13px; color: #004d40;">Por Usuario Activo:</label>
-                        <select id="filtroBitacoraUsuario" onchange="buscarEnBitacora()">
-                            <option value="">Cargando usuarios...</option>
-                        </select>
-                    </div>
-                    <div style="display: flex; align-items: flex-end;">
-                        <button onclick="limpiarYVerTodoBitacora()" style="background-color: #757575;">Ver Todo / Limpiar</button>
-                    </div>
-                </div>
-                <div id="contenedor-bitacora"></div>
-            </div>
+        // Cargamos filtros iniciales para la pestaña de bitácora
+        cargarFiltrosBitacora();
+        lucide.createIcons();
+      } else {
+        alert(res ? "Credenciales incorrectas o usuario bloqueado." : "Fallo al autenticar.");
+      }
+    }
 
-            <!-- NUEVA SECCIÓN 2: TABLA DINÁMICA ANALÍTICA Y GRÁFICO (SOLO ADMIN) -->
-            <div class="panel-analisis">
-                <h3>Módulo Analítico Estilo Tabla Dinámica</h3>
-                <p>Cruza múltiples criterios de la Base de datos para obtener frecuencias cuantitativas y gráficas instantáneas:</p>
-                
-                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; background: #ffffff; padding: 15px; border-radius: 8px; border: 1px solid #b2dfdb;">
-                    <div style="display: flex; flex-direction: column; gap: 4px;">
-                        <label style="font-weight: bold; font-size: 12px; color: #0d47a1;">Mes de Remesa (Col Q):</label>
-                        <select id="anlRemesa" onchange="ejecutarAnalisisDinamico()"><option value="">-- Todos --</option></select>
-                    </div>
-                    <div style="display: flex; flex-direction: column; gap: 4px;">
-                        <label style="font-weight: bold; font-size: 12px; color: #0d47a1;">Estatus (Col S):</label>
-                        <select id="anlEstatus" onchange="ejecutarAnalisisDinamico()"><option value="">-- Todos --</option></select>
-                    </div>
-                    <div style="display: flex; flex-direction: column; gap: 4px;">
-                        <label style="font-weight: bold; font-size: 12px; color: #0d47a1;">Programa (Col M):</label>
-                        <select id="anlPrograma" onchange="ejecutarAnalisisDinamico()"><option value="">-- Todos --</option></select>
-                    </div>
-                    <div style="display: flex; flex-direction: column; gap: 4px;">
-                        <label style="font-weight: bold; font-size: 12px; color: #0d47a1;">Municipio (Col D):</label>
-                        <select id="anlMunicipio" onchange="ejecutarAnalisisDinamico()"><option value="">-- Todos --</option></select>
-                    </div>
-                    <div style="display: flex; flex-direction: column; gap: 4px;">
-                        <label style="font-weight: bold; font-size: 12px; color: #0d47a1;">CCT (Col F):</label>
-                        <select id="anlCct" onchange="ejecutarAnalisisDinamico()"><option value="">-- Todos --</option></select>
-                    </div>
-                    <div style="display: flex; flex-direction: column; gap: 4px;">
-                        <label style="font-weight: bold; font-size: 12px; color: #0d47a1;">ID SARE (Col B):</label>
-                        <select id="anlSare" onchange="ejecutarAnalisisDinamico()"><option value="">-- Todos --</option></select>
-                    </div>
-                </div>
+    function cerrarSesion() {
+      USUARIO_ACTIVO = null;
+      ROL_ACTIVO = null;
+      document.getElementById("form-login").reset();
+      document.getElementById("vista-dashboard").classList.add("hidden");
+      document.getElementById("vista-login").classList.remove("hidden");
+    }
 
-                <div style="margin-top: 15px; text-align: right;">
-                    <button onclick="limpiarFiltrosAnalisis()" style="background-color: #607d8b; padding: 8px 15px; font-size: 14px;">Restablecer Filtros</button>
-                </div>
+    // --- SECCIÓN: NAVEGACIÓN ---
+    function cambiarPestaña(idDestino) {
+      const pestañas = ['pestaña-busqueda', 'pestaña-bitacora', 'pestaña-admin'];
+      pestañas.forEach(p => {
+        const el = document.getElementById(p);
+        if (el) el.classList.add("hidden");
+      });
+      document.getElementById(idDestino).classList.remove("hidden");
 
-                <!-- Panel de Carga de Métricas -->
-                <div id="contenedor-resultados-analisis" style="margin-top: 20px;"></div>
-            </div>
+      // Clases activas de los botones de navegación
+      const botones = {
+        'pestaña-busqueda': 'btn-tab-busqueda',
+        'pestaña-bitacora': 'btn-tab-bitacora',
+        'pestaña-admin': 'btn-tab-admin'
+      };
 
-            <!-- SECCIÓN 3: PANEL DE SEGURIDAD -->
-            <div class="panel-bloqueo">
-                <h3>Control de Seguridad (Solo Administradores)</h3>
-                <p>Selecciona un usuario del sistema para revocar sus accesos de forma permanente:</p>
-                <div class="form-admin">
-                    <select id="listaUsuariosAdmin"><option>Cargando usuarios...</option></select>
-                    <button style="background-color: #d32f2f;" onclick="ejecutarBloqueo()">Bloquear Acceso</button>
-                </div>
-            </div>
-            
-        </div>
+      Object.keys(botones).forEach(k => {
+        const btn = document.getElementById(botones[k]);
+        if (btn) {
+          if (k === idDestino) {
+            btn.className = "py-4 border-b-2 border-indigo-600 text-indigo-600 font-medium text-sm flex items-center gap-2";
+          } else {
+            btn.className = "py-4 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-medium text-sm flex items-center gap-2";
+          }
+        }
+      });
 
-        <button class="btn-logout" onclick="cerrarSesion()">Cerrar Sesión</button>
-    </div>
+      if (idDestino === 'pestaña-admin') {
+        cargarUsuariosAdmin();
+      }
+    }
 
-    <script>
-        const API_URL = 'https://script.google.com/macros/s/AKfycbxoMF-Kta4E41st_W0GowX6cQ2_-kXQujcx8K4SjWuTyP30nr-qdijm4oFbCFTdk8jr/exec';
-        
-        let usuarioActual = ""; 
-        let rolActual = "";
-        let datosDispositivo = { ip: "Obteniendo...", ubicacion: "Obteniendo..." };
-        let loteTemporal = [];
+    // --- SECCIÓN: BÚSQUEDA Y EDICIÓN ---
+    async function ejecutarBusqueda(event) {
+      event.preventDefault();
+      const col = document.getElementById("buscar-columna").value;
+      const val = document.getElementById("buscar-valor").value.trim();
 
-        document.getElementById('pass').addEventListener('keypress', e => { if (e.key === 'Enter') iniciarSesion(); });
-        document.getElementById('valorBusqueda').addEventListener('keydown', e => { if (e.key === 'Enter') e.preventDefault(); });
-        document.getElementById('editFolio').addEventListener('keydown', e => { if (e.key === 'Enter') e.preventDefault(); });
+      const res = await apiRequest("buscar", { columna: col, valor: val });
+      const tBody = document.getElementById("tabla-resultados");
+      tBody.innerHTML = "";
+      LOTE_CAMBIOS = {}; // Limpiamos lote de cambios al realizar nueva búsqueda
+      actualizarBotonGuardar();
 
-        window.onload = async function() {
-            if(sessionStorage.getItem("usuarioActual")) {
-                usuarioActual = sessionStorage.getItem("usuarioActual");
-                rolActual = sessionStorage.getItem("rolActual");
-                configurarVistasPorRol(rolActual);
-            }
-            try {
-                const response = await fetch('https://ipapi.co/json/');
-                const data = await response.json();
-                datosDispositivo.ip = data.ip || "No disponible";
-                datosDispositivo.ubicacion = data.city ? `${data.city}, ${data.region}, ${data.country_name}` : "No disponible";
-            } catch (error) {
-                datosDispositivo.ip = "No disponible"; datosDispositivo.ubicacion = "No disponible";
-            }
+      if (res && res.length > 0) {
+        document.getElementById("contenedor-resultados").classList.remove("hidden");
+        res.forEach(item => {
+          const tr = document.createElement("tr");
+          tr.className = "hover:bg-slate-50 transition-colors";
+          tr.innerHTML = `
+            <td class="p-4 font-mono font-bold text-slate-900">${item.FOLIO}</td>
+            <td class="p-4">
+              <div class="font-semibold text-slate-950">${item.NOMBRE}</div>
+              <div class="text-xs text-slate-400 font-mono">${item.CURP}</div>
+            </td>
+            <td class="p-4">
+              <div class="text-slate-900 font-medium">${item.SARE}</div>
+              <div class="text-xs text-slate-500">${item.MUNICIPIO}</div>
+            </td>
+            <td class="p-4">
+              <div class="text-slate-900">${item.ESCUELA}</div>
+              <div class="text-xs text-slate-400 font-mono">${item.CCT}</div>
+            </td>
+            <td class="p-4">
+              <select onchange="registrarCambio('${item.FOLIO}', 'estatus', this.value)" class="w-full px-2 py-1.5 rounded border border-slate-200 text-sm focus:ring-2 focus:ring-indigo-500/20 outline-none bg-white font-medium">
+                <option value="ENTREGADO" ${item.ESTATUS === 'ENTREGADO' ? 'selected' : ''}>ENTREGADO</option>
+                <option value="PENDIENTE" ${item.ESTATUS === 'PENDIENTE' ? 'selected' : ''}>PENDIENTE</option>
+                <option value="CANCELADO" ${item.ESTATUS === 'CANCELADO' ? 'selected' : ''}>CANCELADO</option>
+                <option value="RECHAZADO" ${item.ESTATUS === 'RECHAZADO' ? 'selected' : ''}>RECHAZADO</option>
+              </select>
+            </td>
+            <td class="p-4">
+              <input type="text" value="${item.OBSERVACIONES || ''}" oninput="registrarCambio('${item.FOLIO}', 'observaciones', this.value)" class="w-full px-3 py-1.5 rounded border border-slate-200 text-sm focus:ring-2 focus:ring-indigo-500/20 outline-none" placeholder="Sin observaciones...">
+            </td>
+          `;
+          tBody.appendChild(tr);
+        });
+      } else {
+        alert("No se encontraron registros con los datos proporcionados.");
+        document.getElementById("contenedor-resultados").classList.add("hidden");
+      }
+    }
+
+    function registrarCambio(folio, campo, valor) {
+      if (!LOTE_CAMBIOS[folio]) {
+        // Obtenemos los valores por defecto del DOM en caso de que solo cambie un campo
+        LOTE_CAMBIOS[folio] = {
+          folio: folio,
+          estatus: "PENDIENTE",
+          observaciones: ""
         };
+      }
+      LOTE_CAMBIOS[folio][campo] = valor;
+      actualizarBotonGuardar();
+    }
 
-        async function enviarPeticion(datos) {
-            datos.usuario = usuarioActual;
-            datos.ip = datosDispositivo.ip;
-            datos.ubicacion = datosDispositivo.ubicacion;
-            const respuesta = await fetch(API_URL, {
-                method: 'POST',
-                body: JSON.stringify(datos),
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' }
-            });
-            return await respuesta.json();
+    function actualizarBotonGuardar() {
+      const keys = Object.keys(LOTE_CAMBIOS);
+      const btn = document.getElementById("btn-guardar-lote");
+      const conteo = document.getElementById("conteo-cambios");
+      
+      conteo.innerText = keys.length;
+      if (keys.length > 0) {
+        btn.removeAttribute("disabled");
+      } else {
+        btn.setAttribute("disabled", "true");
+      }
+    }
+
+    async function guardarLoteCambios() {
+      const listaCambios = Object.values(LOTE_CAMBIOS);
+      if (listaCambios.length === 0) return;
+
+      if (!confirm(`¿Estás seguro de que deseas guardar las actualizaciones de los ${listaCambios.length} registros editados?`)) {
+        return;
+      }
+
+      const res = await apiRequest("actualizar_lote", { lote: listaCambios });
+      if (res && res.exito) {
+        alert(`Guardado con éxito. Se actualizaron quirúrgicamente ${res.exitosos} registros.`);
+        LOTE_CAMBIOS = {};
+        actualizarBotonGuardar();
+        // Recargar los filtros de la bitácora por si se crearon nuevos
+        cargarFiltrosBitacora();
+      } else {
+        alert("Ocurrió un error al guardar los lotes.");
+      }
+    }
+
+    // --- SECCIÓN: BITÁCORA ---
+    async function cargarFiltrosBitacora() {
+      const res = await apiRequest("obtener_filtros_bitacora");
+      if (res) {
+        const comboUser = document.getElementById("bitacora-filtro-usuario");
+        const comboFecha = document.getElementById("bitacora-filtro-fecha");
+
+        comboUser.innerHTML = '<option value="">Todos los usuarios</option>';
+        comboFecha.innerHTML = '<option value="">Todas las fechas</option>';
+
+        if (res.usuarios) {
+          res.usuarios.forEach(u => {
+            comboUser.innerHTML += `<option value="${u}">${u}</option>`;
+          });
         }
-
-        function configurarVistasPorRol(rol) {
-            document.getElementById('login-section').style.display = 'none';
-            document.getElementById('app-section').style.display = 'block';
-            document.getElementById('saludo-usuario').innerText = `Panel del Sistema [Rol: ${rol}]`;
-            document.getElementById('panel-edicion').style.display = 'none';
-            document.getElementById('panel-admin').style.display = 'none';
-
-            if (rol === "ATENCION" || rol === "ADMIN") {
-                document.getElementById('panel-edicion').style.display = 'block';
-            }
-            if (rol === "ADMIN") {
-                document.getElementById('panel-admin').style.display = 'block';
-                cargarUsuariosParaAdmin();
-                cargarFiltrosDesplegablesBitacora();
-                cargarListasDesplegablesAnalisis();
-            }
+        if (res.fechas) {
+          res.fechas.forEach(f => {
+            comboFecha.innerHTML += `<option value="${f}">${f}</option>`;
+          });
         }
+      }
+    }
 
-        async function iniciarSesion() {
-            const user = document.getElementById('user').value.trim();
-            const pass = document.getElementById('pass').value.trim();
-            const msj = document.getElementById('login-mensaje');
-            if (!user || !pass) return msj.innerText = "Por favor, llena ambos campos.";
-            msj.innerText = "Validando...";
+    async function cargarBitacora(event) {
+      if (event) event.preventDefault();
+      const fFecha = document.getElementById("bitacora-filtro-fecha").value;
+      const fUser = document.getElementById("bitacora-filtro-usuario").value;
 
-            try {
-                usuarioActual = user;
-                const res = await enviarPeticion({ action: "login", password: pass });
-                if (res.exito) {
-                    rolActual = res.rol;
-                    sessionStorage.setItem("usuarioActual", user);
-                    sessionStorage.setItem("rolActual", rolActual);
-                    msj.innerText = "";
-                    configurarVistasPorRol(rolActual);
-                } else {
-                    msj.innerText = res.error;
-                    usuarioActual = "";
-                }
-            } catch (e) { msj.innerText = "Error en conexión con el servidor."; }
-        }
+      const res = await apiRequest("obtener_bitacora", { filtroFecha: fFecha, filtroUsuario: fUser });
+      const tBody = document.getElementById("tabla-bitacora");
+      tBody.innerHTML = "";
 
-        async function cargarFiltrosDesplegablesBitacora() {
-            const selectFecha = document.getElementById('filtroBitacoraFecha');
-            const selectUsuario = document.getElementById('filtroBitacoraUsuario');
-            try {
-                const filtros = await enviarPeticion({ action: "obtener_filters_bitacora" });
-                selectFecha.innerHTML = '<option value="">-- Todas las fechas --</option>';
-                selectUsuario.innerHTML = '<option value="">-- Todos los usuarios --</option>';
-                if (filtros.fechas) filtros.fechas.forEach(f => { let opt = document.createElement('option'); opt.value = f; opt.innerText = f; selectFecha.appendChild(opt); });
-                if (filtros.usuarios) filtros.usuarios.forEach(u => { let opt = document.createElement('option'); opt.value = u; opt.innerText = u; selectUsuario.appendChild(opt); });
-            } catch (e) {}
-        }
+      if (res && res.length > 0) {
+        res.forEach(item => {
+          const tr = document.createElement("tr");
+          tr.className = "hover:bg-slate-50 transition-colors";
+          tr.innerHTML = `
+            <td class="p-4 font-mono text-xs text-slate-500">${item.fecha}</td>
+            <td class="p-4 font-semibold text-slate-900">${item.usuario}</td>
+            <td class="p-4"><span class="px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wide bg-indigo-50 text-indigo-700 border border-indigo-100">${item.accion}</span></td>
+            <td class="p-4 font-mono text-xs text-slate-400">${item.ip}</td>
+            <td class="p-4 text-slate-600">${item.ubicacion}</td>
+          `;
+          tBody.appendChild(tr);
+        });
+      } else {
+        tBody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-slate-400">Sin registros de auditoría en la consulta actual</td></tr>`;
+      }
+    }
 
-        // --- MÓDULO NUEVO: INICIALIZAR DESPLEGABLES DE LA TABLA DINÁMICA ---
-        async function cargarListasDesplegablesAnalisis() {
-            const ids = ['anlRemesa', 'anlEstatus', 'anlPrograma', 'anlMunicipio', 'anlCct', 'anlSare'];
-            ids.forEach(id => document.getElementById(id).innerHTML = '<option value="">Cargando datos...</option>');
-            
-            try {
-                const f = await enviarPeticion({ action: "obtener_filtros_analisis" });
-                
-                llenarCombo('anlRemesa', f.remesa, '-- Todas las Remesas --');
-                llenarCombo('anlEstatus', f.estatus, '-- Todos los Estatus --');
-                llenarCombo('anlPrograma', f.programa, '-- Todos los Programas --');
-                llenarCombo('anlMunicipio', f.municipio, '-- Todos los Municipios --');
-                llenarCombo('anlCct', f.cct, '-- Todos los CCT --');
-                llenarCombo('anlSare', f.sare, '-- Todos los SARE --');
+    // --- SECCIÓN: ADMIN (USUARIOS) ---
+    async function cargarUsuariosAdmin() {
+      const res = await apiRequest("obtener_usuarios");
+      const tBody = document.getElementById("tabla-usuarios");
+      tBody.innerHTML = "";
 
-                // Ejecución inicial con todo en blanco para mostrar panorámica inicial
-                ejecutarAnalisisDinamico();
-            } catch (e) {
-                ids.forEach(id => document.getElementById(id).innerHTML = '<option value="">Error al cargar</option>');
-            }
-        }
+      if (res && res.length > 0) {
+        res.forEach(u => {
+          const isBloqueado = u.estado.toLowerCase() === "bloqueado";
+          const tr = document.createElement("tr");
+          tr.className = "hover:bg-slate-50 transition-colors";
+          tr.innerHTML = `
+            <td class="p-4 font-semibold text-slate-900">${u.usuario}</td>
+            <td class="p-4 text-xs font-mono uppercase tracking-wider text-slate-500">${u.rol}</td>
+            <td class="p-4">
+              <span class="px-2 py-0.5 rounded text-xs font-bold ${isBloqueado ? 'bg-red-50 text-red-700 border border-red-100' : 'bg-emerald-50 text-emerald-700 border border-emerald-100'}">
+                ${u.estado.toUpperCase()}
+              </span>
+            </td>
+            <td class="p-4 text-right">
+              ${isBloqueado ? '' : `
+                <button onclick="bloquearUsuario('${u.usuario}')" class="text-xs bg-red-50 text-red-600 hover:bg-red-600 hover:text-white px-3 py-1.5 rounded-lg font-semibold transition-all border border-red-100">
+                  Bloquear Acceso
+                </button>
+              `}
+            </td>
+          `;
+          tBody.appendChild(tr);
+        });
+      }
+    }
 
-        function llenarCombo(id, lista, textoDefault) {
-            const select = document.getElementById(id);
-            select.innerHTML = `<option value="">${textoDefault}</option>`;
-            if(lista) {
-                lista.forEach(val => {
-                    let opt = document.createElement('option');
-                    opt.value = val; opt.innerText = val;
-                    select.appendChild(opt);
-                });
-            }
-        }
+    async function bloquearUsuario(userAQuitar) {
+      if (!confirm(`¿Estás completamente seguro de que deseas revocar el acceso a ${userAQuitar}?`)) return;
 
-        // --- MÓDULO NUEVO: EJECUTAR ANÁLISIS DINÁMICO ---
-        async function ejecutarAnalisisDinamico() {
-            const contenedor = document.getElementById('contenedor-resultados-analisis');
-            contenedor.innerHTML = '<p style="color:#0d47a1; font-weight:bold;">Calculando cruces dinámicos en memoria...</p>';
-
-            var params = {
-                action: "ejecutar_analisis_base",
-                fRemesa: document.getElementById('anlRemesa').value,
-                fEstatus: document.getElementById('anlEstatus').value,
-                fPrograma: document.getElementById('anlPrograma').value,
-                fMunicipio: document.getElementById('anlMunicipio').value,
-                fCct: document.getElementById('anlCct').value,
-                fSare: document.getElementById('anlSare').value
-            };
-
-            try {
-                const res = await enviarPeticion(params);
-                
-                if(res.total === 0) {
-                    contenedor.innerHTML = '<div style="background:#fff3e0; color:#e65100; padding:15px; border-radius:6px; font-weight:bold; border:1px solid #ffe0b2;">Ningún registro de la base de datos coincide con el cruce de filtros seleccionado.</div>';
-                    return;
-                }
-
-                // ESTRUCTURACIÓN DE TABLA DINÁMICA MUESTRA
-                let html = `
-                    <div style="background:white; padding:20px; border-radius:8px; border:1px solid #b2ebf2; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
-                        <div style="font-size:20px; font-weight:bold; color:#0d47a1; margin-bottom:15px;">
-                            Total Coincidencias Cruzadas: <span style="background:#0d47a1; color:white; padding:2px 10px; border-radius:12px;">${res.total}</span>
-                        </div>
-                        
-                        <h4 style="margin:20px 0 5px 0; color:#37474f;">Resumen de Frecuencias por Estatus</h4>
-                        <div class="contenedor-tabla">
-                            <table>
-                                <thead>
-                                    <tr style="background:#1976d2; color:white;">
-                                        <th>Variable Estatus</th><th>Cantidad Conteo</th><th>Distribución Porcentual</th>
-                                    </tr>
-                                </thead>
-                                <tbody>`;
-
-                for(let est in res.breakdownEstatus) {
-                    let cant = res.breakdownEstatus[est];
-                    let porc = ((cant / res.total) * 100).toFixed(1);
-                    html += `<tr><td><b>${escaparHTML(est)}</b></td><td>${cant}</td><td><span style="color:#00796b; font-weight:bold;">${porc}%</span></td></tr>`;
-                }
-
-                html += `        </tbody>
-                            </table>
-                        </div>
-
-                        <!-- GRÁFICA DINÁMICA AUTO-RENDERIZABLE -->
-                        <h4 style="margin:25px 0 5px 0; color:#37474f;">Representación Gráfica del Análisis</h4>
-                        <div class="grafica-contenedor">`;
-
-                for(let est in res.breakdownEstatus) {
-                    let cant = res.breakdownEstatus[est];
-                    let porc = ((cant / res.total) * 100).toFixed(1);
-                    html += `
-                        <div class="barra-fila">
-                            <div class="barra-etiqueta" title="${escaparHTML(est)}">${escaparHTML(est)}</div>
-                            <div class="barra-riel">
-                                <div class="barra-relleno" style="width: ${porc}%;"></div>
-                            </div>
-                            <div class="barra-valor">${cant} <small style="color:#777; font-weight:normal;">(${porc}%)</small></div>
-                        </div>`;
-                }
-
-                html += `</div></div>`;
-                contenedor.innerHTML = html;
-
-            } catch(e) {
-                contenedor.innerHTML = '<div style="color:red; font-weight:bold;">Error al intentar compilar la tabla analítica.</div>';
-            }
-        }
-
-        function limpiarFiltrosAnalisis() {
-            document.getElementById('anlRemesa').value = "";
-            document.getElementById('anlEstatus').value = "";
-            document.getElementById('anlPrograma').value = "";
-            document.getElementById('anlMunicipio').value = "";
-            document.getElementById('anlCct').value = "";
-            document.getElementById('anlSare').value = "";
-            ejecutarAnalisisDinamico();
-        }
-
-        async function consultarBitacoraServidor(fFecha, fUsuario) {
-            const contenedor = document.getElementById('contenedor-bitacora');
-            contenedor.innerHTML = '<p style="font-weight:bold; color:#00796b;">Filtrando registros de auditoría...</p>';
-            try {
-                const logs = await enviarPeticion({ action: "obtener_bitacora", filtroFecha: fFecha, filtroUsuario: fUsuario });
-                if(logs.error) { contenedor.innerHTML = `<p style="color:red; font-weight:bold;">${escaparHTML(logs.error)}</p>`; return; }
-                if(!Array.isArray(logs) || logs.length === 0) { contenedor.innerHTML = '<p style="color:orange; font-weight:bold;">No se encontraron eventos en la bitácora.</p>'; return; }
-                let html = `<div class="contenedor-tabla"><table><thead><tr style="background:#004d40; color:white;"><th>Fecha / Hora</th><th>Usuario</th><th>Acción Ejecutada</th><th>Dirección IP</th><th>Ubicación</th></tr></thead><tbody>`;
-                logs.reverse().forEach(l => {
-                    html += `<tr><td>${escaparHTML(l.fecha)}</td><td><b>${escaparHTML(l.usuario)}</b></td><td><span style="color:#b71c1c; font-weight:600;">${escaparHTML(l.accion)}</span></td><td><code>${escaparHTML(l.ip)}</code></td><td><small style="color:#555;">${escaparHTML(l.ubicacion)}</small></td></tr>`;
-                });
-                html += '</tbody></table></div>'; contenedor.innerHTML = html;
-            } catch(e) { contenedor.innerHTML = '<p style="color:red; font-weight:bold;">Error de comunicación.</p>'; }
-        }
-
-        function buscarEnBitacora() {
-            const fecha = document.getElementById('filtroBitacoraFecha').value; 
-            const usuario = document.getElementById('filtroBitacoraUsuario').value;
-            if (!fecha && !usuario) { document.getElementById('contenedor-bitacora').innerHTML = ''; return; }
-            consultarBitacoraServidor(fecha, usuario);
-        }
-
-        function limpiarYVerTodoBitacora() {
-            document.getElementById('filtroBitacoraFecha').value = "";
-            document.getElementById('filtroBitacoraUsuario').value = "";
-            consultarBitacoraServidor("", "");
-            cargarFiltrosDesplegablesBitacora();
-        }
-
-        function cambiarOpcionesEstatus() {
-            const actividad = document.getElementById('actividadRealizar').value;
-            const contenedorCampos = document.getElementById('campos-edicion');
-            const selectorEstatus = document.getElementById('editEstatus');
-            if(!actividad) { contenedorCampos.style.display = 'none'; return; }
-            contenedorCampos.style.display = 'flex';
-            selectorEstatus.innerHTML = '';
-            let opciones = (actividad === "SOBRANTES") ? ["SOBRANTE", "SOBRANTE CON OBSERVACIONES"] : ["ENTREGADA", "ENVIADA A OTRO ESTADO", "ENVIADA A OTRA SARE"];
-            opciones.forEach(opt => { let el = document.createElement('option'); el.value = opt; el.innerText = opt; selectorEstatus.appendChild(el); });
-        }
-
-        function agregarAlBloqueLocal() {
-            const folioInput = document.getElementById('editFolio');
-            const estatusInput = document.getElementById('editEstatus');
-            const obsInput = document.getElementById('editObservaciones');
-            const folio = folioInput.value.trim();
-            if(!folio) return alert("Por favor ingresa o escanea un folio.");
-            if(loteTemporal.some(item => item.folio === folio)) return alert("Este folio ya está en la lista de espera.");
-            loteTemporal.push({ folio: folio, estatus: estatusInput.value, observaciones: obsInput.value.trim() });
-            folioInput.value = ""; obsInput.value = ""; folioInput.focus();
-            actualizarTablaInterfazLote();
-        }
-
-        function eliminarDelBloqueLocal(index) { loteTemporal.splice(index, 1); actualizarTablaInterfazLote(); }
-
-        function actualizarTablaInterfazLote() {
-            const area = document.getElementById('area-lote-temporal');
-            const tbody = document.getElementById('lote-body');
-            document.getElementById('contador-lote').innerText = loteTemporal.length;
-            if(loteTemporal.length === 0) { area.style.display = 'none'; tbody.innerHTML = ''; return; }
-            area.style.display = 'block'; tbody.innerHTML = '';
-            loteTemporal.forEach((item, index) => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `<td><b>${escaparHTML(item.folio)}</b></td><td>${escaparHTML(item.estatus)}</td><td><span style="color:#666; font-style:italic;">${escaparHTML(item.observaciones) || 'Sin observaciones'}</span></td><td><button class="btn-del" onclick="eliminarDelBloqueLocal(${index})">Quitar</button></td>`;
-                tbody.appendChild(tr);
-            });
-        }
-
-        async function enviarLoteAlServidor() {
-            if(loteTemporal.length === 0) return;
-            const btn = document.getElementById('btnEnviarBloque');
-            if(!confirm(`¿Deseas sincronizar este bloque de ${loteTemporal.length} registros con Google Sheets?`)) return;
-            btn.innerText = "Procesando matriz a alta velocidad..."; btn.disabled = true;
-            try {
-                const res = await enviarPeticion({ action: "actualizar_lote", lote: loteTemporal });
-                if(res.exito) {
-                    let msg = `¡Éxito total! Se actualizaron ${res.exitosos} registros instantáneamente.`;
-                    if(res.noEncontrados.length > 0) msg += `\n\nFolios no hallados: ${res.noEncontrados.join(", ")}`;
-                    alert(msg); loteTemporal = []; actualizarTablaInterfazLote();
-                    if(rolActual === "ADMIN") ejecutarAnalisisDinamico(); // Recalcula la gráfica automáticamente
-                } else { alert("Error: " + res.error); }
-            } catch(e) { alert("Error de red."); } 
-            finally { btn.innerText = "🚀 Enviar todo el Bloque a Sheets"; btn.disabled = false; }
-        }
-
-        async function cargarUsuariosParaAdmin() {
-            const select = document.getElementById('listaUsuariosAdmin');
-            try {
-                const usuarios = await enviarPeticion({ action: "obtener_usuarios" });
-                if(usuarios.error) return select.innerHTML = `<option>${escaparHTML(usuarios.error)}</option>`;
-                select.innerHTML = '';
-                usuarios.forEach(u => { if(u.usuario !== usuarioActual) { let opt = document.createElement('option'); opt.value = u.usuario; opt.innerText = `${u.usuario} [${u.estado}]`; select.appendChild(opt); } });
-            } catch(e) { select.innerHTML = '<option>Error al cargar usuarios</option>'; }
-        }
-
-        async function ejecutarBloqueo() {
-            const userParaBloquear = document.getElementById('listaUsuariosAdmin').value;
-            if(!userParaBloquear || userParaBloquear.includes("Cargando")) return alert("Selecciona un usuario válido.");
-            if(!confirm(`¿Revocar acceso permanentemente a ${userParaBloquear}?`)) return;
-            try {
-                const res = await enviarPeticion({ action: "bloquear_usuario", usuarioAQuitar: userParaBloquear });
-                if(res.exito) { alert("Usuario bloqueado."); cargarUsuariosParaAdmin(); }
-            } catch(e) { alert("Error."); }
-        }
-
-        function escaparHTML(t) { return t ? String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;") : ""; }
-
-        async function ejecutarBusqueda() {
-            const valor = document.getElementById('valorBusqueda').value.trim();
-            const columna = document.getElementById('columnaBusqueda').value;
-            const contenedor = document.getElementById('contenedor-resultados');
-            if (!valor) return alert("Por favor ingresa un valor.");
-            contenedor.innerHTML = '<p style="font-weight:bold; color: #555;">Consultando base de datos...</p>';
-            try {
-                const resultados = await enviarPeticion({ action: "buscar", columna: columna, valor: valor });
-                if (resultados && resultados.error) { contenedor.innerHTML = `<p style="color:red; font-weight:bold;">${escaparHTML(resultados.error)}</p>`; return; }
-                if (!Array.isArray(resultados) || resultados.length === 0) { contenedor.innerHTML = '<p style="color:orange; font-weight:bold;">Sin coincidencias.</p>'; return; }
-                let html = `<div class="contenedor-tabla"><table><thead><tr><th>FOLIO</th><th>NOMBRE</th><th>ESTATUS</th><th>SARE</th><th>MUNICIPIO</th><th>CCT</th><th>ESCUELA</th><th>NIVEL</th><th>CURP</th><th>MES_REMESA</th><th>OBSERVACIONES</th></tr></thead><tbody>`;
-                resultados.forEach(f => {
-                    html += `<tr><td><b>${escaparHTML(f.FOLIO || f.Folio || '')}</b></td><td>${escaparHTML(f.NOMBRE)}</td><td>${escaparHTML(f.ESTATUS)}</td><td>${escaparHTML(f.SARE)}</td><td>${escaparHTML(f.MUNICIPIO)}</td><td>${escaparHTML(f.CCT)}</td><td>${escaparHTML(f.ESCUELA)}</td><td>${escaparHTML(f.NIVEL)}</td><td>${escaparHTML(f.CURP)}</td><td>${escaparHTML(f.MES_REMESA)}</td><td>${escaparHTML(f.OBSERVACIONES || '')}</td></tr>`;
-                });
-                html += '</tbody></table></div>'; contenedor.innerHTML = html;
-            } catch (error) { contenedor.innerHTML = '<p style="color:red; font-weight:bold;">Error de comunicación.</p>'; }
-        }
-
-        async function cerrarSesion() {
-            if(loteTemporal.length > 0 && !confirm("Perderás los cambios no enviados. ¿Salir?")) return;
-            sessionStorage.clear(); usuarioActual = ""; rolActual = ""; loteTemporal = [];
-            document.getElementById('contenedor-resultados').innerHTML = '';
-            document.getElementById('contenedor-bitacora').innerHTML = '';
-            document.getElementById('contenedor-resultados-analisis').innerHTML = '';
-            document.getElementById('valorBusqueda').value = '';
-            document.getElementById('area-lote-temporal').style.display = 'none';
-            document.getElementById('app-section').style.display = 'none';
-            document.getElementById('login-section').style.display = 'block';
-        }
-    </script>
+      const res = await apiRequest("bloquear_usuario", { usuarioAQuitar: userAQuitar });
+      if (res && res.exito) {
+        alert("Usuario bloqueado de forma exitosa.");
+        cargarUsuariosAdmin();
+      } else {
+        alert("Error al bloquear usuario.");
+      }
+    }
+  </script>
 </body>
 </html>
