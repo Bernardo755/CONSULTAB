@@ -240,7 +240,42 @@
   </style>
 </head>
 <body>
+
+<div class="app-container">
+    
+    <!-- BARRA LATERAL (SIDEBAR) -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h2>SISTEMA BASE</h2>
+      </div>
+
+      <nav class="sidebar-menu">
+        <button class="nav-btn active" onclick="cambiarModulo('mod-edicion', this)">
+          ✏️ Edición / Consulta
+        </button>
+        <button class="nav-btn" onclick="cambiarModulo('mod-lotes', this)">
+          📦 Carga por Lotes
+        </button>
+        <button class="nav-btn" onclick="cambiarModulo('mod-documental', this)">
+          📁 Control Documental
+        </button>
+        <button class="nav-btn" onclick="cambiarModulo('mod-bitacora', this)">
+          📜 Bitácora
+        </button>
+        <button class="nav-btn" onclick="cambiarModulo('mod-excel', this)">
+          📥 Reportes Excel
+        </button>
+      </nav>
+
+      <div style="padding: 20px;">
+        <button class="btn-logout" onclick="cerrarSesion()">Cerrar Sesión</button>
+      </div>
+    </aside>
+
+    
     <!-- CONTROL DE ACCESO -->
+    <!-- ÁREA PRINCIPAL DE CONTENIDO -->
+    <main class="main-content">
     <div id="login-section" class="tarjeta">
         <img src="Imagen11.png" alt="Logo" class="logo-app">
         <h2>Acceso al Sistema</h2>
@@ -281,6 +316,12 @@
         </div>
 
         <!-- CAPTURA INTERMEDIA (LOTES) -->
+
+<!-- MÓDULO 2: CARGA POR LOTES -->
+      <section id="mod-lotes" class="modulo-seccion">
+        <div class="tarjeta">
+          <h2>Actualización por Lotes</h2>
+          <!-- Contenido del módulo de lotes -->
         <div id="panel-edicion" class="sub-panel">
             <h3 style="text-align: center;"> Módulo de Edición (Captura por Bloques)</h3>
             <div class="form-edicion">
@@ -316,9 +357,14 @@
             </div>
         </div>
 
+  </div>
+      </section>
 
-
-
+<!-- MÓDULO 5: EXCEL -->
+      <section id="mod-excel" class="modulo-seccion">
+        <div class="tarjeta">
+          <h2>Generación de Reportes Excel</h2>
+          <!-- Tu módulo de Excel aquí -->
 <!-- Interfaz del Módulo -->
 <div id="modulo-excel" tyle="padding: 20px; flex-direction: border: 1px solid #ccc; border-radius: 8px; max-width: 400px; background-color: #f9f9f9; font-family: sans-serif;">
   <h3 style="margin-top: 0; color: #333;">Generar Reporte de Entregas</h3>
@@ -337,10 +383,18 @@
   </button>
 </div>
 
+ </div>
+      </section>
 
 
-
-
+<!-- MÓDULO 3: CONTROL DOCUMENTAL -->
+      <section id="mod-documental" class="modulo-seccion">
+        <div class="tarjeta">
+          <h2>Control Documental</h2>
+          <div class="panel-documental">
+            <div class="grid-documental">
+              <!-- Grid documental -->
+          
         
         <!-- NUEVO MÓDULO: CONTROL DOCUMENTAL Y FOLIADO -->
         <div id="panel-documental" class="sub-panel panel-documental" style="display:block;">
@@ -443,6 +497,11 @@
                 </div>
             </div>
         </div>
+
+                  </div>
+          </div>
+        </div>
+      </section>
 
         <!-- ADMINISTRADORES -->
         <div id="panel-admin" class="sub-panel">
