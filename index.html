@@ -3,76 +3,351 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema Control de Registros</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: rgb(30, 91, 79); 
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            padding: 20px 0;
-        }
-        .tarjeta {
-            background: white;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-            text-align: center;
-            width: 95%;
-            max-width: 950px;
-            margin-bottom: 20px;
-        }
-        .logo-app { 
-            width: 50%; 
-            height: auto; 
-            margin-bottom: 20px;
-        }
-        #login-section { display: block; max-width: 400px; margin: 0 auto; }
-        #app-section { display: none; }
-        
-        .sub-panel { display: none; border-top: 2px solid #eee; margin-top: 20px; padding-top: 20px; text-align: left; }
-        
-        .controles-busqueda, .form-edicion, .form-admin {
-            display: flex;
-            flex-direction: row;
-            gap: 10px;
-            justify-content: center;
-            flex-wrap: wrap;
-            margin-top: 15px;
-        }
-        .form-edicion { flex-direction: column; max-width: 600px; margin: 15px auto 0 auto; }
-        
-        input, select, button, textarea { padding: 12px; font-size: 16px; border: 1px solid #ccc; border-radius: 6px; }
-        textarea { resize: vertical; font-family: inherit; }
-        
-        button { background-color: rgb(156, 35, 72); color: white; border: none; cursor: pointer; font-weight: bold; transition: background 0.3s; }
-        button:hover { background-color: rgb(120, 25, 55); }
-        
-        .btn-add { background-color: #2e7d32; }
-        .btn-add:hover { background-color: #1b5e20; }
-        .btn-send-block { background-color: #0288d1; width: 100%; font-size: 18px; margin-top: 15px; }
-        .btn-send-block:hover { background-color: #01579b; }
-        .btn-logout { background-color: #555; width: 100%; margin-top: 30px;}
-        .btn-logout:hover { background-color: #333; }
-        
-        .panel-bloqueo { background-color: #ffebee; border: 1px solid #ffcdd2; padding: 15px; border-radius: 8px; margin-top: 20px; }
-        .panel-bitacora { background-color: #f5f5f5; border: 1px solid #e0e0e0; padding: 20px; border-radius: 8px; }
+    <title>SISTEMA DE BUSQUEDA</title>
+    <!-- Librería SheetJS (xlsx) para generar archivos Excel descargables -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <!-- Librería para generar el archivo Excel en el navegador -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
-        .contenedor-tabla { overflow-x: auto; margin-top: 20px; border: 1px solid #ddd; border-radius: 8px; }
-        table { width: 100%; border-collapse: collapse; font-size: 14px; background: white; }
-        th { background: rgb(30, 91, 79); color: white; padding: 12px; text-transform: uppercase; }
-        td { padding: 10px; border-bottom: 1px solid #eee; white-space: nowrap; color: #333;}
-        tr:hover { background-color: #f1f8e9; }
-        
-        .tabla-lote th { background: #37474f; }
-        .btn-del { background: #c62828; padding: 5px 10px; font-size: 12px; }
-    </style>
+
+
+<style>
+    /* --- RESET Y BASE --- */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: rgb(30, 91, 79); 
+      min-height: 100vh;
+      color: #333;
+    }
+
+    /* --- ESTRUCTURA GENERAL (OPCIÓN 1: MENÚ LATERAL) --- */
+    .app-container {
+      display: flex;
+      min-height: 100vh;
+      width: 100%;
+    }
+
+    /* BARRA LATERAL (SIDEBAR) */
+    .sidebar {
+      width: 260px;
+      background-color: rgb(18, 56, 48); /* Verde más oscuro para la barra */
+      color: white;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      box-shadow: 4px 0 10px rgba(0,0,0,0.15);
+      z-index: 10;
+    }
+
+    .sidebar-header {
+      padding: 25px 20px;
+      text-align: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .sidebar-header h2 {
+      font-size: 18px;
+      color: #ffffff;
+      letter-spacing: 0.5px;
+    }
+
+    .sidebar-menu {
+      display: flex;
+      flex-direction: column;
+      padding-top: 15px;
+      gap: 5px;
+    }
+
+    .nav-btn {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      padding: 14px 20px;
+      background: transparent;
+      color: #cfd8dc;
+      border: none;
+      border-left: 4px solid transparent;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      text-align: left;
+      transition: all 0.25s ease;
+      border-radius: 0;
+    }
+
+    .nav-btn:hover {
+      background-color: rgba(255, 255, 255, 0.08);
+      color: white;
+      transform: none; /* Invalida la animación general de botones */
+    }
+
+    .nav-btn.active {
+      background-color: rgba(255, 255, 255, 0.15);
+      color: white;
+      border-left-color: rgb(156, 35, 72); /* Detalle en color tinto */
+    }
+
+    /* ÁREA PRINCIPAL DE CONTENIDO */
+    .main-content {
+      flex: 1;
+      padding: 30px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* --- TARJETAS Y CONTENEDORES DE MÓDULOS --- */
+    .tarjeta {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+      text-align: center;
+      width: 100%;
+      max-width: 1100px;
+      margin-bottom: 20px;
+    }
+
+    .modulo-seccion {
+      display: none; /* Se ocultan por defecto */
+      width: 100%;
+    }
+
+    .modulo-seccion.activo {
+      display: block; /* Módulo visible */
+    }
+
+    .logo-app { 
+      width: 100%; 
+      max-width: 600px;
+      height: auto; 
+      margin-bottom: 30px;
+    }
+
+    #login-section { display: block; max-width: 400px; margin: 40px auto; }
+
+    /* --- PANELES ESPECÍFICOS --- */
+    .sub-panel { border-top: 2px solid #eee; margin-top: 20px; padding-top: 20px; text-align: left; }  
+    
+    #panel-edicion {
+      background-color: #6F7271;
+      padding: 20px;
+      border-radius: 8px;
+      border: 1px solid #b2dfdb;
+      align-items: center;
+      color: white;
+    }
+
+    .panel-bloqueo { background-color: #691C32; color: white; border: 1px solid #ffcdd2; padding: 15px; border-radius: 8px; margin-top: 20px; }
+    .panel-bitacora { background-color: #f5f5f5; border: 1px solid #e0e0e0; padding: 20px; border-radius: 8px; }
+    .panel-documental { background-color: #BC955C; color: white; border: 1px solid #b2dfdb; padding: 20px; border-radius: 8px; margin-top: 30px; }
+
+    /* --- FORMULARIOS Y CONTROLES --- */
+    .controles-busqueda, .form-edicion, .form-admin {
+      display: flex;
+      flex-direction: row;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 15px;
+    }
+    .form-edicion { flex-direction: column; max-width: 600px; margin: 15px auto 0 auto; }
+
+    .grid-documental {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+      margin-top: 15px;
+    }
+
+    input, select, button, textarea { 
+      padding: 12px; 
+      font-size: 15px; 
+      border: 1px solid #ccc; 
+      border-radius: 6px;
+      outline: none;
+      transition: all 0.3s ease;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: rgb(30, 91, 79);
+      box-shadow: 0 0 0 3px rgba(30, 91, 79, 0.15);
+    }
+    textarea { resize: vertical; font-family: inherit; }
+
+    /* BOTONES */
+    button { background-color: rgb(156, 35, 72); color: white; border: none; cursor: pointer; font-weight: bold; }
+    button:hover { background-color: rgb(120, 25, 55); transform: translateY(-1px); }
+    button:active { transform: translateY(1px); }
+
+    .btn-add { background-color: #2e7d32; }
+    .btn-add:hover { background-color: #1b5e20; }
+    .btn-send-block { background-color: #0288d1; width: 100%; font-size: 18px; margin-top: 15px; }
+    .btn-send-block:hover { background-color: #01579b; }
+    .btn-logout { background-color: #555; width: 100%; margin-top: auto; }
+    .btn-logout:hover { background-color: #333; }
+
+    /* --- TABLAS --- */
+    .contenedor-tabla { 
+      overflow-x: auto; 
+      margin-top: 20px; 
+      border: 1px solid #e0e0e0; 
+      border-radius: 8px; 
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+    table { width: 100%; border-collapse: collapse; font-size: 13.5px; background: white; text-align: left; }
+    th { 
+      background: rgb(24, 73, 63); 
+      color: white; 
+      padding: 14px 16px; 
+      text-transform: uppercase; 
+      font-size: 12px;
+      letter-spacing: 0.5px;
+      font-weight: 600;
+    }
+    td { padding: 12px 16px; border-bottom: 1px solid #eff2f1; white-space: nowrap; color: #333; }
+    tr:hover { background-color: rgba(30, 91, 79, 0.04); }
+
+    .tabla-lote th { background: #37474f; }
+    .btn-del { background: #c62828; padding: 6px 12px; font-size: 12px; border-radius: 4px; }
+    .btn-del:hover { background: #b71c1c; }
+
+    /* --- ESTATUS (BADGES) --- */
+    .status-badge {
+      display: inline-block;
+      padding: 5px 12px;
+      font-size: 11px;
+      font-weight: bold;
+      border-radius: 12px;
+      text-align: center;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    .status-badge-entregada { background-color: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
+    .status-badge-sobrante { background-color: #ffebee; color: #c62828; border: 1px solid #ef9a9a; }
+    .status-badge-envio { background-color: #e1f5fe; color: #0277bd; border: 1px solid #81d4fa; }
+    .status-badge-default { background-color: #f5f5f5; color: #616161; border: 1px solid #e0e0e0; }
+  </style>
 </head>
 <body>
+
+  <div class="app-container">
+    
+    <!-- BARRA LATERAL (SIDEBAR) -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h2>SISTEMA BASE</h2>
+      </div>
+
+      <nav class="sidebar-menu">
+        <button class="nav-btn active" onclick="cambiarModulo('mod-edicion', this)">
+          ✏️ Edición / Consulta
+        </button>
+        <button class="nav-btn" onclick="cambiarModulo('mod-lotes', this)">
+          📦 Carga por Lotes
+        </button>
+        <button class="nav-btn" onclick="cambiarModulo('mod-documental', this)">
+          📁 Control Documental
+        </button>
+        <button class="nav-btn" onclick="cambiarModulo('mod-bitacora', this)">
+          📜 Bitácora
+        </button>
+        <button class="nav-btn" onclick="cambiarModulo('mod-excel', this)">
+          📥 Reportes Excel
+        </button>
+      </nav>
+
+      <div style="padding: 20px;">
+        <button class="btn-logout" onclick="cerrarSesion()">Cerrar Sesión</button>
+      </div>
+    </aside>
+
+    <!-- ÁREA PRINCIPAL DE CONTENIDO -->
+    <main class="main-content">
+
+      <!-- MÓDULO 1: EDICIÓN -->
+      <section id="mod-edicion" class="modulo-seccion activo">
+        <div class="tarjeta">
+          <h2>Búsqueda y Edición</h2>
+          <div id="panel-edicion">
+            <!-- Formulario de edición aquí -->
+            <p>Contenido del módulo de edición...</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- MÓDULO 2: CARGA POR LOTES -->
+      <section id="mod-lotes" class="modulo-seccion">
+        <div class="tarjeta">
+          <h2>Actualización por Lotes</h2>
+          <!-- Contenido del módulo de lotes -->
+        </div>
+      </section>
+
+      <!-- MÓDULO 3: CONTROL DOCUMENTAL -->
+      <section id="mod-documental" class="modulo-seccion">
+        <div class="tarjeta">
+          <h2>Control Documental</h2>
+          <div class="panel-documental">
+            <div class="grid-documental">
+              <!-- Grid documental -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- MÓDULO 4: BITÁCORA -->
+      <section id="mod-bitacora" class="modulo-seccion">
+        <div class="tarjeta">
+          <h2>Bitácora de Eventos</h2>
+          <div class="panel-bitacora">
+            <!-- Tabla de bitácora -->
+          </div>
+        </div>
+      </section>
+
+      <!-- MÓDULO 5: EXCEL -->
+      <section id="mod-excel" class="modulo-seccion">
+        <div class="tarjeta">
+          <h2>Generación de Reportes Excel</h2>
+          <!-- Tu módulo de Excel aquí -->
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script>
+    // Función para alternar entre módulos visualmente
+    function cambiarModulo(idModulo, boton) {
+      // 1. Ocultar todos los módulos
+      document.querySelectorAll('.modulo-seccion').forEach(sec => sec.classList.remove('activo'));
+      
+      // 2. Desactivar todos los botones del menú
+      document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+
+      // 3. Mostrar el módulo seleccionado y activar su botón correspondiente
+      document.getElementById(idModulo).classList.add('activo');
+      boton.classList.add('active');
+    }
+
+    function cerrarSesion() {
+      // Tu lógica de cierre de sesión
+      alert('Cerrando sesión...');
+    }
+  </script>
+</body>
+    
 
     <!-- CONTROL DE ACCESO -->
     <div id="login-section" class="tarjeta">
@@ -89,11 +364,12 @@
     <!-- CUERPO CENTRAL -->
     <div id="app-section" class="tarjeta">
         <img src="Imagen11.png" alt="Logo" class="logo-app">
+        <img src="user___Imagen4t (5).gif" alt="saludo"> 
         <h2 id="saludo-usuario">Buscador de Registros</h2>
         
         <!-- CONSULTAS -->
         <div id="panel-busqueda">
-            <h3>Módulo de Consulta</h3>
+            <h3> Módulo de Consulta</h3>
             <div class="controles-busqueda">
                 <input type="text" id="valorBusqueda" placeholder="Valor a buscar...">
                 <select id="columnaBusqueda">
@@ -101,14 +377,21 @@
                     <option value="CURP">CURP</option>
                     <option value="Folio">Folio</option>
                 </select>
-                <button onclick="ejecutarBusqueda()">Buscar</button>
-            </div>
+               <button onclick="ejecutarBusqueda()">Buscar</button>
+        <!-- Nuevo botón para abrir la cámara -->
+        <button type="button" onclick="iniciarEscanerQR()">📷 Escanear QR</button>
+    </div> 
+    
+    <!-- Contenedor para la cámara (oculto por defecto) -->
+    <div id="lector-qr" style="width: 300px; display: none; margin-top: 15px;"></div>
+
+
             <div id="contenedor-resultados"></div>
         </div>
 
         <!-- CAPTURA INTERMEDIA (LOTES) -->
         <div id="panel-edicion" class="sub-panel">
-            <h3>Módulo de Edición Avanzada (Captura por Bloques)</h3>
+            <h3 style="text-align: center;"> Módulo de Edición (Captura por Bloques)</h3>
             <div class="form-edicion">
                 <label style="font-weight: bold;">Actividad a realizar</label>
                 <select id="actividadRealizar" onchange="cambiarOpcionesEstatus()">
@@ -137,17 +420,144 @@
                             <tbody id="lote-body"></tbody>
                         </table>
                     </div>
-                    <button class="btn-send-block" id="btnEnviarBloque" onclick="enviarLoteAlServidor()">🚀 Enviar todo el Bloque a Sheets</button>
+                    <button class="btn-send-block" id="btnEnviarBloque" onclick="enviarLoteAlServidor()">🚀 Enviar todo el Bloque</button>
+                </div>
+            </div>
+        </div>
+
+
+
+
+<!-- Interfaz del Módulo -->
+<div id="modulo-excel" tyle="padding: 20px; flex-direction: border: 1px solid #ccc; border-radius: 8px; max-width: 400px; background-color: #f9f9f9; font-family: sans-serif;">
+  <h3 style="margin-top: 0; color: #333;">Generar Reporte de Entregas</h3>
+  
+  <button id="btnCargarFechas" onclick="cargarFechas()" style="width: 100%; padding: 8px; margin-bottom: 15px; background-color: #34a853; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">
+    🔄 Cargar / Actualizar Fechas
+  </button>
+
+  <label for="selectFechaExcel" style="font-weight: bold; font-size: 14px;">Selecciona la Fecha:</label>
+  <select id="selectFechaExcel" style="width: 100%; padding: 8px; margin: 10px 0; border: 1px solid #aaa; border-radius: 4px;">
+    <option value="">-- Haz clic en actualizar primero --</option>
+  </select>
+  
+  <button id="btnGenerarExcel" onclick="confirmarYGenerarExcel()" style="width: 100%; padding: 10px; background-color: #1a73e8; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">
+    Generar y Descargar Reporte
+  </button>
+</div>
+
+
+
+
+
+        
+        <!-- NUEVO MÓDULO: CONTROL DOCUMENTAL Y FOLIADO -->
+        <div id="panel-documental" class="sub-panel panel-documental" style="display:block;">
+            <h3 style="text-align: center;">Módulo de Validación y Fichas Documentales</h3>
+            <p style="text-align: center;">Busca un registro para complementar con datos físicos:</p>
+            
+            <div class="controles-busqueda">
+                <input type="text" id="docValorBusqueda" placeholder="Valor a buscar...">
+                <!-- Botón para abrir el escáner -->
+<button type="button" id="btnEscanearDoc" onclick="iniciarEscanerDoc()">📷 Escanear QR</button>
+
+<!-- Contenedor de la cámara (oculto por defecto) -->
+<div id="contenedor-escaner-doc" style="display: none; margin-top: 15px; max-width: 400px; border: 1px solid #ccc; padding: 10px; border-radius: 5px;">
+    <div id="reader-doc" style="width: 100%;"></div>
+    <button type="button" onclick="detenerEscanerDoc()" style="margin-top: 10px; padding: 8px 15px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; width: 100%;">
+        Cancelar / Detener Cámara
+    </button>
+</div>
+                <select id="docColumnaBusqueda">
+                    <option value="Nombre">Nombre</option>
+                    <option value="CURP">CURP</option>
+                    <option value="Folio">Folio</option>
+                </select>
+                <button onclick="ejecutarBusquedaDocumental()">Buscar Registro</button>
+            </div>
+            
+            <div id="doc-contenedor-resultados"></div>
+
+            <!-- Formulario de detalles para integrar a la lista acumulada -->
+            <div id="doc-formulario-detalles" style="display:none; margin-top:20px; background: #fff; padding: 20px; border-radius: 8px; border: 1px solid #b2dfdb;">
+                <h4 style="margin-top:0; color: #004d40;">Detalle Documental del Registro Seleccionado</h4>
+                <div class="grid-documental">
+                    <div>
+                        <label style="font-size:12px; font-weight:bold;">Número de Caja:</label>
+                        <input type="text" id="docCaja" placeholder="Ej. Caja 1" style="width:100%;">
+                    </div>
+                    <div>
+                        <label style="font-size:12px; font-weight:bold;">Número de Fojas:</label>
+                        <input type="number" id="docFojas" placeholder="Total fojas" oninput="validarCoincidenciaFojas()" style="width:100%;">
+                    </div>
+                    <div>
+                        <label style="font-size:12px; font-weight:bold;">Cantidad de Identifiaciones:</label>
+                        <input type="number" id="docIne" placeholder="0" oninput="validarCoincidenciaFojas()" style="width:100%;">
+                    </div>
+                    <div>
+                        <label style="font-size:12px; font-weight:bold;">Tipo de Identificación:</label>
+                        <input type="text" id="docTipoIdentificacion" placeholder="Ej. Credencial / Pasaporte" style="width:100%;">
+                    </div>
+                    <div>
+                        <label style="font-size:12px; font-weight:bold;">Actas de Nacimiento:</label>
+                        <input type="number" id="docActa" placeholder="0" oninput="validarCoincidenciaFojas()" style="width:100%;">
+                    </div>
+                    <div>
+                        <label style="font-size:12px; font-weight:bold;">CURP (Cant. Docs):</label>
+                        <input type="number" id="docCurpDoc" placeholder="0" oninput="validarCoincidenciaFojas()" style="width:100%;">
+                    </div>
+                    <div>
+                        <label style="font-size:12px; font-weight:bold;">Comprobante:</label>
+                        <input type="number" id="docComprobante" placeholder="0" oninput="validarCoincidenciaFojas()" style="width:100%;">
+                    </div>
+                    <div>
+                        <label style="font-size:12px; font-weight:bold;">Cantidad de Acuses:</label>
+                        <input type="number" id="docAcuses" placeholder="0" oninput="validarCoincidenciaFojas()" style="width:100%;">
+                    </div>
+                </div>
+
+                <div style="margin-top: 15px;">
+                    <label style="font-size:12px; font-weight:bold;">Observaciones:</label>
+                    <textarea id="docObservaciones" placeholder="Observaciones adicionales..." rows="2" style="width:100%; box-sizing:border-box;"></textarea>
+                </div>
+
+                <!-- Indicador visual de coincidencia de fojas -->
+                <div id="indicador-coincidencia" style="margin-top: 15px; padding: 10px; border-radius: 6px; font-weight: bold; text-align: center; background: #eee; color: #555;">
+                    Ingrese las fojas y los documentos para verificar la coincidencia.
+                </div>
+
+                <div style="margin-top: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button class="btn-add" onclick="agregarAListaDocumental()">+ Agregar a Lista Documental</button>
+                
+                </div>
+            </div>
+
+            <!-- Tabla de lista acumulada documental -->
+            <div id="area-lista-documental" style="display:none; margin-top:25px;">
+                <h4 style="color: #004d40;">Registros Documentales Acumulados (<span id="contador-documental">0</span>):</h4>
+                <div class="contenedor-tabla">
+                    <table style="background: white;">
+                        <thead>
+                            <tr style="background: #004d40; color:white;">
+                                <th>Folio</th><th>Nombre</th><th>CURP</th><th>Caja</th><th>Fojas</th><th>Estatus Coincidencia</th><th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="documental-body"></tbody>
+                    </table>
+                </div>
+                <div style="margin-top: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button class="btn-send-block" onclick="preguntarYGenerarExcel()" style="background-color: #2e7d32; margin: 0; flex: 1;">📊 Generar y Descargar Reporte Excel</button>
+                    <button class="btn-send-block" onclick="sincronizarListaDocumentalServidor()" style="background-color: #0288d1; margin: 0; flex: 1;">🚀 Sincronizar Datos al Servidor</button>
+                    <button class="btn-send-block" onclick="limpiarRegistrosDocumentalesAgregados()" style="background-color: #d32f2f; margin: 0; flex: 1;">🧹 Limpiar Bloque</button>
                 </div>
             </div>
         </div>
 
         <!-- ADMINISTRADORES -->
         <div id="panel-admin" class="sub-panel">
-            
             <div class="panel-bitacora">
-                <h3>Visualizador Estratégico de Bitácora</h3>
-                <p>Filtra y analiza los movimientos realizados en la plataforma en tiempo real:</p>
+                <h3 style="text-align: center;">Visualizador de Bitácora</h3>
+                <p style="text-align: center;">Filtra y analiza los movimientos realizados en la plataforma en tiempo real:</p>
                 
                 <div style="display: flex; flex-direction: row; gap: 15px; flex-wrap: wrap; background: #e0f2f1; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
                     <div style="display: flex; flex-direction: column; gap: 5px;">
@@ -172,27 +582,58 @@
 
             <!-- PANEL DE SEGURIDAD -->
             <div class="panel-bloqueo">
-                <h3>Control de Seguridad (Solo Administradores)</h3>
-                <p>Selecciona un usuario del sistema para revocar sus accesos de forma permanente:</p>
+                <h3 style="text-align: center;">Control de Seguridad (Solo Administradores)</h3>
+                <p style="text-align: center;">Selecciona un usuario del sistema para revocar sus accesos de forma permanente:</p>
                 <div class="form-admin">
                     <select id="listaUsuariosAdmin"><option>Cargando usuarios...</option></select>
                     <button style="background-color: #d32f2f;" onclick="ejecutarBloqueo()">Bloquear Acceso</button>
                 </div>
             </div>
-            
         </div>
 
         <button class="btn-logout" onclick="cerrarSesion()">Cerrar Sesión</button>
     </div>
 
     <script>
-        // REEMPLAZA ESTA URL CON TU ENLACE DE IMPLEMENTACIÓN DE GOOGLE APPS SCRIPT
-        //const API_URL = 'https://script.google.com/macros/s/AKfycbxETrTnEb4kFfO47C3KLwus_hdD0J0VGlydNd7ubCrnWFVvSNDVIw3dXnhg_ouvJXHztA/exec';
-        
+        // CONFIGURACIONES Y VARIABLES GLOBALES
+        const API_URL = 'https://script.google.com/macros/s/AKfycbxVOIqAoGj1iM_p8rfPbtkUIA2t9xAHqpum0bupySt2fEloMhDuBQFFX6wO3RYlWlgkhA/exec';
         let usuarioActual = ""; 
         let rolActual = "";
         let datosDispositivo = { ip: "Obteniendo...", ubicacion: "Obteniendo..." };
         let loteTemporal = [];
+
+        // Variables globales para el nuevo módulo documental
+        let registroSeleccionadoDoc = null;
+        let listaDocumentalAcumulada = [];
+
+        // --- SISTEMA DE SEGURIDAD (INACTIVIDAD) ---
+        let timerInactividad;
+        const TIEMPO_LIMITE_INACTIVIDAD = 15 * 60 * 1000; // 15 minutos en milisegundos
+
+        function iniciarTemporizadorInactividad() {
+            detenerTemporizadorInactividad();
+            document.addEventListener('mousemove', resetearTemporizador);
+            document.addEventListener('keypress', resetearTemporizador);
+            document.addEventListener('click', resetearTemporizador);
+            timerInactividad = setTimeout(cerrarSesionPorInactividad, TIEMPO_LIMITE_INACTIVIDAD);
+        }
+
+        function detenerTemporizadorInactividad() {
+            clearTimeout(timerInactividad);
+            document.removeEventListener('mousemove', resetearTemporizador);
+            document.removeEventListener('keypress', resetearTemporizador);
+            document.removeEventListener('click', resetearTemporizador);
+        }
+
+        function resetearTemporizador() {
+            clearTimeout(timerInactividad);
+            timerInactividad = setTimeout(cerrarSesionPorInactividad, TIEMPO_LIMITE_INACTIVIDAD);
+        }
+
+        function cerrarSesionPorInactividad() {
+            alert("Tu sesión ha expirado por inactividad.");
+            cerrarSesion();
+        }
 
         document.getElementById('pass').addEventListener('keypress', e => { 
             if (e.key === 'Enter') iniciarSesion(); 
@@ -201,6 +642,9 @@
             if (e.key === 'Enter') e.preventDefault();
         });
         document.getElementById('editFolio').addEventListener('keydown', e => { 
+            if (e.key === 'Enter') e.preventDefault();
+        });
+        document.getElementById('docValorBusqueda').addEventListener('keydown', e => { 
             if (e.key === 'Enter') e.preventDefault();
         });
 
@@ -235,13 +679,19 @@
         function configurarVistasPorRol(rol) {
             document.getElementById('login-section').style.display = 'none';
             document.getElementById('app-section').style.display = 'block';
-            document.getElementById('saludo-usuario').innerText = `Panel del Sistema [Rol: ${rol}]`;
+            document.getElementById('saludo-usuario').innerText = `Panel del Sistema`;
             document.getElementById('panel-edicion').style.display = 'none';
             document.getElementById('panel-admin').style.display = 'none';
+            document.getElementById('panel-documental').style.display = 'none';
+             document.getElementById('modulo-excel').style.display = 'none';
+            iniciarTemporizadorInactividad();
 
             if (rol === "ATENCION" || rol === "ADMIN") {
                 document.getElementById('panel-edicion').style.display = 'block';
+              document.getElementById('panel-documental').style.display = 'block';
+                document.getElementById('modulo-excel').style.display = 'block';
             }
+
             if (rol === "ADMIN") {
                 document.getElementById('panel-admin').style.display = 'block';
                 cargarUsuariosParaAdmin();
@@ -354,7 +804,6 @@
             const fecha = document.getElementById('filtroBitacoraFecha').value; 
             const usuario = document.getElementById('filtroBitacoraUsuario').value;
             
-            // Si ambos están vacíos, no despliega nada por defecto
             if (!fecha && !usuario) {
                 document.getElementById('contenedor-bitacora').innerHTML = '';
                 return;
@@ -365,9 +814,7 @@
         function limpiarYVerTodoBitacora() {
             document.getElementById('filtroBitacoraFecha').value = "";
             document.getElementById('filtroBitacoraUsuario').value = "";
-            // Carga completa bajo demanda explícita
             consultarBitacoraServidor("", "");
-            // Recargamos los filtros por si hubo nuevas acciones en la sesión
             cargarFiltrosDesplegablesBitacora();
         }
 
@@ -387,18 +834,41 @@
         }
 
         function agregarAlBloqueLocal() {
-            const folioInput = document.getElementById('editFolio');
-            const estatusInput = document.getElementById('editEstatus');
-            const obsInput = document.getElementById('editObservaciones');
-            const folio = folioInput.value.trim();
-            if(!folio) return alert("Por favor ingresa o escanea un folio.");
-            if(loteTemporal.some(item => item.folio === folio)) return alert("Este folio ya está en la lista de espera.");
-            
-            loteTemporal.push({ folio: folio, estatus: estatusInput.value, observaciones: obsInput.value.trim() });
-            folioInput.value = ""; obsInput.value = ""; folioInput.focus();
-            actualizarTablaInterfazLote();
-        }
+    const folioInput = document.getElementById('editFolio');
+    const estatusInput = document.getElementById('editEstatus');
+    const obsInput = document.getElementById('editObservaciones');
+    const folio = folioInput.value.trim();
+    
+    if(!folio) return alert("Por favor ingresa o escanea un folio.");
+    if(loteTemporal.some(item => item.folio === folio)) return alert("Este folio ya está en la lista de espera.");
+    
+    // 1. Obtener el texto base y generar la fecha
+    const textoBase = obsInput.value.trim();
+    const fechaActual = new Date().toLocaleDateString('es-MX');
+    
+    // 2. Concatenar texto + espacio + fecha (si está vacío, solo pone la fecha)
+    const observacionesConFecha = textoBase !== "" ? `${textoBase} ${fechaActual}` : fechaActual;
 
+    // 3. Guardar en el arreglo usando la nueva variable
+    loteTemporal.push({ 
+        folio: folio, 
+        estatus: estatusInput.value, 
+        observaciones: observacionesConFecha, 
+        fecha: fechaActual // <--- ¡AGREGA ESTA LÍNEA AQUÍ!
+    });
+    
+    // 4. Se eliminó obsInput.value = ""; para que el texto se mantenga en pantalla
+    folioInput.value = ""; 
+    folioInput.focus();
+    
+    actualizarTablaInterfazLote();
+}
+
+
+  
+
+
+        
         function eliminarDelBloqueLocal(index) {
             loteTemporal.splice(index, 1);
             actualizarTablaInterfazLote();
@@ -422,21 +892,541 @@
         async function enviarLoteAlServidor() {
             if(loteTemporal.length === 0) return;
             const btn = document.getElementById('btnEnviarBloque');
-            if(!confirm(`¿Deseas sincronizar este bloque de ${loteTemporal.length} registros con Google Sheets?`)) return;
-            btn.innerText = "Procesando matriz a alta velocidad..."; btn.disabled = true;
+            if(!confirm(`¿Deseas sincronizar este bloque de ${loteTemporal.length} registros?`)) return;
+            btn.innerText = "Procesando matriz..."; btn.disabled = true;
 
             try {
                 const res = await enviarPeticion({ action: "actualizar_lote", lote: loteTemporal });
                 if(res.exito) {
-                    let msg = `¡Éxito total! Se actualizaron ${res.exitosos} registros instantáneamente en Google Sheets.`;
+                    let msg = `¡Éxito total! Se actualizaron ${res.exitosos} registros.`;
                     if(res.noEncontrados.length > 0) msg += `\n\nFolios no hallados en la base: ${res.noEncontrados.join(", ")}`;
                     alert(msg);
                     loteTemporal = []; actualizarTablaInterfazLote();
                 } else { alert("Error: " + res.error); }
             } catch(e) { alert("Error de red o timeout."); } 
-            finally { btn.innerText = "🚀 Enviar todo el Bloque a Sheets"; btn.disabled = false; }
+            finally { btn.innerText = "🚀 Enviar todo el Bloque"; btn.disabled = false; }
         }
 
+
+
+
+
+// 1. NUEVO: Función que se ejecuta SOLO cuando presionas el botón de actualizar fechas
+// Usamos asyn/await y enviarPeticion tal como en tu código de bitácora
+  async function cargarFechas() {
+     const btn = document.getElementById('btnCargarFechas');
+     const select = document.getElementById('selectFechaExcel');
+     
+     btn.innerText = "⏳ Buscando fechas...";
+     btn.disabled = true;
+     select.innerHTML = '<option value="">Cargando...</option>';
+
+     try {
+         const respuesta = await enviarPeticion({ action: "obtener_fechas_w" });
+
+         if (respuesta.error) {
+             alert("Error del servidor: " + respuesta.error);
+             select.innerHTML = '<option value="">Error al cargar</option>';
+         } else if (respuesta.fechas && respuesta.fechas.length > 0) {
+             select.innerHTML = '<option value="">-- Selecciona una fecha --</option>';
+             respuesta.fechas.forEach(fecha => {
+                 let opt = document.createElement('option');
+                 opt.value = fecha;
+                 opt.innerText = fecha;
+                 select.appendChild(opt);
+             });
+         } else {
+             select.innerHTML = '<option value="">No hay fechas disponibles</option>';
+         }
+     } catch (e) {
+         alert("Error de comunicación al buscar fechas.");
+         select.innerHTML = '<option value="">Error de conexión</option>';
+     } finally {
+         btn.innerText = "🔄 Cargar / Actualizar Fechas";
+         btn.disabled = false;
+     }
+  }
+
+  async function confirmarYGenerarExcel() {
+     const fechaSeleccionada = document.getElementById('selectFechaExcel').value;
+     
+     if (!fechaSeleccionada) {
+        return alert("⚠️ Por favor, selecciona una fecha primero.");
+     }
+
+     if (!confirm(`¿Estás seguro de que deseas generar el archivo Excel para la fecha: ${fechaSeleccionada}?`)) {
+         return;
+     }
+
+     const btn = document.getElementById('btnGenerarExcel');
+     btn.innerText = "⏳ Generando archivo...";
+     btn.disabled = true;
+
+     try {
+         const respuesta = await enviarPeticion({ 
+             action: "obtener_datos_excel", 
+             fecha: fechaSeleccionada 
+         });
+
+         if (respuesta.error) {
+             alert("Error del servidor: " + respuesta.error);
+         } else if (respuesta.datos && respuesta.datos.length > 1) { 
+             // Si length es > 1 significa que hay datos además de los encabezados
+             crearArchivoExcel(respuesta.datos, fechaSeleccionada);
+         } else {
+             alert("No se encontraron registros para esta fecha.");
+         }
+     } catch (e) {
+         alert("Error de red al procesar el Excel.");
+     } finally {
+         btn.innerText = "Generar y Descargar Excel";
+         btn.disabled = false;
+     }
+  }
+
+  // Función que procesa los datos y descarga el Excel
+  function crearArchivoExcel(datos, fecha) {
+     const workbook = XLSX.utils.book_new();
+     const worksheet = XLSX.utils.aoa_to_sheet(datos); 
+
+     // Ajuste básico de columnas
+     const wscols = [
+        {wch: 15}, {wch: 25}, {wch: 20}, {wch: 20}, 
+        {wch: 20}, {wch: 20}, {wch: 20}, {wch: 20}, 
+        {wch: 20}, {wch: 20}, {wch: 20}, {wch: 15}
+     ];
+     worksheet['!cols'] = wscols;
+
+     XLSX.utils.book_append_sheet(workbook, worksheet, "Reporte");
+     
+     // Limpiar la fecha para evitar problemas al guardar el archivo (ej. 29/07/2026 -> 29-07-2026)
+     const nombreArchivo = `Reporte_Entregas_${fecha.replace(/\//g, '-')}.xlsx`;
+     XLSX.writeFile(workbook, nombreArchivo);
+  }
+        
+
+
+
+
+
+        
+
+        // --- LÓGICA DEL NUEVO MÓDULO DOCUMENTAL ---
+        async function ejecutarBusquedaDocumental() {
+            const valor = document.getElementById('docValorBusqueda').value.trim();
+            const columna = document.getElementById('docColumnaBusqueda').value;
+            const contenedor = document.getElementById('doc-contenedor-resultados');
+            const formDetalles = document.getElementById('doc-formulario-detalles');
+            
+            if (!valor) return alert("Por favor ingresa un valor para buscar.");
+            contenedor.innerHTML = '<p style="font-weight:bold; color: #555;">Consultando base de datos...</p>';
+            formDetalles.style.display = 'none';
+            registroSeleccionadoDoc = null;
+
+            try {
+                const resultados = await enviarPeticion({ action: "buscar", columna: columna, valor: valor });
+                if (resultados && resultados.error) { contenedor.innerHTML = `<p style="color:red; font-weight:bold;">${escaparHTML(resultados.error)}</p>`; return; }
+                if (!Array.isArray(resultados) || resultados.length === 0) { contenedor.innerHTML = '<p style="color:orange; font-weight:bold;">Sin coincidencias.</p>'; return; }
+
+                let html = `<div class="contenedor-tabla"><table style="background:white;"><thead><tr>
+                            <th>ACCIÓN</th><th>FOLIO</th><th>NOMBRE</th><th>CURP</th><th>SARE</th><th>MUNICIPIO</th><th>ESTATUS</th>
+                            </tr></thead><tbody>`;
+                
+                resultados.forEach((f, idx) => {
+                    html += `<tr>
+                                <td><button style="padding:5px 10px; background:#00796b;" onclick='seleccionarRegistroDoc(${JSON.stringify(f)})'>Seleccionar</button></td>
+                                <td><b>${escaparHTML(f.FOLIO || f.Folio || '')}</b></td>
+                                <td>${escaparHTML(f.NOMBRE_COMPLETO)}</td>
+                                <td>${escaparHTML(f.CURP)}</td>
+                                <td>${escaparHTML(f.SARE)}</td>
+                                <td>${escaparHTML(f.MUNICIPIO)}</td>
+                                <td>${escaparHTML(f.ESTATUS)}</td>
+                             </tr>`;
+                });
+                html += '</tbody></table></div>';
+                contenedor.innerHTML = html;
+            } catch (error) { contenedor.innerHTML = '<p style="color:red; font-weight:bold;">Error de comunicación.</p>'; }
+        }
+
+        function seleccionarRegistroDoc(registro) {
+            registroSeleccionadoDoc = registro;
+            document.getElementById('doc-formulario-detalles').style.display = 'block';
+            document.getElementById('docCaja').value = '';
+            document.getElementById('docFojas').value = '';
+            document.getElementById('docIne').value = '';
+            document.getElementById('docTipoIdentificacion').value = '';
+            document.getElementById('docActa').value = '';
+            document.getElementById('docCurpDoc').value = '';
+            document.getElementById('docComprobante').value = '';
+            document.getElementById('docAcuses').value = '';
+            document.getElementById('docObservaciones').value = '';
+            document.getElementById('indicador-coincidencia').innerHTML = "Ingrese las fojas y los documentos para verificar la coincidencia.";
+            document.getElementById('indicador-coincidencia').style.background = "#eee";
+            document.getElementById('indicador-coincidencia').style.color = "#555";
+            window.location.hash = "doc-formulario-detalles";
+        }
+
+        function validarCoincidenciaFojas() {
+            const fojas = parseInt(document.getElementById('docFojas').value) || 0;
+            const ine = parseInt(document.getElementById('docIne').value) || 0;
+            const acta = parseInt(document.getElementById('docActa').value) || 0;
+            const curpDoc = parseInt(document.getElementById('docCurpDoc').value) || 0;
+            const comprobante = parseInt(document.getElementById('docComprobante').value) || 0;
+            const acuse = parseInt(document.getElementById('docAcuses').value) || 0;
+
+            const sumaDocs = ine + acta + curpDoc + comprobante + acuse;
+            const indicador = document.getElementById('indicador-coincidencia');
+
+            if (document.getElementById('docFojas').value === "") {
+                indicador.innerHTML = "Ingrese el número total de fojas.";
+                indicador.style.background = "#eee";
+                indicador.style.color = "#555";
+                return { coincide: false, suma: sumaDocs };
+            }
+
+            if (fojas === sumaDocs) {
+                indicador.innerHTML = `¡Coincide perfectamente! Total de fojas (${fojas}) coincide con la suma de documentos (${sumaDocs}).`;
+                indicador.style.background = "#e8f5e9";
+                indicador.style.color = "#2e7d32";
+                return { coincide: true, suma: sumaDocs };
+            } else {
+                indicador.innerHTML = `No coincide: Las fojas indicadas son (${fojas}) pero la suma de documentos es (${sumaDocs}).`;
+                indicador.style.background = "#ffebee";
+                indicador.style.color = "#c62828";
+                return { coincide: false, suma: sumaDocs };
+            }
+        }
+
+        function agregarAListaDocumental() {
+            if (!registroSeleccionadoDoc) return alert("Selecciona un registro primero.");
+            const fojasVal = document.getElementById('docFojas').value;
+            if (!fojasVal) return alert("Por favor ingresa el número de fojas.");
+
+            const validacion = validarCoincidenciaFojas();
+            
+            const itemCompleto = {
+                ...registroSeleccionadoDoc,
+                caja: document.getElementById('docCaja').value.trim() || "S/C",
+                fojas: fojasVal,
+                ine: document.getElementById('docIne').value.trim() || "0",
+                tipoIdentificacion: document.getElementById('docTipoIdentificacion').value.trim() || "N/A",
+                acta: document.getElementById('docActa').value.trim() || "0",
+                curpDoc: document.getElementById('docCurpDoc').value.trim() || "0",
+                comprobante: document.getElementById('docComprobante').value.trim() || "0",
+                acuses: document.getElementById('docAcuses').value.trim() || "0",
+                observacionesDoc: document.getElementById('docObservaciones').value.trim() || "",
+                coincide: validacion.coincide
+            };
+
+            listaDocumentalAcumulada.push(itemCompleto);
+            actualizarTablaListaDocumental();
+            
+            document.getElementById('doc-formulario-detalles').style.display = 'none';
+            document.getElementById('doc-contenedor-resultados').innerHTML = '';
+            document.getElementById('docValorBusqueda').value = '';
+            registroSeleccionadoDoc = null;
+            alert("Registro agregado exitosamente a la lista documental.");
+        }
+
+        function eliminarItemDocumental(index) {
+            listaDocumentalAcumulada.splice(index, 1);
+            actualizarTablaListaDocumental();
+        }
+
+        function limpiarRegistrosDocumentalesAgregados() {
+            if (listaDocumentalAcumulada.length === 0) return alert("La lista ya se encuentra vacía.");
+            if (!confirm("¿Deseas limpiar todos los registros agregados en la lista documental?")) return;
+            listaDocumentalAcumulada = [];
+            actualizarTablaListaDocumental();
+        }
+
+        function actualizarTablaListaDocumental() {
+            const area = document.getElementById('area-lista-documental');
+            const tbody = document.getElementById('documental-body');
+            document.getElementById('contador-documental').innerText = listaDocumentalAcumulada.length;
+
+            if (listaDocumentalAcumulada.length === 0) {
+                area.style.display = 'none';
+                tbody.innerHTML = '';
+                return;
+            }
+
+            area.style.display = 'block';
+            tbody.innerHTML = '';
+            listaDocumentalAcumulada.forEach((item, index) => {
+                const badgeEstatus = item.coincide 
+                    ? '<span class="status-badge status-badge-entregada">Coincide</span>' 
+                    : '<span class="status-badge status-badge-sobrante">No Coincide</span>';
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><b>${escaparHTML(item.FOLIO || item.Folio || '')}</b></td>
+                    <td>${escaparHTML(item.NOMBRE_COMPLETO)}</td>
+                    <td>${escaparHTML(item.CURP)}</td>
+                    <td>${escaparHTML(item.caja)}</td>
+                    <td>${escaparHTML(item.fojas)}</td>
+                    <td>${badgeEstatus}</td>
+                    <td><button class="btn-del" onclick="eliminarItemDocumental(${index})">Quitar</button></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function preguntarYGenerarExcel() {
+            if (listaDocumentalAcumulada.length === 0) return alert("La lista está vacía.");
+            if (!confirm("¿Deseas generar el reporte en Excel con todos los datos de la lista?")) return;
+
+            let datosHoja1 = listaDocumentalAcumulada.map(item => ({
+                Folio: item.FOLIO || item.Folio || '',
+                SARE: item.SARE || '',
+                Municipio: item.MUNICIPIO || '',
+                CCT: item.CCT || '',
+                Escuela: item.ESCUELA || '',
+                Id_Becario: item.ID_BECARIO || '',
+                Nombre: item.NOMBRE || '',
+                Apellido_Paterno: item.APELLIDO_PATERNO || '',
+                Apellido_Materno: item.APELLIDO_MATERNO || '',
+                Remesa: item.REMESA || '',
+                Nivel: item.NIVEL || '',
+                Bloque: item.BLOQUE || '',
+                Mes_Remesa: item.MES_REMESA || '',
+                CURP: item.CURP || '',
+                Observaciones: item.OBSERVACIONES || '',
+                Estatus: item.ESTATUS || '',
+                Caja: item.caja,
+                Fojas: item.fojas,
+                Cantidad_INE: item.ine,
+                Tipo_Identificacion: item.tipoIdentificacion,
+                Acta: item.acta,
+                CURP_Doc: item.curpDoc,
+                Comprobante: item.comprobante,
+                Cantidad_Acuses: item.acuses,
+                Observaciones_Doc: item.observacionesDoc,
+                Coincide_Fojas: item.coincide ? "SI" : "NO"
+            }));
+
+            let agrupacionCajas = {};
+            listaDocumentalAcumulada.forEach(item => {
+                let cajaNom = item.caja || "S/C";
+                let cctVal = item.CCT || "S/C";
+                if (!agrupacionCajas[cajaNom]) {
+                    agrupacionCajas[cajaNom] = { totalFolios: 0, cctsSet: new Set() };
+                }
+                agrupacionCajas[cajaNom].totalFolios++;
+                agrupacionCajas[cajaNom].cctsSet.add(cctVal);
+            });
+
+            let datosHoja2 = Object.keys(agrupacionCajas).map(caja => {
+                let info = agrupacionCajas[caja];
+                return {
+                    Caja: caja,
+                    Total_Folios: info.totalFolios,
+                    Total_CCT: info.cctsSet.size,
+                    Lista_CCT: Array.from(info.cctsSet).join(", ")
+                };
+            });
+
+            let wb = XLSX.utils.book_new();
+            let ws1 = XLSX.utils.json_to_sheet(datosHoja1);
+            let ws2 = XLSX.utils.json_to_sheet(datosHoja2);
+
+            XLSX.utils.book_append_sheet(wb, ws1, "Registros Documentales");
+            XLSX.utils.book_append_sheet(wb, ws2, "Resumen por Caja");
+
+            XLSX.writeFile(wb, "Reporte_Documental_Sistema.xlsx");
+        }
+
+        async function sincronizarListaDocumentalServidor() {
+            if (listaDocumentalAcumulada.length === 0) return alert("La lista está vacía.");
+            if (!confirm(`¿Deseas sincronizar y actualizar la columna V para los ${listaDocumentalAcumulada.length} registros acumulados en el servidor?`)) return;
+
+            let loteActualizacion = listaDocumentalAcumulada.map(item => {
+                let folioBusq = item.FOLIO || item.Folio || '';
+                let cadenaValores = `${item.caja}, ${item.fojas}, ${item.ine}, ${item.tipoIdentificacion}, ${item.acta}, ${item.curpDoc}, ${item.comprobante}, ${item.acuses}, ${item.observacionesDoc || "Sin observaciones"}`;
+                return { folio: folioBusq, valoresCeldaV: cadenaValores };
+            });
+
+            try {
+                const res = await enviarPeticion({
+                    action: "actualizar_lote_columna_v",
+                    lote: loteActualizacion
+                });
+
+                if (res.exito) {
+                    let msg = `¡Sincronización documental exitosa! Se actualizaron ${res.exitosos} registros.`;
+                    if (res.noEncontrados.length > 0) msg += `\n\nFolios no hallados en la base: ${res.noEncontrados.join(", ")}`;
+                    alert(msg);
+                } else {
+                    alert("Error en la sincronización: " + (res.error || "Desconocido"));
+                }
+            } catch (error) {
+                alert("Error de red al intentar sincronizar los datos documentales.");
+            }
+        }
+
+        async function registrarValoresFojasCeldaV() {
+            if (!registroSeleccionadoDoc) return alert("Selecciona un registro primero.");
+            const fojasVal = document.getElementById('docFojas').value;
+            if (!fojasVal) return alert("Por favor ingresa al menos las fojas para formar la cadena.");
+
+            const caja = document.getElementById('docCaja').value.trim() || "S/C";
+            const fojas = fojasVal;
+            const ine = document.getElementById('docIne').value.trim() || "0";
+            const tipoId = document.getElementById('docTipoIdentificacion').value.trim() || "N/A";
+            const acta = document.getElementById('docActa').value.trim() || "0";
+            const curpDoc = document.getElementById('docCurpDoc').value.trim() || "0";
+            const comp = document.getElementById('docComprobante').value.trim() || "0";
+            const acuses = document.getElementById('docAcuses').value.trim() || "0";
+            const obs = document.getElementById('docObservaciones').value.trim() || "Sin observaciones";
+
+            const cadenaValores = `${caja}, ${fojas}, ${ine}, ${tipoId}, ${acta}, ${curpDoc}, ${comp}, ${acuses}, ${obs}`;
+
+            const folioBusqueda = registroSeleccionadoDoc.FOLIO || registroSeleccionadoDoc.Folio;
+            if(!folioBusqueda) return alert("El registro seleccionado no cuenta con un Folio válido para actualizar.");
+
+            if (!confirm(`¿Deseas enviar la cadena de texto a la columna V para el folio ${folioBusqueda}?\n\nCadena:\n${cadenaValores}`)) return;
+
+            try {
+                const res = await enviarPeticion({
+                    action: "actualizar_columna_v",
+                    folio: folioBusqueda,
+                    valoresCeldaV: cadenaValores
+                });
+
+                if (res.exito) {
+                    alert("Valores registrados correctamente en la columna V.");
+                    document.getElementById('doc-formulario-detalles').style.display = 'none';
+                    document.getElementById('doc-contenedor-resultados').innerHTML = '';
+                    document.getElementById('docValorBusqueda').value = '';
+                    registroSeleccionadoDoc = null;
+                } else {
+                    alert("Error al actualizar: " + (res.error || "Desconocido"));
+                }
+            } catch (error) {
+                alert("Error de red al intentar actualizar la columna V.");
+            }
+        }
+
+
+
+
+// --- LÓGICA DEL ESCÁNER QR/CÓDIGO DE BARRAS ---
+
+let html5QrCode;
+
+function iniciarEscanerQR() {
+    const contenedorLector = document.getElementById('lector-qr');
+    contenedorLector.style.display = 'block'; // Mostrar la cámara
+
+    // Inicializar el lector si no existe
+    if (!html5QrCode) {
+        html5QrCode = new Html5Qrcode("lector-qr");
+    }
+
+    const configEscaner = { 
+        fps: 10, // Cuadros por segundo
+        qrbox: { width: 250, height: 250 } // Área de escaneo
+    };
+
+    // Iniciar cámara trasera ("environment")
+    html5QrCode.start(
+        { facingMode: "environment" }, 
+        configEscaner,
+        (textoDecodificado, resultadoDecodificado) => {
+            // ÉXITO: Se leyó un QR
+            
+            // 1. Extraer solo los primeros 18 caracteres
+            const primeros18 = textoDecodificado.substring(0, 18);
+            
+            // 2. Pegarlos en el textbox
+            document.getElementById('valorBusqueda').value = primeros18;
+            
+            // 3. Detener la cámara y ocultar el contenedor
+            detenerEscaner();
+        },
+        (mensajeError) => {
+            // Ignorar errores de lectura frame por frame
+        }
+    ).catch((err) => {
+        console.error("Error al iniciar la cámara:", err);
+        alert("No se pudo acceder a la cámara. Verifica los permisos del navegador.");
+    });
+}
+
+function detenerEscaner() {
+    if (html5QrCode && html5QrCode.isScanning) {
+        html5QrCode.stop().then(() => {
+            document.getElementById('lector-qr').style.display = 'none';
+        }).catch((err) => {
+            console.error("Error al detener el escáner", err);
+        });
+    }
+}
+
+
+
+
+
+
+        
+
+// --- LÓGICA DEL ESCÁNER QR INTEGRADO AL MÓDULO DOCUMENTAL ---
+
+let html5QrCodeDoc = null;
+function iniciarEscanerDoc() {
+    const contenedorEscaner = document.getElementById('contenedor-escaner-doc');
+    contenedorEscaner.style.display = 'block'; // Mostramos el área de la cámara
+    // Instanciamos solo si no existe para evitar duplicidad
+    if (!html5QrCodeDoc) {
+        html5QrCodeDoc = new Html5Qrcode("reader-doc");
+    }
+    const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+    html5QrCodeDoc.start({ facingMode: "environment" }, config, 
+        (decodedText, decodedResult) => {
+            // 1. Limpiar el texto escaneado (solo deja letras, números y espacios)
+            let textoLimpio = decodedText.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ]+/g, ' ').trim();
+            // 2. Extraer ÚNICAMENTE los primeros 18 caracteres
+            let textoLimitado = textoLimpio.substring(0, 18);
+            // 3. Pegar el valor limpio y limitado en el textbox de búsqueda
+            document.getElementById('docValorBusqueda').value = textoLimitado;
+            // 4. Detener la cámara y ocultar el contenedor automáticamente
+            detenerEscanerDoc();
+            // Opcional: ejecutarBusquedaDocumental();
+        }, 
+        (errorMessage) => {
+            // Ignoramos los errores continuos de búsqueda de la cámara
+        }
+    ).catch((err) => {
+        alert("Error al iniciar la cámara. Asegúrate de dar los permisos correspondientes.");
+        console.error(err);
+        contenedorEscaner.style.display = 'none';
+    });
+}
+function detenerEscanerDoc() {
+    if (html5QrCodeDoc) {
+        // Llamamos al método .stop() real de la librería
+        html5QrCodeDoc.stop().then(() => {
+            console.log("Cámara detenida correctamente.");
+            // Ocultamos el contenedor una vez que la cámara se apaga
+            document.getElementById('contenedor-escaner-doc').style.display = 'none';
+            // Opcional: limpiar la UI del escáner
+            // html5QrCodeDoc.clear(); 
+        }).catch((err) => {
+            console.error("Error al detener el escáner: ", err);
+        });
+    } else {
+        // Si no hay instancia, solo ocultamos el contenedor por seguridad
+        document.getElementById('contenedor-escaner-doc').style.display = 'none';
+    }
+}
+
+
+
+        
+
+
+        
+    
         async function cargarUsuariosParaAdmin() {
             const select = document.getElementById('listaUsuariosAdmin');
             try {
@@ -464,6 +1454,23 @@
 
         function escaparHTML(t) { return t ? String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;") : ""; }
 
+        function obtenerBadgeEstatus(estatus) {
+            if (!estatus) return `<span class="status-badge status-badge-default">S/E</span>`;
+            
+            const estatusMayus = estatus.toUpperCase().trim();
+            let claseEstatus = 'status-badge-default';
+
+            if (estatusMayus.includes('ENTREGADA')) {
+                claseEstatus = 'status-badge-entregada';
+            } else if (estatusMayus.includes('SOBRANTE')) {
+                claseEstatus = 'status-badge-sobrante';
+            } else if (estatusMayus.includes('ENVIADA') || estatusMayus.includes('OTRO') || estatusMayus.includes('SARE')) {
+                claseEstatus = 'status-badge-envio';
+            }
+
+            return `<span class="status-badge ${claseEstatus}">${escaparHTML(estatus)}</span>`;
+        }
+
         async function ejecutarBusqueda() {
             const valor = document.getElementById('valorBusqueda').value.trim();
             const columna = document.getElementById('columnaBusqueda').value;
@@ -477,24 +1484,49 @@
                 if (!Array.isArray(resultados) || resultados.length === 0) { contenedor.innerHTML = '<p style="color:orange; font-weight:bold;">Sin coincidencias.</p>'; return; }
 
                 let html = `<div class="contenedor-tabla"><table><thead><tr>
-                            <th>FOLIO</th><th>NOMBRE</th><th>ESTATUS</th><th>SARE</th><th>MUNICIPIO</th><th>CCT</th><th>ESCUELA</th><th>NIVEL</th><th>CURP</th><th>MES_REMESA</th><th>OBSERVACIONES</th>
+                            <th>FOLIO</th><th>NOMBRE</th><th>CURP</th><th>SARE</th><th>MUNICIPIO</th><th>CCT</th><th>ESCUELA</th><th>NIVEL</th><th>MES REMESA</th><th>OBSERVACIONES</th><th>ESTATUS</th>
                             </tr></thead><tbody>`;
                 resultados.forEach(f => {
-                    html += `<tr><td><b>${escaparHTML(f.FOLIO || f.Folio || '')}</b></td><td>${escaparHTML(f.NOMBRE)}</td><td>${escaparHTML(f.ESTATUS)}</td>
-                             <td>${escaparHTML(f.SARE)}</td><td>${escaparHTML(f.MUNICIPIO)}</td><td>${escaparHTML(f.CCT)}</td><td>${escaparHTML(f.ESCUELA)}</td>
-                             <td>${escaparHTML(f.NIVEL)}</td><td>${escaparHTML(f.CURP)}</td><td>${escaparHTML(f.MES_REMESA)}</td><td>${escaparHTML(f.OBSERVACIONES || '')}</td></tr>`;
+                    const estatusHTML = obtenerBadgeEstatus(f.ESTATUS);
+                    
+                    html += `<tr>
+                                <td><b>${escaparHTML(f.FOLIO || f.Folio || '')}</b></td>
+                                <td>${escaparHTML(f.NOMBRE_COMPLETO)}</td>
+                                <td>${escaparHTML(f.CURP)}</td>
+                                <td>${escaparHTML(f.SARE)}</td>
+                                <td>${escaparHTML(f.MUNICIPIO)}</td>
+                                <td>${escaparHTML(f.CCT)}</td>
+                                <td>${escaparHTML(f.ESCUELA)}</td>
+                                <td>${escaparHTML(f.NIVEL)}</td>
+                                <td>${escaparHTML(f.MES_REMESA)}</td>
+                                <td><small style="color:#666;">${escaparHTML(f.OBSERVACIONES || '')}</small></td>
+                                <td>${estatusHTML}</td>
+                             </tr>`;
                 });
                 html += '</tbody></table></div>'; contenedor.innerHTML = html;
             } catch (error) { contenedor.innerHTML = '<p style="color:red; font-weight:bold;">Error de comunicación.</p>'; }
         }
 
         async function cerrarSesion() {
-            if(loteTemporal.length > 0 && !confirm("Perderás los cambios no enviados. ¿Salir?")) return;
-            sessionStorage.clear(); usuarioActual = ""; rolActual = ""; loteTemporal = [];
+            detenerTemporizadorInactividad();
+            
+            if(loteTemporal.length > 0 && !confirm("Perderás los cambios no enviados. ¿Salir?")) {
+                iniciarTemporizadorInactividad();
+                return;
+            }
+            sessionStorage.clear(); usuarioActual = ""; rolActual = ""; loteTemporal = []; listaDocumentalAcumulada = [];
+            
+            document.getElementById('user').value = '';
+            document.getElementById('pass').value = '';
+
             document.getElementById('contenedor-resultados').innerHTML = '';
+            document.getElementById('doc-contenedor-resultados').innerHTML = '';
             document.getElementById('contenedor-bitacora').innerHTML = '';
             document.getElementById('valorBusqueda').value = '';
+            document.getElementById('docValorBusqueda').value = '';
             document.getElementById('area-lote-temporal').style.display = 'none';
+            document.getElementById('area-lista-documental').style.display = 'none';
+            document.getElementById('doc-formulario-detalles').style.display = 'none';
             document.getElementById('app-section').style.display = 'none';
             document.getElementById('login-section').style.display = 'block';
         }
