@@ -157,7 +157,7 @@
         <div class="container">
             <a class="navbar-brand d-flex align-items-center gap-2 fw-bold text-primary" href="#">
                 <i class="fa-solid fa-magnifying-glass-location fa-lg"></i>
-                <span>CCT Web Scraper <small class="text-muted fs-6 fw-normal">| Con Estado de Consulta en Tiempo Real</small></span>
+                <span>CCT Web Scraper <small class="text-muted fs-6 fw-normal">| 5 Sitios Especializados (incl. Escuelas México)</small></span>
             </a>
             <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-2">
                 <i class="fa-solid fa-bolt me-1"></i> Multi-Proxy Web Scraper
@@ -193,7 +193,7 @@
                                 <span class="input-group-text bg-white text-muted"><i class="fa-solid fa-barcode"></i></span>
                                 <input type="text" id="inputCCTSingle" class="form-control text-uppercase" placeholder="Ej. 15EPR0001A, 09DPR1234X..." maxlength="10">
                             </div>
-                            <div class="form-text">Ejemplo: 10 caracteres (ej. 15EPR0001A).</div>
+                            <div class="form-text">Rastreo enfocado en: EscuelasMéxico, PueblosAmérica, DirectorioEscuelas, EscuelasMex y SIGED SEP.</div>
                         </div>
                         <div class="col-md-5 d-flex gap-2">
                             <button class="btn btn-primary-custom btn-lg w-100" id="btnSearchSingle" onclick="startSingleSearch()">
@@ -231,7 +231,7 @@
             <div class="d-flex justify-content-between align-items-center mb-2">
                 <h6 class="fw-bold m-0 d-flex align-items-center gap-2">
                     <span class="spinner-border spinner-border-sm text-primary" id="statusSpinner" role="status"></span>
-                    <span id="progressText">Rastreando la web pública en busca de teléfonos y correos...</span>
+                    <span id="progressText">Consultando directorios escolares especializados...</span>
                 </h6>
                 <span id="progressCount" class="badge bg-primary">0 / 0</span>
             </div>
@@ -254,7 +254,7 @@
             <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
                 <div>
                     <h5 class="fw-bold m-0"><i class="fa-solid fa-table-list me-2 text-primary"></i>Resultados Encontrados</h5>
-                    <small class="text-muted">Directorio extraído con fuentes de verificación web</small>
+                    <small class="text-muted">Directorio extraído desde portales educativos verificados</small>
                 </div>
                 <div class="d-flex gap-2">
                     <button class="btn btn-outline-success font-weight-bold" onclick="exportToExcel()" id="btnExport" disabled>
@@ -314,6 +314,15 @@
     <script>
         let scrapedResults = [];
         let isProcessing = false;
+
+        // Lista de 5 Sitios Web Objetivo Prioritarios
+        const TARGET_DOMAINS = [
+            'escuelasmexico.com',         // 1. Escuelas México (Principal)
+            'mexico.pueblosamerica.com',  // 2. PueblosAmérica México
+            'directorioescuelas.com.mx', // 3. Directorio de Escuelas
+            'escuelasmex.com',            // 4. EscuelasMex
+            'siged.sep.gob.mx'            // 5. SIGED SEP Oficial
+        ];
 
         const CORS_PROXIES = [
             url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
@@ -427,15 +436,14 @@
             showProgressUI(true);
             document.getElementById('statusSpinner').classList.remove('d-none');
             clearLogs();
-            logTerminal(`Iniciando rastreo para ${cctList.length} CCT(s)...`, 'warning');
+            logTerminal(`Iniciando rastreo focalizado en 5 sitios para ${cctList.length} CCT(s)...`, 'warning');
 
-            // Cargar estado inicial en la tabla
             cctList.forEach(cct => {
                 const exists = scrapedResults.find(r => r.cct === cct);
                 if (!exists) {
                     scrapedResults.push({
                         cct: cct,
-                        status: 'pending', // 'pending', 'loading', 'success', 'no_data', 'error'
+                        status: 'pending',
                         phones: [],
                         emails: [],
                         sources: []
@@ -449,33 +457,32 @@
             for (let i = 0; i < total; i++) {
                 const cct = cctList[i];
                 
-                // Actualizar estado a "Consultando"
                 updateItemStatus(cct, 'loading');
                 updateProgress(i + 1, total, `Rastreando CCT ${i+1} de ${total}: ${cct}`);
-                logTerminal(`🔍 Consultando CCT [${cct}]...`);
+                logTerminal(`🔍 Rastreando [${cct}] en EscuelasMéxico y portales aliados...`);
 
                 try {
                     const resultData = await scrapeCCTData(cct);
                     
                     if (resultData.phones.length > 0 || resultData.emails.length > 0) {
                         resultData.status = 'success';
-                        logTerminal(`✅ CCT ${cct}: Contactos encontrados.`, 'success');
+                        logTerminal(`✅ CCT ${cct}: Datos extraídos correctamente.`, 'success');
                     } else {
                         resultData.status = 'no_data';
-                        logTerminal(`⚠️ CCT ${cct}: Sin datos de contacto visibles.`, 'warning');
+                        logTerminal(`⚠️ CCT ${cct}: Sin registros públicos en los 5 sitios consultados.`, 'warning');
                     }
                     
                     addOrUpdateResult(resultData);
                 } catch (err) {
-                    logTerminal(`❌ Error procesando CCT ${cct}: ${err.message}`, 'error');
+                    logTerminal(`❌ Error en CCT ${cct}: ${err.message}`, 'error');
                     updateItemStatus(cct, 'error');
                 }
 
                 await new Promise(r => setTimeout(r, 400));
             }
 
-            updateProgress(total, total, "¡Proceso de rastreo completado!");
-            logTerminal("🎉 Consulta masiva finalizada.", 'success');
+            updateProgress(total, total, "¡Rastreo completado!");
+            logTerminal("🎉 Proceso finalizado.", 'success');
             showProgressUI(false);
             isProcessing = false;
         }
@@ -488,14 +495,19 @@
             }
         }
 
+        // MOTOR RESTRINGIDO A MÁXIMO 5 SITIOS (PRACTICA FOCO EN ESCUELAS MÉXICO)
         async function scrapeCCTData(cct) {
             let foundPhones = new Map();
             let foundEmails = new Map();
             let sourcesMap = new Map();
 
+            // Formar filtro site: para limitar a los 5 dominios objetivo
+            const siteQuery = TARGET_DOMAINS.map(d => `site:${d}`).join(' OR ');
+            const query = `"${cct}" (${siteQuery})`;
+
             const searchTargets = [
-                `https://www.bing.com/search?q="${cct}"+(telefono+OR+correo+OR+email+OR+contacto)`,
-                `https://lite.duckduckgo.com/lite/?q="${cct}"+(telefono+OR+correo+OR+email+OR+contacto)`
+                `https://www.bing.com/search?q=${encodeURIComponent(query)}`,
+                `https://lite.duckduckgo.com/lite/?q=${encodeURIComponent(query)}`
             ];
 
             for (const targetUrl of searchTargets) {
@@ -536,11 +548,17 @@
             links.forEach(a => {
                 const href = a.getAttribute('href');
                 const title = a.innerText.trim();
-                if (href && href.startsWith('http') && !href.includes('bing.com') && !href.includes('duckduckgo.com')) {
-                    sourcesMap.set(href, { title: title || "Fuente Web", snippet: "Extracción directa" });
+                
+                // Verificar que la fuente pertenezca a uno de los 5 sitios
+                if (href && href.startsWith('http')) {
+                    const isTargetDomain = TARGET_DOMAINS.some(domain => href.includes(domain));
+                    if (isTargetDomain) {
+                        sourcesMap.set(href, { title: title || "Portal Educativo", snippet: "Fuente directa" });
+                    }
                 }
             });
 
+            // Extraer Correos
             const rawEmails = fullText.match(EMAIL_REGEX) || [];
             rawEmails.forEach(email => {
                 const clean = email.toLowerCase().trim();
@@ -549,6 +567,7 @@
                 }
             });
 
+            // Extraer Teléfonos
             const rawPhones = fullText.match(PHONE_REGEX) || [];
             rawPhones.forEach(phone => {
                 const digits = phone.replace(/\D/g, '');
@@ -631,7 +650,7 @@
                     `).join('');
                 }
 
-                let sourcesHTML = '<span class="text-muted small">Búsqueda directa</span>';
+                let sourcesHTML = '<span class="text-muted small">Directorio educativo</span>';
                 if (item.sources.length > 0) {
                     sourcesHTML = item.sources.slice(0, 2).map(s => {
                         let domain = "Fuente Web";
