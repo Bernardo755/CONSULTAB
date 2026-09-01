@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Buscador y Scraper de Contactos CCT (Escuelas México)</title>
+    <title>Buscador y Scraper CCT (Sitios Personalizados)</title>
     
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -157,15 +157,63 @@
         <div class="container">
             <a class="navbar-brand d-flex align-items-center gap-2 fw-bold text-primary" href="#">
                 <i class="fa-solid fa-magnifying-glass-location fa-lg"></i>
-                <span>CCT Web Scraper <small class="text-muted fs-6 fw-normal">| 5 Sitios Especializados (incl. Escuelas México)</small></span>
+                <span>CCT Web Scraper <small class="text-muted fs-6 fw-normal">| Hasta 5 Enlaces Personalizados</small></span>
             </a>
             <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-2">
-                <i class="fa-solid fa-bolt me-1"></i> Multi-Proxy Web Scraper
+                <i class="fa-solid fa-sliders me-1"></i> Búsqueda Acotada
             </span>
         </div>
     </nav>
 
     <div class="container">
+
+        <!-- Panel de Configuración de Sitios (Hasta 5) -->
+        <div class="glass-card p-4 mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="fw-bold m-0 d-flex align-items-center gap-2 text-primary">
+                    <i class="fa-solid fa-globe"></i> Sitios Web Objetivo para la Búsqueda (Máximo 5 Links)
+                </h6>
+                <button class="btn btn-sm btn-outline-secondary" onclick="resetDefaultLinks()">
+                    <i class="fa-solid fa-rotate-left me-1"></i> Restablecer ejemplos
+                </button>
+            </div>
+            
+            <div class="row g-2" id="siteInputsContainer">
+                <div class="col-md-4 col-sm-6">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-white text-muted">1</span>
+                        <input type="text" class="form-control domain-input" value="https://escuelasmexico.com" placeholder="Ej. escuelasmexico.com">
+                    </div>
+                </div>
+                <div class="col-md-4 col-sm-6">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-white text-muted">2</span>
+                        <input type="text" class="form-control domain-input" value="https://mexico.pueblosamerica.com" placeholder="Ej. pueblosamerica.com">
+                    </div>
+                </div>
+                <div class="col-md-4 col-sm-6">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-white text-muted">3</span>
+                        <input type="text" class="form-control domain-input" value="https://directorioescuelas.com.mx" placeholder="Link o dominio 3">
+                    </div>
+                </div>
+                <div class="col-md-6 col-sm-6">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-white text-muted">4</span>
+                        <input type="text" class="form-control domain-input" value="https://escuelasmex.com" placeholder="Link o dominio 4">
+                    </div>
+                </div>
+                <div class="col-md-6 col-sm-6">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-white text-muted">5</span>
+                        <input type="text" class="form-control domain-input" value="https://siged.sep.gob.mx" placeholder="Link o dominio 5">
+                    </div>
+                </div>
+            </div>
+            <div class="form-text mt-2">
+                <i class="fa-solid fa-info-circle me-1"></i> La extracción se acotará <strong>exclusivamente</strong> a los dominios o enlaces ingresados arriba. Puedes modificarlos, dejar casillas en blanco o colocar tus propios links.
+            </div>
+        </div>
         
         <!-- Panel Principal de Búsqueda -->
         <div class="glass-card p-4 mb-4">
@@ -193,7 +241,6 @@
                                 <span class="input-group-text bg-white text-muted"><i class="fa-solid fa-barcode"></i></span>
                                 <input type="text" id="inputCCTSingle" class="form-control text-uppercase" placeholder="Ej. 15EPR0001A, 09DPR1234X..." maxlength="10">
                             </div>
-                            <div class="form-text">Rastreo enfocado en: EscuelasMéxico, PueblosAmérica, DirectorioEscuelas, EscuelasMex y SIGED SEP.</div>
                         </div>
                         <div class="col-md-5 d-flex gap-2">
                             <button class="btn btn-primary-custom btn-lg w-100" id="btnSearchSingle" onclick="startSingleSearch()">
@@ -231,7 +278,7 @@
             <div class="d-flex justify-content-between align-items-center mb-2">
                 <h6 class="fw-bold m-0 d-flex align-items-center gap-2">
                     <span class="spinner-border spinner-border-sm text-primary" id="statusSpinner" role="status"></span>
-                    <span id="progressText">Consultando directorios escolares especializados...</span>
+                    <span id="progressText">Consultando sitios web configurados...</span>
                 </h6>
                 <span id="progressCount" class="badge bg-primary">0 / 0</span>
             </div>
@@ -254,7 +301,7 @@
             <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
                 <div>
                     <h5 class="fw-bold m-0"><i class="fa-solid fa-table-list me-2 text-primary"></i>Resultados Encontrados</h5>
-                    <small class="text-muted">Directorio extraído desde portales educativos verificados</small>
+                    <small class="text-muted">Directorio extraído desde los enlaces indicados</small>
                 </div>
                 <div class="d-flex gap-2">
                     <button class="btn btn-outline-success font-weight-bold" onclick="exportToExcel()" id="btnExport" disabled>
@@ -315,15 +362,6 @@
         let scrapedResults = [];
         let isProcessing = false;
 
-        // Lista de 5 Sitios Web Objetivo Prioritarios
-        const TARGET_DOMAINS = [
-            'escuelasmexico.com',         // 1. Escuelas México (Principal)
-            'mexico.pueblosamerica.com',  // 2. PueblosAmérica México
-            'directorioescuelas.com.mx', // 3. Directorio de Escuelas
-            'escuelasmex.com',            // 4. EscuelasMex
-            'siged.sep.gob.mx'            // 5. SIGED SEP Oficial
-        ];
-
         const CORS_PROXIES = [
             url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
             url => `https://corsproxy.io/?${encodeURIComponent(url)}`,
@@ -337,6 +375,39 @@
             'sentry.io', 'w3.org', 'example.com', 'bootstrap', 'jquery', 'domain.com',
             'schema.org', 'github.com', 'google.com', 'facebook.com', 'twitter.com'
         ];
+
+        // Obtener la lista de hasta 5 dominios/links limpios ingresados por el usuario
+        function getActiveDomains() {
+            const inputs = document.querySelectorAll('.domain-input');
+            const domains = [];
+            
+            inputs.forEach(input => {
+                let val = input.value.trim();
+                if (val) {
+                    // Limpiar URL para extraer solo el dominio/host principal
+                    let cleanDomain = val.replace(/^https?:\/\//i, '').replace(/^www\./i, '').split('/')[0];
+                    if (cleanDomain && !domains.includes(cleanDomain)) {
+                        domains.push(cleanDomain);
+                    }
+                }
+            });
+
+            return domains.slice(0, 5); // Máximo 5
+        }
+
+        function resetDefaultLinks() {
+            const defaults = [
+                "https://escuelasmexico.com",
+                "https://mexico.pueblosamerica.com",
+                "https://directorioescuelas.com.mx",
+                "https://escuelasmex.com",
+                "https://siged.sep.gob.mx"
+            ];
+            const inputs = document.querySelectorAll('.domain-input');
+            inputs.forEach((input, idx) => {
+                input.value = defaults[idx] || "";
+            });
+        }
 
         function logTerminal(msg, type = '') {
             const logBox = document.getElementById('terminalLog');
@@ -431,12 +502,17 @@
 
         async function processCCTList(cctList) {
             if (isProcessing) return;
-            isProcessing = true;
 
+            const targetDomains = getActiveDomains();
+            if (targetDomains.length === 0) {
+                return alert("Ingresa al menos 1 enlace o sitio web en el panel de configuración.");
+            }
+
+            isProcessing = true;
             showProgressUI(true);
             document.getElementById('statusSpinner').classList.remove('d-none');
             clearLogs();
-            logTerminal(`Iniciando rastreo focalizado en 5 sitios para ${cctList.length} CCT(s)...`, 'warning');
+            logTerminal(`Iniciando rastreo acotado a los sitios: ${targetDomains.join(', ')}`, 'warning');
 
             cctList.forEach(cct => {
                 const exists = scrapedResults.find(r => r.cct === cct);
@@ -459,17 +535,17 @@
                 
                 updateItemStatus(cct, 'loading');
                 updateProgress(i + 1, total, `Rastreando CCT ${i+1} de ${total}: ${cct}`);
-                logTerminal(`🔍 Rastreando [${cct}] en EscuelasMéxico y portales aliados...`);
+                logTerminal(`🔍 Rastreando [${cct}] en los enlaces seleccionados...`);
 
                 try {
-                    const resultData = await scrapeCCTData(cct);
+                    const resultData = await scrapeCCTData(cct, targetDomains);
                     
                     if (resultData.phones.length > 0 || resultData.emails.length > 0) {
                         resultData.status = 'success';
                         logTerminal(`✅ CCT ${cct}: Datos extraídos correctamente.`, 'success');
                     } else {
                         resultData.status = 'no_data';
-                        logTerminal(`⚠️ CCT ${cct}: Sin registros públicos en los 5 sitios consultados.`, 'warning');
+                        logTerminal(`⚠️ CCT ${cct}: Sin registros públicos en los sitios configurados.`, 'warning');
                     }
                     
                     addOrUpdateResult(resultData);
@@ -495,14 +571,14 @@
             }
         }
 
-        // MOTOR RESTRINGIDO A MÁXIMO 5 SITIOS (PRACTICA FOCO EN ESCUELAS MÉXICO)
-        async function scrapeCCTData(cct) {
+        // BÚSQUEDA DINÁMICA SEGÚN LOS DOMINIOS CONFIGURADOS POR EL USUARIO
+        async function scrapeCCTData(cct, targetDomains) {
             let foundPhones = new Map();
             let foundEmails = new Map();
             let sourcesMap = new Map();
 
-            // Formar filtro site: para limitar a los 5 dominios objetivo
-            const siteQuery = TARGET_DOMAINS.map(d => `site:${d}`).join(' OR ');
+            // Formar consulta con filtro "site:" para cada uno de los sitios dados
+            const siteQuery = targetDomains.map(d => `site:${d}`).join(' OR ');
             const query = `"${cct}" (${siteQuery})`;
 
             const searchTargets = [
@@ -513,7 +589,7 @@
             for (const targetUrl of searchTargets) {
                 const htmlContent = await fetchWithProxy(targetUrl);
                 if (htmlContent) {
-                    parseSearchResults(htmlContent, targetUrl, foundPhones, foundEmails, sourcesMap);
+                    parseSearchResults(htmlContent, targetUrl, targetDomains, foundPhones, foundEmails, sourcesMap);
                 }
             }
 
@@ -539,7 +615,7 @@
             return null;
         }
 
-        function parseSearchResults(htmlText, searchEngineUrl, phoneMap, emailMap, sourcesMap) {
+        function parseSearchResults(htmlText, searchEngineUrl, targetDomains, phoneMap, emailMap, sourcesMap) {
             const parser = new DOMParser();
             const doc = parser.parseFromString(htmlText, 'text/html');
             const fullText = doc.body ? doc.body.innerText : "";
@@ -549,11 +625,11 @@
                 const href = a.getAttribute('href');
                 const title = a.innerText.trim();
                 
-                // Verificar que la fuente pertenezca a uno de los 5 sitios
+                // Verificar que el enlace pertenece estrictamente a alguno de los sitios ingresados
                 if (href && href.startsWith('http')) {
-                    const isTargetDomain = TARGET_DOMAINS.some(domain => href.includes(domain));
+                    const isTargetDomain = targetDomains.some(domain => href.includes(domain));
                     if (isTargetDomain) {
-                        sourcesMap.set(href, { title: title || "Portal Educativo", snippet: "Fuente directa" });
+                        sourcesMap.set(href, { title: title || "Sitio Configurado", snippet: "Fuente directa" });
                     }
                 }
             });
@@ -650,7 +726,7 @@
                     `).join('');
                 }
 
-                let sourcesHTML = '<span class="text-muted small">Directorio educativo</span>';
+                let sourcesHTML = '<span class="text-muted small">Sitio en lista</span>';
                 if (item.sources.length > 0) {
                     sourcesHTML = item.sources.slice(0, 2).map(s => {
                         let domain = "Fuente Web";
