@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Buscador y Scraper CCT (Ruta Directa + HTML)</title>
+    <title>Buscador y Scraper CCT (Filtro por Palabras Clave)</title>
     
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -157,10 +157,10 @@
         <div class="container">
             <a class="navbar-brand d-flex align-items-center gap-2 fw-bold text-primary" href="#">
                 <i class="fa-solid fa-link fa-lg"></i>
-                <span>CCT Web Scraper <small class="text-muted fs-6 fw-normal">| Conexión Directa URL / [CCT]</small></span>
+                <span>CCT Web Scraper <small class="text-muted fs-6 fw-normal">| Filtro por Palabras Clave</small></span>
             </a>
             <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-2">
-                <i class="fa-solid fa-bolt me-1"></i> Rutas Directas + Escaneo HTML
+                <i class="fa-solid fa-filter me-1"></i> Búsqueda Contextual HTML
             </span>
         </div>
     </nav>
@@ -211,7 +211,7 @@
                 </div>
             </div>
             <div class="form-text mt-2">
-                <i class="fa-solid fa-circle-info me-1"></i> Para <strong>escuelasmexico.com</strong> el sistema formará automáticamente la ruta <code>/CCT</code> (Ej. <i>escuelasmexico.com/15EPR0001A</i>) y analizará el HTML devuelto.
+                <i class="fa-solid fa-circle-info me-1"></i> El sistema buscará etiquetas que contengan <strong>contacto, teléfono, correo, e-mail</strong> dentro del HTML descargado de <code>url/CCT</code>.
             </div>
         </div>
         
@@ -278,7 +278,7 @@
             <div class="d-flex justify-content-between align-items-center mb-2">
                 <h6 class="fw-bold m-0 d-flex align-items-center gap-2">
                     <span class="spinner-border spinner-border-sm text-primary" id="statusSpinner" role="status"></span>
-                    <span id="progressText">Consultando URLs directas...</span>
+                    <span id="progressText">Analizando palabras clave...</span>
                 </h6>
                 <span id="progressCount" class="badge bg-primary">0 / 0</span>
             </div>
@@ -288,7 +288,7 @@
             </div>
 
             <div class="d-flex justify-content-between align-items-center mb-1">
-                <small class="fw-semibold text-muted">Bitácora de Solicitudes y Extracción HTML:</small>
+                <small class="fw-semibold text-muted">Bitácora de Coincidencias por Palabras Clave:</small>
                 <button class="btn btn-sm btn-link text-decoration-none p-0" onclick="clearLogs()">Limpiar bitácora</button>
             </div>
             <div class="terminal-log" id="terminalLog">
@@ -301,7 +301,7 @@
             <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
                 <div>
                     <h5 class="fw-bold m-0"><i class="fa-solid fa-table-list me-2 text-primary"></i>Resultados Encontrados</h5>
-                    <small class="text-muted">Contactos extraídos directamente del HTML</small>
+                    <small class="text-muted">Filtrados mediante palabras clave de contacto</small>
                 </div>
                 <div class="d-flex gap-2">
                     <button class="btn btn-outline-success font-weight-bold" onclick="exportToExcel()" id="btnExport" disabled>
@@ -386,7 +386,7 @@
                     if (!val.startsWith('http://') && !val.startsWith('https://')) {
                         val = 'https://' + val;
                     }
-                    links.push(val.replace(/\/$/, '')); // Quitar diagonal final si existe
+                    links.push(val.replace(/\/$/, ''));
                 }
             });
 
@@ -510,7 +510,7 @@
             showProgressUI(true);
             document.getElementById('statusSpinner').classList.remove('d-none');
             clearLogs();
-            logTerminal(`Iniciando conexión directa /CCT y escaneo HTML en ${baseLinks.length} enlaces...`, 'warning');
+            logTerminal(`Iniciando búsqueda basada en palabras clave en ${baseLinks.length} enlaces...`, 'warning');
 
             cctList.forEach(cct => {
                 const exists = scrapedResults.find(r => r.cct === cct);
@@ -539,13 +539,13 @@
                     
                     if (resultData.phones.length > 0 || resultData.emails.length > 0) {
                         resultData.status = 'success';
-                        logTerminal(`✅ CCT ${cct}: Contactos extraídos del HTML.`, 'success');
+                        logTerminal(`✅ CCT ${cct}: Contactos extraídos por palabras clave.`, 'success');
                     } else if (resultData.sources.length > 0) {
                         resultData.status = 'success';
-                        logTerminal(`ℹ️ CCT ${cct}: Página cargada pero no contiene correos ni teléfonos explícitos.`, 'warning');
+                        logTerminal(`ℹ️ CCT ${cct}: Página cargada pero sin coincidencias directas en palabras clave.`, 'warning');
                     } else {
                         resultData.status = 'no_data';
-                        logTerminal(`⚠️ CCT ${cct}: No fue posible cargar la información en las URLs consultadas.`, 'warning');
+                        logTerminal(`⚠️ CCT ${cct}: Sin respuesta en las URLs consultadas.`, 'warning');
                     }
                     
                     addOrUpdateResult(resultData);
@@ -571,25 +571,21 @@
             }
         }
 
-        // CREACIÓN DE RUTA DIRECTA /{CCT} Y EXTRACCIÓN HTML
         async function scrapeCCTData(cct, baseLinks) {
             let foundPhones = new Map();
             let foundEmails = new Map();
             let sourcesMap = new Map();
 
             for (const baseLink of baseLinks) {
-                // Generar URL directa con diagonal + CCT (Ej. https://escuelasmexico.com/15EPR0001A)
                 const directCCTUrl = `${baseLink}/${cct}`;
                 
                 logTerminal(`🌐 Conectando a URL directa: ${directCCTUrl}`);
                 let htmlContent = await fetchWithProxy(directCCTUrl);
 
-                // Si la URL directa responde HTML válido
                 if (htmlContent && htmlContent.length > 400) {
-                    logTerminal(`📄 HTML descargado de ${directCCTUrl}, buscando contactos...`, 'success');
-                    parseHTMLAndExtract(htmlContent, directCCTUrl, foundPhones, foundEmails, sourcesMap);
+                    logTerminal(`📄 Analizando palabras clave en HTML de ${directCCTUrl}...`, 'success');
+                    parseHTMLByKeywords(htmlContent, directCCTUrl, foundPhones, foundEmails, sourcesMap);
                 } else {
-                    // Reintento secundario mediante parámetro de búsqueda dentro del sitio
                     const domain = baseLink.replace(/^https?:\/\//i, '').replace(/^www\./i, '').split('/')[0];
                     const fallbackSearchUrl = `https://www.bing.com/search?q=site:${domain}+"${cct}"`;
                     
@@ -597,7 +593,7 @@
                     htmlContent = await fetchWithProxy(fallbackSearchUrl);
 
                     if (htmlContent) {
-                        parseHTMLAndExtract(htmlContent, directCCTUrl, foundPhones, foundEmails, sourcesMap);
+                        parseHTMLByKeywords(htmlContent, directCCTUrl, foundPhones, foundEmails, sourcesMap);
                     }
                 }
             }
@@ -624,47 +620,91 @@
             return null;
         }
 
-        function parseHTMLAndExtract(htmlText, currentUrl, phoneMap, emailMap, sourcesMap) {
+        // NUEVA LÓGICA: BUSCA PALABRAS CLAVE Y EXTRAE DATOS DESDE ESOS CONTENEDORES
+        function parseHTMLByKeywords(htmlText, currentUrl, phoneMap, emailMap, sourcesMap) {
             const parser = new DOMParser();
             const doc = parser.parseFromString(htmlText, 'text/html');
-            const fullText = doc.body ? doc.body.innerText : "";
 
             sourcesMap.set(currentUrl, { 
                 title: doc.title || currentUrl, 
-                snippet: "HTML escaneado" 
+                snippet: "HTML analizado por palabras clave" 
             });
 
-            // 1. Extraer correos electrónicos del código/texto
-            const rawEmails = fullText.match(EMAIL_REGEX) || [];
-            rawEmails.forEach(email => {
-                const clean = email.toLowerCase().trim();
-                if (!EXCLUDED_EMAILS.some(ext => clean.includes(ext)) && clean.length < 50) {
-                    if (!emailMap.has(clean)) {
-                        emailMap.set(clean, currentUrl);
-                        logTerminal(`  ✉️ Correo hallado: ${clean}`, 'success');
+            // Palabras clave requeridas para ubicar los datos de contacto
+            const contactKeywords = [
+                'contacto', 'contactanos', 'teléfono', 'telefono', 'tel', 
+                'correo', 'e-mail', 'email', 'mail', 'celular', 'cel'
+            ];
+
+            // Seleccionar bloques comunes donde suele haber información
+            const elements = doc.querySelectorAll('p, li, div, td, th, span, strong, b, label, a');
+            
+            elements.forEach(el => {
+                const text = el.innerText || '';
+                const lowerText = text.toLowerCase();
+
+                // Verificar si el bloque contiene alguna palabra clave de contacto
+                const hasKeyword = contactKeywords.some(keyword => lowerText.includes(keyword));
+
+                if (hasKeyword) {
+                    logTerminal(`  🔍 Palabra clave detectada en bloque: "${text.substring(0, 40)}..."`);
+
+                    // 1. Buscar correos dentro de este bloque o elemento relacionado
+                    const rawEmails = text.match(EMAIL_REGEX) || [];
+                    rawEmails.forEach(email => {
+                        const clean = email.toLowerCase().trim();
+                        if (!EXCLUDED_EMAILS.some(ext => clean.includes(ext)) && clean.length < 50) {
+                            if (!emailMap.has(clean)) {
+                                emailMap.set(clean, currentUrl);
+                                logTerminal(`    ✉️ Correo extraído por palabra clave: ${clean}`, 'success');
+                            }
+                        }
+                    });
+
+                    // 2. Buscar teléfonos dentro de este bloque
+                    const rawPhones = text.match(PHONE_REGEX) || [];
+                    rawPhones.forEach(phone => {
+                        const digits = phone.replace(/\D/g, '');
+                        let cleanPhone = "";
+
+                        if (digits.length === 10) {
+                            cleanPhone = digits.replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3');
+                        } else if (digits.length === 12 && digits.startsWith('52')) {
+                            cleanPhone = digits.substring(2).replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3');
+                        }
+
+                        if (cleanPhone && !digits.startsWith('202') && !digits.startsWith('000')) {
+                            if (!phoneMap.has(cleanPhone)) {
+                                phoneMap.set(cleanPhone, currentUrl);
+                                logTerminal(`    📞 Teléfono extraído por palabra clave: ${cleanPhone}`, 'success');
+                            }
+                        }
+                    });
+                }
+            });
+
+            // Respaldo secundario: si por estructura no se halló mediante palabras clave estrictas, revisa todo el texto del body
+            if (phoneMap.size === 0 && emailMap.size === 0 && doc.body) {
+                logTerminal(`  ⚠️ No hubo coincidencias directas con palabras clave. Ejecutando escaneo general en el HTML...`, 'warning');
+                const fullText = doc.body.innerText || "";
+                
+                const rawEmails = fullText.match(EMAIL_REGEX) || [];
+                rawEmails.forEach(email => {
+                    const clean = email.toLowerCase().trim();
+                    if (!EXCLUDED_EMAILS.some(ext => clean.includes(ext)) && clean.length < 50) {
+                        if (!emailMap.has(clean)) emailMap.set(clean, currentUrl);
                     }
-                }
-            });
+                });
 
-            // 2. Extraer teléfonos del código/texto
-            const rawPhones = fullText.match(PHONE_REGEX) || [];
-            rawPhones.forEach(phone => {
-                const digits = phone.replace(/\D/g, '');
-                let cleanPhone = "";
-
-                if (digits.length === 10) {
-                    cleanPhone = digits.replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3');
-                } else if (digits.length === 12 && digits.startsWith('52')) {
-                    cleanPhone = digits.substring(2).replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3');
-                }
-
-                if (cleanPhone && !digits.startsWith('202') && !digits.startsWith('000')) {
-                    if (!phoneMap.has(cleanPhone)) {
-                        phoneMap.set(cleanPhone, currentUrl);
-                        logTerminal(`  📞 Teléfono hallado: ${cleanPhone}`, 'success');
+                const rawPhones = fullText.match(PHONE_REGEX) || [];
+                rawPhones.forEach(phone => {
+                    const digits = phone.replace(/\D/g, '');
+                    if (digits.length === 10) {
+                        const cleanPhone = digits.replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3');
+                        if (!phoneMap.has(cleanPhone)) phoneMap.set(cleanPhone, currentUrl);
                     }
-                }
-            });
+                });
+            }
         }
 
         function addOrUpdateResult(data) {
@@ -681,7 +721,7 @@
         function getStatusBadge(status) {
             switch (status) {
                 case 'loading':
-                    return '<span class="badge bg-warning text-dark"><i class="fa-solid fa-spinner fa-spin me-1"></i> Cargando URL...</span>';
+                    return '<span class="badge bg-warning text-dark"><i class="fa-solid fa-spinner fa-spin me-1"></i> Leyendo HTML...</span>';
                 case 'success':
                     return '<span class="badge bg-success"><i class="fa-solid fa-check me-1"></i> Encontrado</span>';
                 case 'no_data':
