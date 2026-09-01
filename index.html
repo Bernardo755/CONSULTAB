@@ -3,777 +3,838 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SISTEMA DE BÚSQUEDA Y CONTROL</title>
+    <title>Buscador y Scraper de Contactos CCT (Escuelas México)</title>
     
-    <!-- Librerías Externas -->
-    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    <script src="https://unpkg.com/html5-qrcode"></script>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- SheetJS para Excel -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- PapaParse para CSV -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background-color: #1e5b4f; min-height: 100vh; color: #333; }
+        :root {
+            --primary-color: #1a56db;
+            --primary-hover: #1e429f;
+            --bg-gradient: linear-gradient(135deg, #f0f4f9 0%, #e2e8f0 100%);
+            --card-bg: rgba(255, 255, 255, 0.85);
+            --card-border: rgba(255, 255, 255, 0.6);
+        }
 
-        /* --- PANTALLA DE LOGIN --- */
-        .login-wrapper {
-            display: flex;
-            justify-content: center;
-            align-items: center;
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg-gradient);
             min-height: 100vh;
-            padding: 20px;
-        }
-        .tarjeta-login {
-            background: white;
-            padding: 35px;
-            border-radius: 12px;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
-            text-align: center;
-            width: 100%;
-            max-width: 420px;
+            color: #1e293b;
+            padding-bottom: 50px;
         }
 
-        /* --- ESTRUCTURA DEL DASHBOARD (LAYOUT SIDEBAR) --- */
-        .app-container {
-            display: none; /* Se activa tras login */
-            min-height: 100vh;
-            background-color: #f4f6f9;
-        }
-        
-        /* Menú Lateral */
-        .sidebar {
-            width: 260px;
-            background-color: #18493f;
-            color: white;
-            display: flex;
-            flex-direction: column;
-            flex-shrink: 0;
-            box-shadow: 2px 0 10px rgba(0,0,0,0.15);
-        }
-        .sidebar-brand {
-            padding: 20px 15px;
-            text-align: center;
-            border-bottom: 1px solid #23695b;
-            background: #123830;
-        }
-        .sidebar-brand img {
-            max-width: 180px;
-            height: auto;
-        }
-        .sidebar-brand h2 {
-            font-size: 15px;
-            margin-top: 10px;
-            letter-spacing: 1px;
-            color: #e0f2f1;
-            text-transform: uppercase;
-        }
-        .sidebar-menu {
-            flex: 1;
-            padding: 15px 0;
-            overflow-y: auto;
-        }
-        .nav-btn {
-            width: 100%;
-            padding: 14px 20px;
-            text-align: left;
-            background: none;
-            border: none;
-            color: #b2dfdb;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .nav-btn:hover {
-            background-color: #23695b;
-            color: white;
-        }
-        .nav-btn.active {
-            background-color: #2e7d32;
-            color: white;
-            border-left: 5px solid #a5d6a7;
-        }
-        .sidebar-footer {
-            padding: 15px;
-            border-top: 1px solid #23695b;
+        .navbar-custom {
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(226, 232, 240, 0.8);
         }
 
-        /* Área de Contenido Principal */
-        .content {
-            flex: 1;
-            padding: 25px;
-            overflow-y: auto;
-        }
-        .topbar {
-            background: white;
-            padding: 15px 25px;
-            border-radius: 10px;
-            margin-bottom: 25px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        /* Modulos Seccionables */
-        .modulo-seccion {
-            display: none; /* Ocultos por defecto */
-            background: white;
-            padding: 25px;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-            margin-bottom: 20px;
-        }
-        .modulo-seccion.activo {
-            display: block; /* Módulo Activo */
-        }
-
-        /* --- COMPONENTES COMUNES Y FORMULARIOS --- */
-        .logo-app { width: 100%; max-width: 300px; height: auto; margin-bottom: 20px; }
-        .sub-panel { border-top: 2px solid #eee; margin-top: 20px; padding-top: 20px; text-align: left; }
-        
-        #panel-edicion { background-color: #f0f4f8; padding: 20px; border-radius: 8px; border: 1px solid #cfd8dc; }
-        .panel-documental { background-color: #fdfaf5; border: 1px solid #f0e6d2; padding: 20px; border-radius: 8px; }
-        .panel-bloqueo { background-color: #691C32; color: white; border: 1px solid #ffcdd2; padding: 20px; border-radius: 8px; margin-top: 20px; }
-        .panel-bitacora { background-color: #f5f5f5; border: 1px solid #e0e0e0; padding: 20px; border-radius: 8px; }
-
-        .controles-busqueda, .form-edicion, .form-admin {
-            display: flex;
-            flex-direction: row;
-            gap: 10px;
-            justify-content: center;
-            flex-wrap: wrap;
-            margin-top: 15px;
-        }
-        .form-edicion { flex-direction: column; max-width: 600px; margin: 15px auto 0 auto; }
-
-        input, select, button, textarea { 
-            padding: 12px; 
-            font-size: 14px; 
-            border: 1px solid #ccc; 
-            border-radius: 6px;
-            outline: none;
+        .glass-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
             transition: all 0.3s ease;
         }
-        input:focus, select:focus, textarea:focus {
-            border-color: #1e5b4f;
-            box-shadow: 0 0 0 3px rgba(30, 91, 79, 0.15);
-        }
-        textarea { resize: vertical; font-family: inherit; }
 
-        button { background-color: #9c2348; color: white; border: none; cursor: pointer; font-weight: bold; }
-        button:hover { background-color: #781937; transform: translateY(-1px); }
-        button:active { transform: translateY(1px); }
-
-        .btn-add { background-color: #2e7d32; }
-        .btn-add:hover { background-color: #1b5e20; }
-        .btn-send-block { background-color: #0288d1; width: 100%; font-size: 16px; margin-top: 15px; }
-        .btn-send-block:hover { background-color: #01579b; }
-        .btn-logout { background-color: #c62828; width: 100%; }
-        .btn-logout:hover { background-color: #b71c1c; }
-
-        /* --- TABLAS Y CONTENEDORES --- */
-        .contenedor-tabla { 
-            overflow-x: auto; 
-            margin-top: 20px; 
-            border: 1px solid #e0e0e0; 
-            border-radius: 8px; 
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-        }
-        table { width: 100%; border-collapse: collapse; font-size: 13.5px; background: white; text-align: left; }
-        th { 
-            background: #18493f; 
-            color: white; 
-            padding: 14px 16px; 
-            text-transform: uppercase; 
-            font-size: 12px;
-            letter-spacing: 0.5px;
+        .btn-primary-custom {
+            background: var(--primary-color);
+            border: none;
+            color: white;
             font-weight: 600;
+            padding: 10px 24px;
+            border-radius: 10px;
+            transition: all 0.2s;
         }
-        td { padding: 12px 16px; border-bottom: 1px solid #eff2f1; white-space: nowrap; color: #333; }
-        tr:hover { background-color: rgba(30, 91, 79, 0.04); }
-        
-        .tabla-lote th { background: #37474f; }
-        .btn-del { background: #c62828; padding: 6px 12px; font-size: 12px; border-radius: 4px; }
-        .btn-del:hover { background: #b71c1c; }
 
-        /* --- BADGES Y ESTATUS --- */
-        .status-badge {
-            display: inline-block;
-            padding: 5px 12px;
-            font-size: 11px;
+        .btn-primary-custom:hover {
+            background: var(--primary-hover);
+            color: white;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(26, 86, 219, 0.25);
+        }
+
+        .cct-badge {
+            font-family: 'Courier New', Courier, monospace;
             font-weight: bold;
-            border-radius: 12px;
-            text-align: center;
-            text-transform: uppercase;
+            letter-spacing: 1px;
+            background: #e0e7ff;
+            color: #3730a3;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.95rem;
         }
-        .status-badge-entregada { background-color: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
-        .status-badge-sobrante { background-color: #ffebee; color: #c62828; border: 1px solid #ef9a9a; }
-        .status-badge-envio { background-color: #e1f5fe; color: #0277bd; border: 1px solid #81d4fa; }
-        .status-badge-default { background-color: #f5f5f5; color: #616161; border: 1px solid #e0e0e0; }
 
-        .grid-documental {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 12px;
-            margin-top: 15px;
+        .badge-source {
+            background-color: #f1f5f9;
+            color: #475569;
+            border: 1px solid #cbd5e1;
+            font-weight: 500;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            max-width: 250px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            transition: all 0.2s;
+        }
+
+        .badge-source:hover {
+            background-color: #e2e8f0;
+            color: #0f172a;
+        }
+
+        .contact-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            padding: 4px 10px;
+            border-radius: 8px;
+            margin: 2px;
+            font-size: 0.9rem;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+        }
+
+        .terminal-log {
+            background: #0f172a;
+            color: #38bdf8;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.85rem;
+            border-radius: 10px;
+            padding: 15px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .terminal-log p {
+            margin: 0 0 4px 0;
+            line-height: 1.4;
+        }
+
+        .terminal-log .success { color: #4ade80; }
+        .terminal-log .warning { color: #fbbf24; }
+        .terminal-log .error { color: #f87171; }
+
+        .table-responsive {
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .nav-pills .nav-link {
+            color: #64748b;
+            font-weight: 600;
+            border-radius: 10px;
+            padding: 10px 20px;
+        }
+
+        .nav-pills .nav-link.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .source-popover {
+            max-width: 350px;
+            font-size: 0.85rem;
         }
     </style>
 </head>
 <body>
 
-    <!-- 1. PANTALLA DE CONTROL DE ACCESO (LOGIN) -->
-    <div id="login-section" class="login-wrapper">
-        <div class="tarjeta-login">
-            <img src="Imagen11.png" alt="Logo" class="logo-app">
-            <h2 style="margin-bottom: 20px; color: #1e5b4f;">Acceso al Sistema</h2>
-            <div style="display: flex; flex-direction: column; gap: 15px;">
-                <input type="text" id="user" placeholder="Usuario">
-                <input type="password" id="pass" placeholder="Contraseña">
-                <button onclick="iniciarSesion()">Entrar</button>
+    <!-- Navegación -->
+    <nav class="navbar navbar-custom sticky-top mb-4">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center gap-2 fw-bold text-primary" href="#">
+                <i class="fa-solid fa-magnifying-glass-location fa-lg"></i>
+                <span>CCT Web Scraper <small class="text-muted fs-6 fw-normal">| Búsqueda de Contactos Educativos</small></span>
+            </a>
+            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-2">
+                <i class="fa-solid fa-bolt me-1"></i> Multi-Motor y Extracción Directa
+            </span>
+        </div>
+    </nav>
+
+    <div class="container">
+        
+        <!-- Panel Principal de Búsqueda -->
+        <div class="glass-card p-4 mb-4">
+            <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="tab-single" data-bs-toggle="pill" data-bs-target="#content-single" type="button" role="tab">
+                        <i class="fa-solid fa-school me-2"></i>Buscar 1 CCT
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="tab-batch" data-bs-toggle="pill" data-bs-target="#content-batch" type="button" role="tab">
+                        <i class="fa-solid fa-list-check me-2"></i>Búsqueda Masiva (Lote / Excel)
+                    </button>
+                </li>
+            </ul>
+
+            <div class="tab-content" id="pills-tabContent">
+                
+                <!-- Pestaña 1: CCT Único -->
+                <div class="tab-pane fade show active" id="content-single" role="tabpanel">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-7">
+                            <label class="form-label fw-semibold">Ingresa la Clave CCT de la Escuela:</label>
+                            <div class="input-group input-group-lg">
+                                <span class="input-group-text bg-white text-muted"><i class="fa-solid fa-barcode"></i></span>
+                                <input type="text" id="inputCCTSingle" class="form-control text-uppercase" placeholder="Ej. 15EPR0001A, 09DPR1234X..." maxlength="10">
+                            </div>
+                            <div class="form-text">Ejemplo: 10 caracteres (2 dígitos Estado + 3 letras Tipo + 4 dígitos + 1 letra).</div>
+                        </div>
+                        <div class="col-md-5 d-flex gap-2">
+                            <button class="btn btn-primary-custom btn-lg w-100" id="btnSearchSingle" onclick="startSingleSearch()">
+                                <i class="fa-solid fa-magnifying-glass me-2"></i>Buscar Contactos
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pestaña 2: CCT Masivo -->
+                <div class="tab-pane fade" id="content-batch" role="tabpanel">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Opción A: Pegar lista de CCTs (uno por línea)</label>
+                            <textarea id="inputCCTBatch" class="form-control text-uppercase" rows="5" placeholder="15EPR0001A&#10;09DPR1234X&#10;14DPR0012Z..."></textarea>
+                        </div>
+                        <div class="col-md-6 d-flex flex-column justify-content-between">
+                            <div>
+                                <label class="form-label fw-semibold">Opción B: Cargar desde Archivo Excel o CSV</label>
+                                <input type="file" id="fileImport" class="form-control" accept=".xlsx, .xls, .csv" onchange="handleFileImport(event)">
+                                <div class="form-text">El sistema detectará automáticamente la columna que contenga las claves CCT.</div>
+                            </div>
+                            <button class="btn btn-primary-custom btn-lg w-100 mt-3" id="btnSearchBatch" onclick="startBatchSearch()">
+                                <i class="fa-solid fa-play me-2"></i>Iniciar Búsqueda Masiva
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
             </div>
-            <div id="login-mensaje" style="color: red; font-weight: bold; margin-top: 15px;"></div>
+        </div>
+
+        <!-- Consola de Progreso y Logs -->
+        <div id="progressSection" class="glass-card p-4 mb-4 d-none">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="fw-bold m-0 d-flex align-items-center gap-2">
+                    <span class="spinner-border spinner-border-sm text-primary" id="statusSpinner" role="status"></span>
+                    <span id="progressText">Rastreando internet en busca de teléfonos y correos...</span>
+                </h6>
+                <span id="progressCount" class="badge bg-primary">0 / 0</span>
+            </div>
+            
+            <div class="progress mb-3" style="height: 10px;">
+                <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated bg-primary" role="progressbar" style="width: 0%"></div>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center mb-1">
+                <small class="fw-semibold text-muted">Bitácora de Rastreo en Tiempo Real:</small>
+                <button class="btn btn-sm btn-link text-decoration-none p-0" onclick="clearLogs()">Limpiar bitácora</button>
+            </div>
+            <div class="terminal-log" id="terminalLog">
+                <p>[Sistema listo] Esperando indicación de búsqueda...</p>
+            </div>
+        </div>
+
+        <!-- Resultados -->
+        <div class="glass-card p-4">
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+                <div>
+                    <h5 class="fw-bold m-0"><i class="fa-solid fa-table-list me-2 text-primary"></i>Resultados Encontrados</h5>
+                    <small class="text-muted">Directorio extraído con fuentes de verificación web</small>
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-outline-success font-weight-bold" onclick="exportToExcel()" id="btnExport" disabled>
+                        <i class="fa-solid fa-file-excel me-2"></i>Exportar a Excel (.xlsx)
+                    </button>
+                    <button class="btn btn-outline-secondary" onclick="clearResults()">
+                        <i class="fa-solid fa-trash-can me-1"></i>Limpiar
+                    </button>
+                </div>
+            </div>
+
+            <div class="table-responsive bg-white shadow-sm">
+                <table class="table table-hover align-middle mb-0" id="resultsTable">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width: 50px;">#</th>
+                            <th style="width: 140px;">CCT</th>
+                            <th style="width: 220px;">Teléfonos Encontrados</th>
+                            <th>Correos Electrónicos Encontrados</th>
+                            <th style="width: 260px;">Fuentes de Donde Se Extrajo</th>
+                            <th style="width: 90px;" class="text-center">Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody id="resultsTbody">
+                        <tr id="emptyRow">
+                            <td colspan="6" class="text-center py-5 text-muted">
+                                <i class="fa-solid fa-magnifying-glass fa-2x mb-3 d-block opacity-50"></i>
+                                No hay resultados todavía. Ingresa una clave CCT arriba para comenzar el scraping.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Modal para Detalle de Fuentes y Fragmentos -->
+    <div class="modal fade" id="sourceModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content glass-card border-0">
+                <div class="modal-header border-bottom">
+                    <h5 class="modal-title fw-bold" id="modalTitle">Detalle de Fuentes para CCT</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="modalBody">
+                    <!-- Contenido dinámico -->
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- 2. ESTRUCTURA PRINCIPAL (DASHBOARD CON SIDEBAR) -->
-    <div id="app-section" class="app-container">
-        
-        <!-- BARRA LATERAL -->
-        <aside class="sidebar">
-            <div class="sidebar-brand">
-                <img src="Imagen11.png" alt="Logo">
-                <h2>Panel Principal</h2>
-            </div>
-            <nav class="sidebar-menu">
-                <button id="nav-mod-busqueda" class="nav-btn active" onclick="verModulo('mod-busqueda', this)">
-                    🔍 Consultas
-                </button>
-                <button id="nav-mod-lotes" class="nav-btn" onclick="verModulo('mod-lotes', this)">
-                    📦 Carga por Lotes
-                </button>
-                <button id="nav-mod-documental" class="nav-btn" onclick="verModulo('mod-documental', this)">
-                    📄 Control Documental
-                </button>
-                <button id="nav-mod-excel" class="nav-btn" onclick="verModulo('mod-excel', this)">
-                    📥 Reportes Excel
-                </button>
-                <button id="nav-mod-admin" class="nav-btn" onclick="verModulo('mod-admin', this)">
-                    ⚙️ Bitácora / Admin
-                </button>
-            </nav>
-            <div class="sidebar-footer">
-                <button class="btn-logout" onclick="cerrarSesion()">🚪 Cerrar Sesión</button>
-            </div>
-        </aside>
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-        <!-- ÁREA DE CONTENIDO DINÁMICO -->
-        <main class="content">
-            
-            <header class="topbar">
-                <h2 id="saludo-usuario">Buscador de Registros</h2>
-                <div style="font-size: 13px; color: #666; font-weight: 600;">
-                    Sistema Base v2.0
-                </div>
-            </header>
-
-            <!-- MÓDULO 1: BÚSQUEDA / CONSULTAS -->
-            <section id="mod-busqueda" class="modulo-seccion activo">
-                <h3>🔍 Módulo de Consulta</h3>
-                <div class="controles-busqueda">
-                    <input type="text" id="valorBusqueda" placeholder="Valor a buscar...">
-                    <select id="columnaBusqueda">
-                        <option value="Nombre">Nombre</option>
-                        <option value="CURP">CURP</option>
-                        <option value="Folio">Folio</option>
-                    </select>
-                    <button onclick="ejecutarBusqueda()">Buscar</button>
-                    <button type="button" onclick="iniciarEscanerQR()">📷 Escanear QR</button>
-                </div> 
-
-                <!-- Lector QR -->
-                <div id="lector-qr" style="width: 300px; display: none; margin: 15px auto;"></div>
-                <div id="contenedor-resultados"></div>
-            </section>
-
-            <!-- MÓDULO 2: CARGA POR LOTES -->
-            <section id="mod-lotes" class="modulo-seccion">
-                <div id="panel-edicion">
-                    <h3 style="text-align: center; color: #18493f;">📦 Módulo de Edición (Captura por Bloques)</h3>
-                    <div class="form-edicion">
-                        <label style="font-weight: bold;">Actividad a realizar</label>
-                        <select id="actividadRealizar" onchange="cambiarOpcionesEstatus()">
-                            <option value="">-- Selecciona una actividad --</option>
-                            <option value="SOBRANTES">REGISTRO DE SOBRANTES</option>
-                            <option value="ENTREGADAS">REGISTRO DE ENTREGADAS</option>
-                        </select>
-
-                        <div id="campos-edicion" style="display: none; flex-direction: column; gap: 15px; margin-top: 15px; background: white; padding: 15px; border-radius: 8px; border: 1px dashed #ccc;">
-                            <h4 style="margin:0;">Agregar registro al bloque temporal:</h4>
-                            <input type="text" id="editFolio" placeholder="Escribe o escanea el Folio">
-                            <select id="editEstatus"></select>
-                            <textarea id="editObservaciones" placeholder="Observaciones (Opcional)" rows="2"></textarea>
-                            <button class="btn-add" onclick="agregarAlBloqueLocal()">+ Agregar a la Lista</button>
-                        </div>
-                        
-                        <div id="area-lote-temporal" style="display:none; margin-top:20px;">
-                            <h4 style="margin:0; color: #37474f;">Registros acumulados listos para enviar (<span id="contador-lote">0</span>):</h4>
-                            <div class="contenedor-tabla">
-                                <table class="tabla-lote">
-                                    <thead>
-                                        <tr>
-                                            <th>Folio</th><th>Estatus a Asignar</th><th>Observaciones</th><th>Acción</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="lote-body"></tbody>
-                                </table>
-                            </div>
-                            <button class="btn-send-block" id="btnEnviarBloque" onclick="enviarLoteAlServidor()">🚀 Enviar todo el Bloque</button>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- MÓDULO 3: CONTROL DOCUMENTAL -->
-            <section id="mod-documental" class="modulo-seccion">
-                <div class="panel-documental">
-                    <h3 style="text-align: center; color: #bc8231;">📄 Módulo de Validación y Fichas Documentales</h3>
-                    <p style="text-align: center; margin-top: 5px; color: #666;">Busca un registro para complementar con datos físicos:</p>
-                    
-                    <div class="controles-busqueda">
-                        <input type="text" id="docValorBusqueda" placeholder="Valor a buscar...">
-                        <button type="button" id="btnEscanearDoc" onclick="iniciarEscanerDoc()">📷 Escanear QR</button>
-                        <select id="docColumnaBusqueda">
-                            <option value="Nombre">Nombre</option>
-                            <option value="CURP">CURP</option>
-                            <option value="Folio">Folio</option>
-                        </select>
-                        <button onclick="ejecutarBusquedaDocumental()">Buscar Registro</button>
-                    </div>
-
-                    <!-- Lector Cámara Documental -->
-                    <div id="contenedor-escaner-doc" style="display: none; margin: 15px auto; max-width: 400px; border: 1px solid #ccc; padding: 10px; border-radius: 5px; background: white;">
-                        <div id="reader-doc" style="width: 100%;"></div>
-                        <button type="button" onclick="detenerEscanerDoc()" style="margin-top: 10px; padding: 8px 15px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; width: 100%;">
-                            Cancelar / Detener Cámara
-                        </button>
-                    </div>
-
-                    <div id="doc-contenedor-resultados"></div>
-
-                    <!-- Formulario de detalles -->
-                    <div id="doc-formulario-detalles" style="display:none; margin-top:20px; background: #fff; padding: 20px; border-radius: 8px; border: 1px solid #e0e0e0;">
-                        <h4 style="margin-top:0; color: #18493f;">Detalle Documental del Registro Seleccionado</h4>
-                        <div class="grid-documental">
-                            <div>
-                                <label style="font-size:12px; font-weight:bold;">Número de Caja:</label>
-                                <input type="text" id="docCaja" placeholder="Ej. Caja 1" style="width:100%;">
-                            </div>
-                            <div>
-                                <label style="font-size:12px; font-weight:bold;">Número de Fojas:</label>
-                                <input type="number" id="docFojas" placeholder="Total fojas" oninput="validarCoincidenciaFojas()" style="width:100%;">
-                            </div>
-                            <div>
-                                <label style="font-size:12px; font-weight:bold;">Cantidad Identificaciones:</label>
-                                <input type="number" id="docIne" placeholder="0" oninput="validarCoincidenciaFojas()" style="width:100%;">
-                            </div>
-                            <div>
-                                <label style="font-size:12px; font-weight:bold;">Tipo de Identificación:</label>
-                                <input type="text" id="docTipoIdentificacion" placeholder="Ej. Credencial / Pasaporte" style="width:100%;">
-                            </div>
-                            <div>
-                                <label style="font-size:12px; font-weight:bold;">Actas de Nacimiento:</label>
-                                <input type="number" id="docActa" placeholder="0" oninput="validarCoincidenciaFojas()" style="width:100%;">
-                            </div>
-                            <div>
-                                <label style="font-size:12px; font-weight:bold;">CURP (Cant. Docs):</label>
-                                <input type="number" id="docCurpDoc" placeholder="0" oninput="validarCoincidenciaFojas()" style="width:100%;">
-                            </div>
-                            <div>
-                                <label style="font-size:12px; font-weight:bold;">Comprobante:</label>
-                                <input type="number" id="docComprobante" placeholder="0" oninput="validarCoincidenciaFojas()" style="width:100%;">
-                            </div>
-                            <div>
-                                <label style="font-size:12px; font-weight:bold;">Cantidad de Acuses:</label>
-                                <input type="number" id="docAcuses" placeholder="0" oninput="validarCoincidenciaFojas()" style="width:100%;">
-                            </div>
-                        </div>
-
-                        <div style="margin-top: 15px;">
-                            <label style="font-size:12px; font-weight:bold;">Observaciones:</label>
-                            <textarea id="docObservaciones" placeholder="Observaciones adicionales..." rows="2" style="width:100%; box-sizing:border-box;"></textarea>
-                        </div>
-
-                        <div id="indicador-coincidencia" style="margin-top: 15px; padding: 10px; border-radius: 6px; font-weight: bold; text-align: center; background: #eee; color: #555;">
-                            Ingrese las fojas y los documentos para verificar la coincidencia.
-                        </div>
-
-                        <div style="margin-top: 15px;">
-                            <button class="btn-add" onclick="agregarAListaDocumental()">+ Agregar a Lista Documental</button>
-                        </div>
-                    </div>
-
-                    <!-- Lista acumulada documental -->
-                    <div id="area-lista-documental" style="display:none; margin-top:25px;">
-                        <h4 style="color: #18493f;">Registros Documentales Acumulados (<span id="contador-documental">0</span>):</h4>
-                        <div class="contenedor-tabla">
-                            <table>
-                                <thead>
-                                    <tr style="background: #18493f; color:white;">
-                                        <th>Folio</th><th>Nombre</th><th>CURP</th><th>Caja</th><th>Fojas</th><th>Coincidencia</th><th>Acción</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="documental-body"></tbody>
-                            </table>
-                        </div>
-                        <div style="margin-top: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
-                            <button class="btn-send-block" onclick="preguntarYGenerarExcel()" style="background-color: #2e7d32; margin: 0; flex: 1;">📊 Descargar Reporte Excel</button>
-                            <button class="btn-send-block" onclick="sincronizarListaDocumentalServidor()" style="background-color: #0288d1; margin: 0; flex: 1;">🚀 Sincronizar al Servidor</button>
-                            <button class="btn-send-block" onclick="limpiarRegistrosDocumentalesAgregados()" style="background-color: #d32f2f; margin: 0; flex: 1;">🧹 Limpiar Bloque</button>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- MÓDULO 4: REPORTES EXCEL -->
-            <section id="mod-excel" class="modulo-seccion">
-                <h3>📥 Generar Reporte de Entregas Excel</h3>
-                <div style="margin-top: 15px; max-width: 450px;">
-                    <button id="btnCargarFechas" onclick="cargarFechas()" style="width: 100%; padding: 10px; margin-bottom: 15px; background-color: #34a853; color: white; border: none; border-radius: 4px; font-weight: bold;">
-                        🔄 Cargar / Actualizar Fechas
-                    </button>
-
-                    <label for="selectFechaExcel" style="font-weight: bold; font-size: 14px; display: block; margin-bottom: 5px;">Selecciona la Fecha:</label>
-                    <select id="selectFechaExcel" style="width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #aaa; border-radius: 4px;">
-                        <option value="">-- Haz clic en actualizar primero --</option>
-                    </select>
-                    
-                    <button id="btnGenerarExcel" onclick="confirmarYGenerarExcel()" style="width: 100%; padding: 12px; background-color: #1a73e8; color: white; border: none; border-radius: 4px; font-weight: bold;">
-                        Descargar Reporte Excel
-                    </button>
-                </div>
-            </section>
-
-            <!-- MÓDULO 5: ADMIN / BITÁCORA -->
-            <section id="mod-admin" class="modulo-seccion">
-                <div class="panel-bitacora">
-                    <h3 style="text-align: center;">📊 Visualizador de Bitácora</h3>
-                    <p style="text-align: center; margin-bottom: 15px;">Filtra y analiza los movimientos realizados en la plataforma:</p>
-                    
-                    <div style="display: flex; flex-direction: row; gap: 15px; flex-wrap: wrap; background: #e0f2f1; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
-                        <div style="display: flex; flex-direction: column; gap: 5px;">
-                            <label style="font-weight: bold; font-size: 13px; color: #004d40;">Por Día Registrado:</label>
-                            <select id="filtroBitacoraFecha" onchange="buscarEnBitacora()">
-                                <option value="">Cargando fechas...</option>
-                            </select>
-                        </div>
-                        <div style="display: flex; flex-direction: column; gap: 5px;">
-                            <label style="font-weight: bold; font-size: 13px; color: #004d40;">Por Usuario Activo:</label>
-                            <select id="filtroBitacoraUsuario" onchange="buscarEnBitacora()">
-                                <option value="">Cargando usuarios...</option>
-                            </select>
-                        </div>
-                        <div style="display: flex; align-items: flex-end;">
-                            <button onclick="limpiarYVerTodoBitacora()" style="background-color: #757575;">Ver Todo / Limpiar</button>
-                        </div>
-                    </div>
-                    
-                    <div id="contenedor-bitacora"></div>
-                </div>
-
-                <!-- Control de Seguridad -->
-                <div class="panel-bloqueo">
-                    <h3 style="text-align: center;">🔒 Control de Seguridad (Solo Administradores)</h3>
-                    <p style="text-align: center; margin-top: 5px;">Selecciona un usuario del sistema para revocar sus accesos:</p>
-                    <div class="form-admin">
-                        <select id="listaUsuariosAdmin"><option>Cargando usuarios...</option></select>
-                        <button style="background-color: #d32f2f;" onclick="ejecutarBloqueo()">Bloquear Acceso</button>
-                    </div>
-                </div>
-            </section>
-
-        </main>
-    </div>
-
-    <!-- 3. LÓGICA DE JAVASCRIPT INTEGRADA -->
     <script>
-        // CONFIGURACIONES Y VARIABLES GLOBALES
-        const API_URL = //'https://script.google.com/macros/s/AKfycbxVOIqAoGj1iM_p8rfPbtkUIA2t9xAHqpum0bupySt2fEloMhDuBQFFX6wO3RYlWlgkhA/exec';
-        let usuarioActual = ""; 
-        let rolActual = "";
-        let datosDispositivo = { ip: "Obteniendo...", ubicacion: "Obteniendo..." };
-        let loteTemporal = [];
+        // --- ESTADO GLOBAL DE LA APLICACIÓN ---
+        let scrapedResults = [];
+        let isProcessing = false;
 
-        let registroSeleccionadoDoc = null;
-        let listaDocumentalAcumulada = [];
+        // Lista de proxies CORS públicos para evitar bloqueos del navegador
+        const CORS_PROXIES = [
+            url => `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
+            url => `https://corsproxy.io/?${encodeURIComponent(url)}`
+        ];
 
-        // --- SISTEMA DE NAVEGACIÓN DE MÓDULOS (SIDEBAR) ---
-        function verModulo(idModulo, btnElement) {
-            // Ocultar todas las secciones
-            const modulos = document.querySelectorAll('.modulo-seccion');
-            modulos.forEach(mod => mod.classList.remove('activo'));
+        // Expressiones Regulares para Detección de Contactos en México
+        const EMAIL_REGEX = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
+        // Teléfonos MX: 10 dígitos (formatos diversos con espacios, guiones, paréntesis o lada 52)
+        const PHONE_REGEX = /(?:\+?52[\s.-]?)?\(?\d{2,4}\)?[\s.-]?\d{3,4}[\s.-]?\d{4}/g;
 
-            // Desactivar todos los botones del menú
-            const botones = document.querySelectorAll('.nav-btn');
-            botones.forEach(btn => btn.classList.remove('active'));
+        // Filtro de dominios/emails falsos positivos comunes en código web
+        const EXCLUDED_EMAILS = [
+            'sentry.io', 'w3.org', 'example.com', 'bootstrap', 'jquery', 'domain.com',
+            'schema.org', 'github.com', 'google.com', 'facebook.com', 'twitter.com',
+            'png', 'jpg', 'jpeg', 'webp', 'svg'
+        ];
 
-            // Activar la sección y el botón correspondiente
-            const moduloObjetivo = document.getElementById(idModulo);
-            if (moduloObjetivo) {
-                moduloObjetivo.classList.add('activo');
+        // --- MANEJO DE ENTRADA Y ARCHIVOS ---
+        function handleFileImport(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            logTerminal(`Leyendo archivo: ${file.name}...`, 'warning');
+            
+            if (file.name.endsWith('.csv')) {
+                Papa.parse(file, {
+                    complete: function(results) {
+                        extractCCTsFromMatrix(results.data);
+                    }
+                });
+            } else {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+                    extractCCTsFromMatrix(jsonData);
+                };
+                reader.readAsArrayBuffer(file);
             }
-
-            if (btnElement) {
-                btnElement.classList.add('active');
-            }
-
-            // Cambiar título superior dinámicamente
-            const titulos = {
-                'mod-busqueda': 'Buscador de Registros',
-                'mod-lotes': 'Carga por Lotes',
-                'mod-documental': 'Control Documental',
-                'mod-excel': 'Generador de Reportes Excel',
-                'mod-admin': 'Bitácora y Administración'
-            };
-            document.getElementById('saludo-usuario').innerText = titulos[idModulo] || 'Panel del Sistema';
         }
 
-        // --- SISTEMA DE SEGURIDAD (INACTIVIDAD) ---
-        let timerInactividad;
-        const TIEMPO_LIMITE_INACTIVIDAD = 15 * 60 * 1000; // 15 minutos
+        function extractCCTsFromMatrix(matrix) {
+            const cctPattern = /^[0-3][0-9][A-Z]{3}[0-9]{4}[A-Z]$/i;
+            let foundCCTs = [];
 
-        function iniciarTemporizadorInactividad() {
-            detenerTemporizadorInactividad();
-            document.addEventListener('mousemove', resetearTemporizador);
-            document.addEventListener('keypress', resetearTemporizador);
-            document.addEventListener('click', resetearTemporizador);
-            timerInactividad = setTimeout(cerrarSesionPorInactividad, TIEMPO_LIMITE_INACTIVIDAD);
-        }
-
-        function detenerTemporizadorInactividad() {
-            clearTimeout(timerInactividad);
-            document.removeEventListener('mousemove', resetearTemporizador);
-            document.removeEventListener('keypress', resetearTemporizador);
-            document.removeEventListener('click', resetearTemporizador);
-        }
-
-        function resetearTemporizador() {
-            clearTimeout(timerInactividad);
-            timerInactividad = setTimeout(cerrarSesionPorInactividad, TIEMPO_LIMITE_INACTIVIDAD);
-        }
-
-        function cerrarSesionPorInactividad() {
-            alert("Tu sesión ha expirado por inactividad.");
-            cerrarSesion();
-        }
-
-        function cerrarSesion() {
-            sessionStorage.clear();
-            usuarioActual = "";
-            rolActual = "";
-            detenerTemporizadorInactividad();
-            document.getElementById('app-section').style.display = 'none';
-            document.getElementById('login-section').style.display = 'flex';
-        }
-
-        // --- CONSUMO DE API Y SESIONES ---
-        async function enviarPeticion(datos) {
-            datos.usuario = usuarioActual;
-            datos.ip = datosDispositivo.ip;
-            datos.ubicacion = datosDispositivo.ubicacion;
-            const respuesta = await fetch(API_URL, {
-                method: 'POST',
-                body: JSON.stringify(datos),
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+            matrix.forEach(row => {
+                if (Array.isArray(row)) {
+                    row.forEach(cell => {
+                        if (cell && typeof cell === 'string') {
+                            const clean = cell.trim().toUpperCase();
+                            if (cctPattern.test(clean) && !foundCCTs.includes(clean)) {
+                                foundCCTs.push(clean);
+                            }
+                        }
+                    });
+                }
             });
-            return await respuesta.json();
-        }
 
-        function configurarVistasPorRol(rol) {
-            document.getElementById('login-section').style.display = 'none';
-            document.getElementById('app-section').style.display = 'flex';
-            iniciarTemporizadorInactividad();
-
-            // Ocultar botones según rol
-            const btnLotes = document.getElementById('nav-mod-lotes');
-            const btnDoc = document.getElementById('nav-mod-documental');
-            const btnExcel = document.getElementById('nav-mod-excel');
-            const btnAdmin = document.getElementById('nav-mod-admin');
-
-            btnLotes.style.display = (rol === "ATENCION" || rol === "ADMIN") ? "flex" : "none";
-            btnDoc.style.display = (rol === "ATENCION" || rol === "ADMIN") ? "flex" : "none";
-            btnExcel.style.display = (rol === "ATENCION" || rol === "ADMIN") ? "flex" : "none";
-            btnAdmin.style.display = (rol === "ADMIN") ? "flex" : "none";
-
-            // Activar Módulo de Búsqueda por Defecto
-            verModulo('mod-busqueda', document.getElementById('nav-mod-busqueda'));
-
-            if (rol === "ADMIN") {
-                cargarUsuariosParaAdmin();
-                cargarFiltrosDesplegablesBitacora();
+            if (foundCCTs.length > 0) {
+                document.getElementById('inputCCTBatch').value = foundCCTs.join('
+');
+                logTerminal(`¡Éxito! Se detectaron ${foundCCTs.length} CCTs en el archivo importado.`, 'success');
+            } else {
+                alert("No se detectaron claves CCT válidas en el archivo. Asegúrate de que tengan formato de 10 caracteres (ej. 15EPR0001A).");
+                logTerminal("Error: No se encontraron CCTs válidos en el archivo.", 'error');
             }
         }
 
-        async function iniciarSesion() {
-            const user = document.getElementById('user').value.trim();
-            const pass = document.getElementById('pass').value.trim();
-            const msj = document.getElementById('login-mensaje');
-            if (!user || !pass) return msj.innerText = "Por favor, llena ambos campos.";
-            msj.innerText = "Validando...";
-
-            try {
-                usuarioActual = user;
-                const res = await enviarPeticion({ action: "login", password: pass });
-                if (res.exito) {
-                    rolActual = res.rol;
-                    sessionStorage.setItem("usuarioActual", user);
-                    sessionStorage.setItem("rolActual", rolActual);
-                    msj.innerText = "";
-                    configurarVistasPorRol(rolActual);
-                } else {
-                    msj.innerText = res.error;
-                    usuarioActual = "";
-                }
-            } catch (e) { msj.innerText = "Error en conexión con el servidor."; }
+        // --- BÚSQUEDA INDIVIDUAL ---
+        async function startSingleSearch() {
+            const input = document.getElementById('inputCCTSingle').value.trim().toUpperCase();
+            if (!input) {
+                alert("Por favor ingresa una clave CCT.");
+                return;
+            }
+            if (input.length !== 10) {
+                alert("Una clave CCT oficial consta de 10 caracteres alfanuméricos.");
+            }
+            await processCCTList([input]);
         }
 
-        window.onload = async function() {
-            if(sessionStorage.getItem("usuarioActual")) {
-                usuarioActual = sessionStorage.getItem("usuarioActual");
-                rolActual = sessionStorage.getItem("rolActual");
-                configurarVistasPorRol(rolActual);
-            }
-            try {
-                const response = await fetch('https://ipapi.co/json/');
-                const data = await response.json();
-                datosDispositivo.ip = data.ip || "No disponible";
-                datosDispositivo.ubicacion = data.city ? `${data.city}, ${data.region}, ${data.country_name}` : "No disponible";
-            } catch (error) {
-                datosDispositivo.ip = "No disponible"; datosDispositivo.ubicacion = "No disponible";
-            }
-        };
-
-        // --- UTILIDADES Y BITÁCORA ---
-        function escaparHTML(str) {
-            if (!str) return '';
-            return String(str)
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#039;');
-        }
-
-        async function cargarFiltrosDesplegablesBitacora() {
-            const selectFecha = document.getElementById('filtroBitacoraFecha');
-            const selectUsuario = document.getElementById('filtroBitacoraUsuario');
+        // --- BÚSQUEDA MASIVA ---
+        async function startBatchSearch() {
+            const rawText = document.getElementById('inputCCTBatch').value;
+            const lines = rawText.split('
+')
+                .map(l => l.trim().toUpperCase())
+                .filter(l => l.length >= 8); // Aceptar variaciones cercanas
             
-            try {
-                const filtros = await enviarPeticion({ action: "obtener_filtros_bitacora" });
-                selectFecha.innerHTML = '<option value="">-- Todas las fechas --</option>';
-                selectUsuario.innerHTML = '<option value="">-- Todos los usuarios --</option>';
-                
-                if (filtros.fechas) {
-                    filtros.fechas.forEach(f => {
-                        let opt = document.createElement('option');
-                        opt.value = f; opt.innerText = f;
-                        selectFecha.appendChild(opt);
+            const uniqueCCTs = [...new Set(lines)];
+
+            if (uniqueCCTs.length === 0) {
+                alert("Ingresa o importa al menos una clave CCT.");
+                return;
+            }
+
+            await processCCTList(uniqueCCTs);
+        }
+
+        // --- MOTOR PRINCIPAL DE SCRAPING ---
+        async function processCCTList(cctList) {
+            if (isProcessing) return;
+            isProcessing = true;
+
+            showProgressUI(true);
+            clearLogs();
+            logTerminal(`Iniciando rastreo web para ${cctList.length} CCT(s)...`, 'warning');
+
+            const total = cctList.length;
+
+            for (let i = 0; i < total; i++) {
+                const cct = cctList[i];
+                updateProgress(i + 1, total, `Rastreando CCT ${i+1} de ${total}: ${cct}`);
+                logTerminal(`🔍 Searching Web for CCT: [${cct}]...`);
+
+                try {
+                    const resultData = await scrapeCCTData(cct);
+                    addOrUpdateResult(resultData);
+                    
+                    const totalPhones = resultData.phones.length;
+                    const totalEmails = resultData.emails.length;
+                    
+                    if (totalPhones > 0 || totalEmails > 0) {
+                        logTerminal(`✅ CCT ${cct}: Encontrados ${totalPhones} tel(s) y ${totalEmails} correo(s).`, 'success');
+                    } else {
+                        logTerminal(`⚠️ CCT ${cct}: No se hallaron contactos en las fuentes públicas sondeadas.`, 'warning');
+                    }
+                } catch (err) {
+                    console.error(err);
+                    logTerminal(`❌ Error al procesar CCT ${cct}: ${err.message}`, 'error');
+                    addOrUpdateResult({
+                        cct: cct,
+                        phones: [],
+                        emails: [],
+                        sources: [],
+                        error: "Error de conexión/Timeout"
                     });
                 }
-                if (filtros.usuarios) {
-                    filtros.usuarios.forEach(u => {
-                        let opt = document.createElement('option');
-                        opt.value = u; opt.innerText = u;
-                        selectUsuario.appendChild(opt);
-                    });
-                }
-            } catch (e) {
-                selectFecha.innerHTML = '<option value="">Error al cargar</option>';
+
+                // Pequeña pausa para no saturar los proxies
+                await new Promise(r => setTimeout(r, 600));
             }
+
+            updateProgress(total, total, "¡Proceso de rastreo completado!");
+            logTerminal("🎉 Proceso finalizado con éxito.", 'success');
+            showProgressUI(false);
+            isProcessing = false;
         }
 
-        async function consultarBitacoraServidor(fFecha, fUsuario) {
-            const contenedor = document.getElementById('contenedor-bitacora');
-            contenedor.innerHTML = '<p style="font-weight:bold; color:#00796b;">Filtrando registros de auditoría...</p>';
-            
-            try {
-                const logs = await enviarPeticion({
-                    action: "obtener_bitacora",
-                    filtroFecha: fFecha,
-                    filtroUsuario: fUsuario
-                });
+        // --- LÓGICA DE WEBSCRAPING REAL POR PROXY Y DUCKDUCKGO ---
+        async function scrapeCCTData(cct) {
+            let foundPhones = new Map(); // phone -> source URL
+            let foundEmails = new Map(); // email -> source URL
+            let sourcesMap = new Map();  // url -> page title / snippet
 
-                if(logs.error) {
-                    contenedor.innerHTML = `<p style="color:red; font-weight:bold;">${escaparHTML(logs.error)}</p>`;
-                    return;
+            // Query estructurada para maximizar resultados en México
+            const query = `"${cct}" (telefono OR correo OR email OR contacto OR directorio OR "escuela")`;
+            const searchUrl = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`;
+
+            let htmlContent = "";
+            let proxySuccess = false;
+
+            // Intentar fetch a través de proxies CORS
+            for (const proxyFn of CORS_PROXIES) {
+                try {
+                    const targetUrl = proxyFn(searchUrl);
+                    const res = await fetch(targetUrl, { signal: AbortSignal.timeout(8000) });
+                    if (!res.ok) continue;
+
+                    if (targetUrl.includes('allorigins')) {
+                        const json = await res.json();
+                        htmlContent = json.contents || "";
+                    } else {
+                        htmlContent = await res.text();
+                    }
+
+                    if (htmlContent && htmlContent.length > 500) {
+                        proxySuccess = true;
+                        break;
+                    }
+                } catch (e) {
+                    // Probar siguiente proxy
+                }
+            }
+
+            if (!proxySuccess || !htmlContent) {
+                // Fallback: Generar fuente directa de búsqueda para el usuario
+                const googleSearchUrl = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+                sourcesMap.set(googleSearchUrl, { title: "Búsqueda Directa Google", snippet: "Consulta manual recomendada" });
+                return {
+                    cct: cct,
+                    phones: [],
+                    emails: [],
+                    sources: Array.from(sourcesMap.entries()).map(([url, data]) => ({ url, ...data }))
+                };
+            }
+
+            // Parsear HTML de los resultados de búsqueda
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(htmlContent, 'text/html');
+
+            // 1. Extraer directo de los snippets de búsqueda
+            const resultsElements = doc.querySelectorAll('.result');
+            let linksToDeepScrape = [];
+
+            resultsElements.forEach(el => {
+                const titleEl = el.querySelector('.result__title');
+                const snippetEl = el.querySelector('.result__snippet');
+                const urlEl = el.querySelector('.result__url');
+
+                const title = titleEl ? titleEl.innerText.trim() : "Fuente Web";
+                const snippet = snippetEl ? snippetEl.innerText.trim() : "";
+                let rawUrl = urlEl ? urlEl.innerText.trim() : "";
+
+                if (rawUrl && !rawUrl.startsWith('http')) {
+                    rawUrl = 'https://' + rawUrl;
                 }
 
-                if(!Array.isArray(logs) || logs.length === 0) {
-                    contenedor.innerHTML = '<p style="color:orange; font-weight:bold;">No se encontraron eventos en la bitácora para esta selección.</p>';
-                    return;
+                if (rawUrl) {
+                    sourcesMap.set(rawUrl, { title, snippet });
+                    linksToDeepScrape.push(rawUrl);
                 }
 
-                let html = `<div class="contenedor-tabla"><table>
-                            <thead>
-                                <tr style="background:#004d40; color:white;">
-                                    <th>Fecha / Hora</th><th>Usuario</th><th>Acción Ejecutada</th><th>Dirección IP</th><th>Ubicación</th>
-                                </tr>
-                            </thead>
-                            <tbody>`;
+                // Extraer del fragmento/snippet visible de DuckDuckGo
+                const combinedText = title + " " + snippet;
+                extractContactsFromText(combinedText, rawUrl || "Resultados de Búsqueda", foundPhones, foundEmails);
+            });
+
+            // 2. Deep Scraping: Inspeccionar las 2 primeras páginas encontradas si es necesario
+            const deepTargets = linksToDeepScrape.slice(0, 2);
+            for (const targetUrl of deepTargets) {
+                try {
+                    logTerminal(`  └─ Inspeccionando sitio web: ${targetUrl.substring(0, 45)}...`);
+                    const pageHtml = await fetchPageContent(targetUrl);
+                    if (pageHtml) {
+                        const pageDoc = parser.parseFromString(pageHtml, 'text/html');
+                        const bodyText = pageDoc.body ? pageDoc.body.innerText : "";
+                        extractContactsFromText(bodyText, targetUrl, foundPhones, foundEmails);
+                    }
+                } catch (e) {
+                    // Ignorar errores de paginas individuales
+                }
+            }
+
+            return {
+                cct: cct,
+                phones: Array.from(foundPhones.entries()).map(([phone, source]) => ({ phone, source })),
+                emails: Array.from(foundEmails.entries()).map(([email, source]) => ({ email, source })),
+                sources: Array.from(sourcesMap.entries()).map(([url, data]) => ({ url, ...data }))
+            };
+        }
+
+        async function fetchPageContent(url) {
+            for (const proxyFn of CORS_PROXIES) {
+                try {
+                    const target = proxyFn(url);
+                    const res = await fetch(target, { signal: AbortSignal.timeout(6000) });
+                    if (!res.ok) continue;
+
+                    if (target.includes('allorigins')) {
+                        const json = await res.json();
+                        return json.contents;
+                    } else {
+                        return await res.text();
+                    }
+                } catch (e) {}
+            }
+            return null;
+        }
+
+        function extractContactsFromText(text, sourceUrl, phoneMap, emailMap) {
+            if (!text) return;
+
+            // 1. Correos
+            const rawEmails = text.match(EMAIL_REGEX) || [];
+            rawEmails.forEach(email => {
+                const cleanEmail = email.toLowerCase().trim();
+                const isInvalid = EXCLUDED_EMAILS.some(ext => cleanEmail.includes(ext));
+                if (!isInvalid && cleanEmail.length < 60) {
+                    if (!emailMap.has(cleanEmail)) {
+                        emailMap.set(cleanEmail, sourceUrl);
+                    }
+                }
+            });
+
+            // 2. Teléfonos en México
+            const rawPhones = text.match(PHONE_REGEX) || [];
+            rawPhones.forEach(phone => {
+                const digits = phone.replace(/\D/g, '');
                 
-                logs.reverse().forEach(l => {
-                    html += `<tr>
-                                <td>${escaparHTML(l.fecha)}</td>
-                                <td><b>${escaparHTML(l.usuario)}</b></td>
-                                <td><span style="color:#b71c1c; font-weight:600;">${escaparHTML(l.accion)}</span></td>
-                                <td><code>${escaparHTML(l.ip)}</code></td>
-                                <td>${escaparHTML(l.ubicacion)}</td>
-                            </tr>`;
+                // Un teléfono en México válido suele tener 10 dígitos (o 12 con lada 52)
+                let cleanPhone = "";
+                if (digits.length === 10) {
+                    cleanPhone = digits.replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3');
+                } else if (digits.length === 12 && digits.startsWith('52')) {
+                    cleanPhone = digits.substring(2).replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3');
+                }
+
+                // Filtrar secuencias numéricas falsas (ej. fechas como 20240512, códigos CCT)
+                if (cleanPhone && !digits.startsWith('202') && !digits.startsWith('000')) {
+                    if (!phoneMap.has(cleanPhone)) {
+                        phoneMap.set(cleanPhone, sourceUrl);
+                    }
+                }
+            });
+        }
+
+        // --- ACTUALIZACIÓN DE INTERFAZ Y TABLA ---
+        function addOrUpdateResult(data) {
+            // Eliminar si existe previo
+            scrapedResults = scrapedResults.filter(r => r.cct !== data.cct);
+            scrapedResults.push(data);
+
+            renderTable();
+            document.getElementById('btnExport').disabled = scrapedResults.length === 0;
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('resultsTbody');
+            
+            if (scrapedResults.length === 0) {
+                tbody.innerHTML = `
+                    <tr id="emptyRow">
+                        <td colspan="6" class="text-center py-5 text-muted">
+                            <i class="fa-solid fa-magnifying-glass fa-2x mb-3 d-block opacity-50"></i>
+                            No hay resultados todavía. Ingresa una clave CCT arriba para comenzar el scraping.
+                        </td>
+                    </tr>`;
+                return;
+            }
+
+            tbody.innerHTML = '';
+
+            scrapedResults.forEach((item, index) => {
+                const tr = document.createElement('tr');
+
+                // Teléfonos Badges
+                let phonesHTML = '<span class="text-muted fs-7">Sin teléfono detectado</span>';
+                if (item.phones && item.phones.length > 0) {
+                    phonesHTML = item.phones.map(p => `
+                        <div class="contact-item">
+                            <i class="fa-solid fa-phone text-success me-1"></i>
+                            <a href="tel:${p.phone.replace(/\D/g,'')}" class="text-decoration-none text-dark font-weight-bold">${p.phone}</a>
+                        </div>
+                    `).join('');
+                }
+
+                // Correos Badges
+                let emailsHTML = '<span class="text-muted fs-7">Sin correo detectado</span>';
+                if (item.emails && item.emails.length > 0) {
+                    emailsHTML = item.emails.map(e => `
+                        <div class="contact-item">
+                            <i class="fa-solid fa-envelope text-primary me-1"></i>
+                            <a href="mailto:${e.email}" class="text-decoration-none text-dark">${e.email}</a>
+                        </div>
+                    `).join('');
+                }
+
+                // Fuentes Badges
+                let sourcesHTML = '<span class="text-muted fs-7">Búsqueda directa</span>';
+                if (item.sources && item.sources.length > 0) {
+                    sourcesHTML = item.sources.slice(0, 2).map(s => {
+                        let domain = "Fuente Web";
+                        try { domain = new URL(s.url).hostname.replace('www.', ''); } catch(e){}
+                        return `
+                            <a href="${s.url}" target="_blank" class="badge-source mb-1" title="${s.title || s.url}">
+                                <i class="fa-solid fa-arrow-up-right-from-square text-secondary"></i> ${domain}
+                            </a>`;
+                    }).join('<br>');
+                }
+
+                tr.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td><span class="cct-badge">${item.cct}</span></td>
+                    <td>${phonesHTML}</td>
+                    <td>${emailsHTML}</td>
+                    <td>${sourcesHTML}</td>
+                    <td class="text-center">
+                        <button class="btn btn-sm btn-outline-primary" onclick="showDetailModal('${item.cct}')" title="Ver detalle completo de fuentes">
+                            <i class="fa-solid fa-eye"></i>
+                        </button>
+                    </td>
+                `;
+
+                tbody.appendChild(tr);
+            });
+        }
+
+        // --- MODAL DE DETALLE ---
+        function showDetailModal(cct) {
+            const item = scrapedResults.find(r => r.cct === cct);
+            if (!item) return;
+
+            document.getElementById('modalTitle').innerHTML = `<i class="fa-solid fa-school me-2 text-primary"></i>Detalles de Rastreo CCT: <span class="cct-badge">${cct}</span>`;
+            
+            let modalHTML = `
+                <div class="mb-3">
+                    <h6 class="fw-bold text-success"><i class="fa-solid fa-phone me-2"></i>Teléfonos Registrados (${item.phones.length}):</h6>
+                    ${item.phones.length > 0 ? item.phones.map(p => `
+                        <div class="p-2 border rounded bg-light mb-1 d-flex justify-content-between align-items-center">
+                            <strong>${p.phone}</strong>
+                            <small class="text-muted"><a href="${p.source}" target="_blank">Ver origen</a></small>
+                        </div>
+                    `).join('') : '<p class="text-muted ms-3">Ninguno hallado.</p>'}
+                </div>
+
+                <div class="mb-3">
+                    <h6 class="fw-bold text-primary"><i class="fa-solid fa-envelope me-2"></i>Correos Electrónicos (${item.emails.length}):</h6>
+                    ${item.emails.length > 0 ? item.emails.map(e => `
+                        <div class="p-2 border rounded bg-light mb-1 d-flex justify-content-between align-items-center">
+                            <strong>${e.email}</strong>
+                            <small class="text-muted"><a href="${e.source}" target="_blank">Ver origen</a></small>
+                        </div>
+                    `).join('') : '<p class="text-muted ms-3">Ninguno hallado.</p>'}
+                </div>
+
+                <div>
+                    <h6 class="fw-bold text-secondary"><i class="fa-solid fa-globe me-2"></i>Fuentes Consultadas (${item.sources.length}):</h6>
+                    <div class="list-group">
+                        ${item.sources.map(s => `
+                            <a href="${s.url}" target="_blank" class="list-group-item list-group-item-action">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1 text-primary">${s.title || 'Página de Información'}</h6>
+                                </div>
+                                <p class="mb-1 text-muted small">${s.snippet || 'Sin fragmento disponible'}</p>
+                                <small class="text-secondary"><i class="fa-solid fa-link"></i> ${s.url}</small>
+                            </a>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('modalBody').innerHTML = modalHTML;
+            const modal = new bootstrap.Modal(document.getElementById('sourceModal'));
+            modal.show();
+        }
+
+        // --- EXPORTAR RESULTADOS A EXCEL ---
+        function exportToExcel() {
+            if (scrapedResults.length === 0) return;
+
+            let excelData = [];
+
+            scrapedResults.forEach(item => {
+                const phonesStr = item.phones.map(p => p.phone).join(', ') || 'No encontrado';
+                const emailsStr = item.emails.map(e => e.email).join(', ') || 'No encontrado';
+                const sourcesStr = item.sources.map(s => s.url).join(' | ') || 'N/A';
+
+                excelData.push({
+                    'CLAVE CCT': item.cct,
+                    'TELÉFONOS ENCONTRADOS': phonesStr,
+                    'CORREOS ELECTRÓNICOS': emailsStr,
+                    'CANTIDAD TELÉFONOS': item.phones.length,
+                    'CANTIDAD CORREOS': item.emails.length,
+                    'FUENTES Y ENLACES WEB': sourcesStr
                 });
-                html += `</tbody></table></div>`;
-                contenedor.innerHTML = html;
-            } catch(e) {
-                contenedor.innerHTML = '<p style="color:red; font-weight:bold;">Error al obtener datos de la bitácora.</p>';
+            });
+
+            const worksheet = XLSX.utils.json_to_sheet(excelData);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Contactos CCT");
+
+            // Auto-ajustar ancho de columnas
+            worksheet['!cols'] = [
+                { wch: 15 },
+                { wch: 30 },
+                { wch: 35 },
+                { wch: 20 },
+                { wch: 20 },
+                { wch: 50 }
+            ];
+
+            XLSX.writeFile(workbook, `Contactos_Escuelas_CCT_${new Date().toISOString().slice(0,10)}.xlsx`);
+        }
+
+        // --- UTILIDADES DE INTERFAZ ---
+        function showProgressUI(show) {
+            const section = document.getElementById('progressSection');
+            if (show) {
+                section.classList.remove('d-none');
             }
         }
 
-        function buscarEnBitacora() {
-            const fFecha = document.getElementById('filtroBitacoraFecha').value;
-            const fUsuario = document.getElementById('filtroBitacoraUsuario').value;
-            consultarBitacoraServidor(fFecha, fUsuario);
+        function updateProgress(current, total, text) {
+            const pct = Math.round((current / total) * 100);
+            document.getElementById('progressBar').style.width = pct + '%';
+            document.getElementById('progressCount').innerText = `${current} / ${total}`;
+            document.getElementById('progressText').innerText = text;
         }
 
-        function limpiarYVerTodoBitacora() {
-            document.getElementById('filtroBitacoraFecha').value = "";
-            document.getElementById('filtroBitacoraUsuario').value = "";
-            consultarBitacoraServidor("", "");
+        function logTerminal(msg, type = '') {
+            const logBox = document.getElementById('terminalLog');
+            const p = document.createElement('p');
+            p.className = type;
+            const time = new Date().toLocaleTimeString();
+            p.innerText = `[${time}] ${msg}`;
+            logBox.appendChild(p);
+            logBox.scrollTop = logBox.scrollHeight;
         }
 
-        // --- STUBS DE FUNCIONALIDADES (Rellena según la lógica de tu servidor) ---
-        function ejecutarBusqueda() { console.log("Ejecutando búsqueda..."); }
-        function iniciarEscanerQR() { console.log("Iniciando escáner QR..."); }
-        function cambiarOpcionesEstatus() { 
-            const act = document.getElementById('actividadRealizar').value;
-            document.getElementById('campos-edicion').style.display = act ? 'flex' : 'none';
+        function clearLogs() {
+            document.getElementById('terminalLog').innerHTML = '';
         }
-        function agregarAlBloqueLocal() { console.log("Agregando al bloque..."); }
-        function enviarLoteAlServidor() { console.log("Enviando lote..."); }
-        function cargarFechas() { console.log("Cargando fechas para Excel..."); }
-        function confirmarYGenerarExcel() { console.log("Generando Excel..."); }
-        function iniciarEscanerDoc() { document.getElementById('contenedor-escaner-doc').style.display = 'block'; }
-        function detenerEscanerDoc() { document.getElementById('contenedor-escaner-doc').style.display = 'none'; }
-        function ejecutarBusquedaDocumental() { console.log("Búsqueda documental..."); }
-        function validarCoincidenciaFojas() { console.log("Validando fojas..."); }
-        function agregarAListaDocumental() { console.log("Agregando a lista documental..."); }
-        function preguntarYGenerarExcel() { console.log("Generando reporte documental..."); }
-        function sincronizarListaDocumentalServidor() { console.log("Sincronizando documental..."); }
-        function limpiarRegistrosDocumentalesAgregados() { console.log("Limpiando bloque documental..."); }
-        function cargarUsuariosParaAdmin() { console.log("Cargando usuarios para admin..."); }
-        function ejecutarBloqueo() { console.log("Ejecutando bloqueo..."); }
 
-        // Mapeo de teclas de entrada
-        document.getElementById('pass').addEventListener('keypress', e => { if (e.key === 'Enter') iniciarSesion(); });
+        function clearResults() {
+            if (confirm("¿Deseas borrar los resultados de la tabla?")) {
+                scrapedResults = [];
+                renderTable();
+                document.getElementById('btnExport').disabled = true;
+                document.getElementById('progressSection').classList.add('d-none');
+            }
+        }
     </script>
 </body>
 </html>
