@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Buscador y Scraper CCT (Análisis Directo de HTML)</title>
+    <title>Buscador y Scraper CCT (Búsqueda Indexada y Contextual)</title>
     
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -157,10 +157,10 @@
         <div class="container">
             <a class="navbar-brand d-flex align-items-center gap-2 fw-bold text-primary" href="#">
                 <i class="fa-solid fa-code fa-lg"></i>
-                <span>CCT Web Scraper <small class="text-muted fs-6 fw-normal">| Extracción por Contexto Local</small></span>
+                <span>CCT Web Scraper <small class="text-muted fs-6 fw-normal">| Búsqueda Indexada de Contactos</small></span>
             </a>
             <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-2">
-                <i class="fa-solid fa-file-code me-1"></i> Análisis por Proximidad
+                <i class="fa-solid fa-bolt me-1"></i> Consultas Inteligentes
             </span>
         </div>
     </nav>
@@ -171,7 +171,7 @@
         <div class="glass-card p-4 mb-4">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h6 class="fw-bold m-0 d-flex align-items-center gap-2 text-primary">
-                    <i class="fa-solid fa-link"></i> Enlaces / Sitios Web para Analizar Código y Buscar CCT (Hasta 5 Links)
+                    <i class="fa-solid fa-link"></i> Sitios Web Objetivo para Consultas Indexadas (Hasta 5 Links)
                 </h6>
                 <button class="btn btn-sm btn-outline-secondary" onclick="resetDefaultLinks()">
                     <i class="fa-solid fa-rotate-left me-1"></i> Restablecer ejemplos
@@ -211,7 +211,7 @@
                 </div>
             </div>
             <div class="form-text mt-2">
-                <i class="fa-solid fa-magnifying-glass-chart me-1"></i> El scraper descargará el código, ubicará la CCT y extraerá exclusivamente los teléfonos y correos cercanos a ese bloque de texto.
+                <i class="fa-solid fa-magnifying-glass-chart me-1"></i> El sistema usará operadores de búsqueda avanzada para filtrar de inmediato páginas que contengan la CCT junto con palabras clave de teléfono y correo.
             </div>
         </div>
         
@@ -244,7 +244,7 @@
                         </div>
                         <div class="col-md-5 d-flex gap-2">
                             <button class="btn btn-primary-custom btn-lg w-100" id="btnSearchSingle" onclick="startSingleSearch()">
-                                <i class="fa-solid fa-magnifying-glass me-2"></i>Analizar por Contexto
+                                <i class="fa-solid fa-magnifying-glass me-2"></i>Iniciar Búsqueda
                             </button>
                         </div>
                     </div>
@@ -278,7 +278,7 @@
             <div class="d-flex justify-content-between align-items-center mb-2">
                 <h6 class="fw-bold m-0 d-flex align-items-center gap-2">
                     <span class="spinner-border spinner-border-sm text-primary" id="statusSpinner" role="status"></span>
-                    <span id="progressText">Analizando el contexto de las páginas web...</span>
+                    <span id="progressText">Realizando consultas indexadas de contacto...</span>
                 </h6>
                 <span id="progressCount" class="badge bg-primary">0 / 0</span>
             </div>
@@ -288,7 +288,7 @@
             </div>
 
             <div class="d-flex justify-content-between align-items-center mb-1">
-                <small class="fw-semibold text-muted">Bitácora de Inspección de Texto HTML en Tiempo Real:</small>
+                <small class="fw-semibold text-muted">Bitácora de Procesamiento en Tiempo Real:</small>
                 <button class="btn btn-sm btn-link text-decoration-none p-0" onclick="clearLogs()">Limpiar bitácora</button>
             </div>
             <div class="terminal-log" id="terminalLog">
@@ -300,8 +300,8 @@
         <div class="glass-card p-4">
             <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
                 <div>
-                    <h5 class="fw-bold m-0"><i class="fa-solid fa-table-list me-2 text-primary"></i>Resultados Encontrados por Proximidad</h5>
-                    <small class="text-muted">Contactos asociados localmente al espacio de la CCT</small>
+                    <h5 class="fw-bold m-0"><i class="fa-solid fa-table-list me-2 text-primary"></i>Resultados de Contacto Encontrados</h5>
+                    <small class="text-muted">Teléfonos y correos extraídos mediante consultas dirigidas</small>
                 </div>
                 <div class="d-flex gap-2">
                     <button class="btn btn-outline-success font-weight-bold" onclick="exportToExcel()" id="btnExport" disabled>
@@ -320,9 +320,9 @@
                             <th style="width: 40px;">#</th>
                             <th style="width: 130px;">CCT</th>
                             <th style="width: 150px;">Estatus</th>
-                            <th style="width: 220px;">Teléfonos Asociados</th>
-                            <th>Correos Asociados</th>
-                            <th style="width: 200px;">Páginas Confirmadas</th>
+                            <th style="width: 220px;">Teléfonos Encontrados</th>
+                            <th>Correos Encontrados</th>
+                            <th style="width: 200px;">Páginas Fuente</th>
                             <th style="width: 70px;" class="text-center">Ver</th>
                         </tr>
                     </thead>
@@ -330,7 +330,7 @@
                         <tr id="emptyRow">
                             <td colspan="7" class="text-center py-5 text-muted">
                                 <i class="fa-solid fa-magnifying-glass fa-2x mb-3 d-block opacity-50"></i>
-                                No hay resultados todavía. Ingresa una clave CCT arriba para comenzar el análisis contextual.
+                                No hay resultados todavía. Ingresa una clave CCT arriba para comenzar.
                             </td>
                         </tr>
                     </tbody>
@@ -345,7 +345,7 @@
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content glass-card border-0">
                 <div class="modal-header border-bottom">
-                    <h5 class="modal-title fw-bold" id="modalTitle">Detalle de Contexto para CCT</h5>
+                    <h5 class="modal-title fw-bold" id="modalTitle">Detalle de Fuentes para CCT</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body" id="modalBody">
@@ -510,7 +510,7 @@
             showProgressUI(true);
             document.getElementById('statusSpinner').classList.remove('d-none');
             clearLogs();
-            logTerminal(`Escaneando contextos locales en ${targetLinks.length} sitios...`, 'warning');
+            logTerminal(`Iniciando consultas indexadas en ${targetLinks.length} dominios...`, 'warning');
 
             cctList.forEach(cct => {
                 const exists = scrapedResults.find(r => r.cct === cct);
@@ -532,21 +532,21 @@
                 const cct = cctList[i];
                 
                 updateItemStatus(cct, 'loading');
-                updateProgress(i + 1, total, `Analizando CCT ${i+1} de ${total}: ${cct}`);
-                logTerminal(`🔍 Buscando contexto y contactos cercanos para CCT [${cct}]...`);
+                updateProgress(i + 1, total, `Procesando CCT ${i+1} de ${total}: ${cct}`);
+                logTerminal(`🔍 Ejecutando consulta dirigida para CCT [${cct}]...`);
 
                 try {
                     const resultData = await scrapeCCTData(cct, targetLinks);
                     
                     if (resultData.phones.length > 0 || resultData.emails.length > 0) {
                         resultData.status = 'success';
-                        logTerminal(`✅ CCT ${cct}: Contactos de proximidad extraídos con éxito.`, 'success');
+                        logTerminal(`✅ CCT ${cct}: Teléfonos y/o correos encontrados con éxito.`, 'success');
                     } else if (resultData.sources.length > 0) {
                         resultData.status = 'success';
-                        logTerminal(`ℹ️ CCT ${cct}: Mención hallada, pero sin contactos en el mismo bloque.`, 'warning');
+                        logTerminal(`ℹ️ CCT ${cct}: Mención hallada, pero sin contactos explícitos.`, 'warning');
                     } else {
                         resultData.status = 'no_data';
-                        logTerminal(`⚠️ CCT ${cct}: No se encontró rastro en los sitios configurados.`, 'warning');
+                        logTerminal(`⚠️ CCT ${cct}: Sin registros indexados relevantes.`, 'warning');
                     }
                     
                     addOrUpdateResult(resultData);
@@ -558,8 +558,8 @@
                 await new Promise(r => setTimeout(r, 400));
             }
 
-            updateProgress(total, total, "¡Análisis contextual completado!");
-            logTerminal("🎉 Proceso de inspección por proximidad finalizado.", 'success');
+            updateProgress(total, total, "¡Búsqueda masiva completada!");
+            logTerminal("🎉 Proceso finalizado.", 'success');
             showProgressUI(false);
             isProcessing = false;
         }
@@ -572,7 +572,7 @@
             }
         }
 
-        // EXTRACCIÓN POR PROXIMIDAD DEL BLOQUE HTML
+        // BÚSQUEDA ALTERNATIVA USANDO CONSULTAS INDEXADAS / OPERADORES
         async function scrapeCCTData(cct, targetLinks) {
             let foundPhones = new Map();
             let foundEmails = new Map();
@@ -580,18 +580,21 @@
 
             for (const baseLink of targetLinks) {
                 const cleanDomain = baseLink.replace(/^https?:\/\//i, '').replace(/^www\./i, '').split('/')[0];
-                const urlsToInspect = [
-                    baseLink,
-                    `https://www.bing.com/search?q=site:${cleanDomain}+"${cct}"`
+                
+                // Opción alternativa: Consultas orientadas al índice web filtrando palabras clave de contacto
+                const searchQueries = [
+                    `https://html.duckduckgo.com/html/?q=site:${cleanDomain}+"${cct}"+telefono+correo`,
+                    `https://www.bing.com/search?q=site:${cleanDomain}+"${cct}"+contacto`
                 ];
 
-                for (const targetUrl of urlsToInspect) {
-                    logTerminal(`🌐 Evaluando HTML de: ${targetUrl.substring(0, 55)}...`);
+                for (const targetUrl of searchQueries) {
+                    logTerminal(`🌐 Consultando índice web para ${cct} en ${cleanDomain}...`);
                     const htmlContent = await fetchWithProxy(targetUrl);
 
                     if (htmlContent) {
                         parseProximityContent(htmlContent, cct, targetUrl, cleanDomain, foundPhones, foundEmails, sourcesMap);
                     }
+                    await new Promise(r => setTimeout(r, 300));
                 }
             }
 
@@ -621,8 +624,7 @@
             const parser = new DOMParser();
             const doc = parser.parseFromString(htmlText, 'text/html');
 
-            // Buscar en bloques contenedores comunes (p, div, li, td, article) para aislar la proximidad
-            const candidateElements = doc.querySelectorAll('p, div, li, td, article, span');
+            const candidateElements = doc.querySelectorAll('p, div, li, td, article, span, a');
             let matchedLocal = false;
 
             candidateElements.forEach(el => {
@@ -631,23 +633,23 @@
                     matchedLocal = true;
 
                     sourcesMap.set(currentUrl, { 
-                        title: doc.title || `Página de ${domainName}`, 
-                        snippet: `Contexto local identificado para ${cct}` 
+                        title: doc.title || `Búsqueda en ${domainName}`, 
+                        snippet: `Coincidencia indexada para ${cct}` 
                     });
 
-                    // Extraer correos dentro de este mismo bloque de proximidad
+                    // Extracción de correos
                     const localEmails = innerTxt.match(EMAIL_REGEX) || [];
                     localEmails.forEach(email => {
                         const clean = email.toLowerCase().trim();
                         if (!EXCLUDED_EMAILS.some(ext => clean.includes(ext)) && clean.length < 50) {
                             if (!emailMap.has(clean)) {
                                 emailMap.set(clean, currentUrl);
-                                logTerminal(`  ✉️ Correo asociado encontrado: ${clean}`, 'success');
+                                logTerminal(`  ✉️ Correo hallado: ${clean}`, 'success');
                             }
                         }
                     });
 
-                    // Extraer teléfonos dentro de este mismo bloque de proximidad
+                    // Extracción de teléfonos
                     const localPhones = innerTxt.match(PHONE_REGEX) || [];
                     localPhones.forEach(phone => {
                         const digits = phone.replace(/\D/g, '');
@@ -662,20 +664,19 @@
                         if (cleanPhone && !digits.startsWith('202') && !digits.startsWith('000')) {
                             if (!phoneMap.has(cleanPhone)) {
                                 phoneMap.set(cleanPhone, currentUrl);
-                                logTerminal(`  📞 Teléfono asociado encontrado: ${cleanPhone}`, 'success');
+                                logTerminal(`  📞 Teléfono hallado: ${cleanPhone}`, 'success');
                             }
                         }
                     });
                 }
             });
 
-            // Fallback general si la CCT está en el body general pero no estructurada en etiquetas pequeñas
             if (!matchedLocal && doc.body) {
                 const fullText = doc.body.innerText;
                 if (fullText.toUpperCase().includes(cct.toUpperCase())) {
                     sourcesMap.set(currentUrl, { 
-                        title: doc.title || `Página de ${domainName}`, 
-                        snippet: `CCT ${cct} localizado de forma general` 
+                        title: doc.title || `Búsqueda en ${domainName}`, 
+                        snippet: `Mención general de ${cct}` 
                     });
                 }
             }
@@ -695,11 +696,11 @@
         function getStatusBadge(status) {
             switch (status) {
                 case 'loading':
-                    return '<span class="badge bg-warning text-dark"><i class="fa-solid fa-spinner fa-spin me-1"></i> Analizando contexto...</span>';
+                    return '<span class="badge bg-warning text-dark"><i class="fa-solid fa-spinner fa-spin me-1"></i> Consultando...</span>';
                 case 'success':
                     return '<span class="badge bg-success"><i class="fa-solid fa-check me-1"></i> Encontrado</span>';
                 case 'no_data':
-                    return '<span class="badge bg-secondary"><i class="fa-solid fa-circle-info me-1"></i> CCT no hallado</span>';
+                    return '<span class="badge bg-secondary"><i class="fa-solid fa-circle-info me-1"></i> Sin datos</span>';
                 case 'error':
                     return '<span class="badge bg-danger"><i class="fa-solid fa-triangle-exclamation me-1"></i> Error</span>';
                 default:
@@ -715,7 +716,7 @@
                     <tr id="emptyRow">
                         <td colspan="7" class="text-center py-5 text-muted">
                             <i class="fa-solid fa-magnifying-glass fa-2x mb-3 d-block opacity-50"></i>
-                            No hay resultados todavía. Ingresa una clave CCT arriba para comenzar el análisis contextual.
+                            No hay resultados todavía. Ingresa una clave CCT arriba para comenzar.
                         </td>
                     </tr>`;
                 return;
@@ -728,11 +729,11 @@
                 
                 let phonesHtml = item.phones.length > 0 
                     ? item.phones.map(p => `<span class="contact-item"><i class="fa-solid fa-phone text-success"></i> ${p.phone}</span>`).join('') 
-                    : '<span class="text-muted small">Sin teléfono en bloque</span>';
+                    : '<span class="text-muted small">Sin teléfono detectado</span>';
 
                 let emailsHtml = item.emails.length > 0 
                     ? item.emails.map(e => `<span class="contact-item"><i class="fa-solid fa-envelope text-primary"></i> ${e.email}</span>`).join('') 
-                    : '<span class="text-muted small">Sin correo en bloque</span>';
+                    : '<span class="text-muted small">Sin correo detectado</span>';
 
                 let sourcesHtml = item.sources.length > 0
                     ? item.sources.map(s => `<a href="${s.url}" target="_blank" class="badge-source" title="${s.url}"><i class="fa-solid fa-globe"></i> ${s.url.replace('https://','').substring(0,25)}...</a>`).join('<br>')
@@ -759,15 +760,15 @@
             const item = scrapedResults.find(r => r.cct === cct);
             if (!item) return;
 
-            document.getElementById('modalTitle').innerText = `Detalle de Contexto para CCT: ${cct}`;
+            document.getElementById('modalTitle').innerText = `Detalle de Resultados para CCT: ${cct}`;
             let bodyContent = `
                 <p><strong>Estatus:</strong> ${item.status}</p>
                 <hr>
-                <h6 class="fw-bold">Teléfonos Asociados por Proximidad:</h6>
-                <ul>${item.phones.length ? item.phones.map(p => `<li>${p.phone} (Fuente: ${p.source})</li>`).join('') : '<li>Ninguno detectado en el bloque</li>'}</ul>
-                <h6 class="fw-bold mt-3">Correos Asociados por Proximidad:</h6>
-                <ul>${item.emails.length ? item.emails.map(e => `<li>${e.email} (Fuente: ${e.source})</li>`).join('') : '<li>Ninguno detectado en el bloque</li>'}</ul>
-                <h6 class="fw-bold mt-3">Fuentes Verificadas:</h6>
+                <h6 class="fw-bold">Teléfonos Encontrados:</h6>
+                <ul>${item.phones.length ? item.phones.map(p => `<li>${p.phone} (Vía: ${p.source})</li>`).join('') : '<li>Ninguno detectado</li>'}</ul>
+                <h6 class="fw-bold mt-3">Correos Encontrados:</h6>
+                <ul>${item.emails.length ? item.emails.map(e => `<li>${e.email} (Vía: ${e.source})</li>`).join('') : '<li>Ninguno detectado</li>'}</ul>
+                <h6 class="fw-bold mt-3">Páginas Fuente:</h6>
                 <ul>${item.sources.length ? item.sources.map(s => `<li><a href="${s.url}" target="_blank">${s.url}</a> - ${s.snippet}</li>`).join('') : '<li>Sin registros</li>'}</ul>
             `;
             document.getElementById('modalBody').innerHTML = bodyContent;
@@ -795,8 +796,8 @@
 
             const worksheet = XLSX.utils.json_to_sheet(dataToExport);
             const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, "Resultados CCT Contexto");
-            XLSX.writeFile(workbook, "Reporte_CCT_Contactos_Proximidad.xlsx");
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Resultados CCT");
+            XLSX.writeFile(workbook, "Reporte_CCT_Contactos_Indexados.xlsx");
             logTerminal("Archivo Excel exportado con éxito.", "success");
         }
     </script>
