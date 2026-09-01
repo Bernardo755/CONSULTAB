@@ -157,7 +157,7 @@
         <div class="container">
             <a class="navbar-brand d-flex align-items-center gap-2 fw-bold text-primary" href="#">
                 <i class="fa-solid fa-magnifying-glass-location fa-lg"></i>
-                <span>CCT Web Scraper <small class="text-muted fs-6 fw-normal">| Sin API Key / GitHub Edition</small></span>
+                <span>CCT Web Scraper <small class="text-muted fs-6 fw-normal">| Con Estado de Consulta en Tiempo Real</small></span>
             </a>
             <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-2">
                 <i class="fa-solid fa-bolt me-1"></i> Multi-Proxy Web Scraper
@@ -249,7 +249,7 @@
             </div>
         </div>
 
-        <!-- Resultados -->
+        <!-- Tabla de Resultados con Estado de Consulta -->
         <div class="glass-card p-4">
             <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
                 <div>
@@ -270,17 +270,18 @@
                 <table class="table table-hover align-middle mb-0" id="resultsTable">
                     <thead class="table-light">
                         <tr>
-                            <th style="width: 50px;">#</th>
-                            <th style="width: 140px;">CCT</th>
+                            <th style="width: 40px;">#</th>
+                            <th style="width: 130px;">CCT</th>
+                            <th style="width: 150px;">Estatus</th>
                             <th style="width: 220px;">Teléfonos Encontrados</th>
                             <th>Correos Electrónicos Encontrados</th>
-                            <th style="width: 260px;">Fuentes Detectadas</th>
-                            <th style="width: 90px;" class="text-center">Acción</th>
+                            <th style="width: 200px;">Fuentes Detectadas</th>
+                            <th style="width: 70px;" class="text-center">Ver</th>
                         </tr>
                     </thead>
                     <tbody id="resultsTbody">
                         <tr id="emptyRow">
-                            <td colspan="6" class="text-center py-5 text-muted">
+                            <td colspan="7" class="text-center py-5 text-muted">
                                 <i class="fa-solid fa-magnifying-glass fa-2x mb-3 d-block opacity-50"></i>
                                 No hay resultados todavía. Ingresa una clave CCT arriba para comenzar el scraping.
                             </td>
@@ -292,7 +293,7 @@
 
     </div>
 
-    <!-- Modal para Detalle de Fuentes y Fragmentos -->
+    <!-- Modal para Detalle de Fuentes -->
     <div class="modal fade" id="sourceModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content glass-card border-0">
@@ -311,28 +312,23 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        // --- ESTADO GLOBAL ---
         let scrapedResults = [];
         let isProcessing = false;
 
-        // Servidores Proxy CORS públicos con fallback
         const CORS_PROXIES = [
             url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
             url => `https://corsproxy.io/?${encodeURIComponent(url)}`,
             url => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`
         ];
 
-        // Expresiones Regulares
         const EMAIL_REGEX = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
         const PHONE_REGEX = /(?:\+?52[\s.-]?)?\(?\d{2,4}\)?[\s.-]?\d{3,4}[\s.-]?\d{4}/g;
 
         const EXCLUDED_EMAILS = [
             'sentry.io', 'w3.org', 'example.com', 'bootstrap', 'jquery', 'domain.com',
-            'schema.org', 'github.com', 'google.com', 'facebook.com', 'twitter.com',
-            'png', 'jpg', 'jpeg', 'webp', 'svg'
+            'schema.org', 'github.com', 'google.com', 'facebook.com', 'twitter.com'
         ];
 
-        // --- MANEJO DE LOGS Y UI ---
         function logTerminal(msg, type = '') {
             const logBox = document.getElementById('terminalLog');
             const time = new Date().toLocaleTimeString();
@@ -357,7 +353,6 @@
             document.getElementById('progressText').innerText = message;
         }
 
-        // --- IMPORTACIÓN DE ARCHIVOS ---
         function handleFileImport(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -400,14 +395,13 @@
 
             if (foundCCTs.length > 0) {
                 document.getElementById('inputCCTBatch').value = foundCCTs.join('\n');
-                logTerminal(`¡Éxito! Se detectaron ${foundCCTs.length} CCTs en el archivo importado.`, 'success');
+                logTerminal(`¡Éxito! Se detectaron ${foundCCTs.length} CCTs en el archivo.`, 'success');
             } else {
                 alert("No se detectaron claves CCT válidas en el archivo.");
                 logTerminal("Error: No se encontraron CCTs válidos.", 'error');
             }
         }
 
-        // --- BÚSQUEDAS ---
         async function startSingleSearch() {
             const input = document.getElementById('inputCCTSingle').value.trim().toUpperCase();
             if (!input) return alert("Por favor ingresa una clave CCT.");
@@ -426,7 +420,6 @@
             await processCCTList(uniqueCCTs);
         }
 
-        // --- MOTOR DE SCRAPING CON MULTI-MOTOR Y ROTACIÓN DE PROXIES ---
         async function processCCTList(cctList) {
             if (isProcessing) return;
             isProcessing = true;
@@ -434,38 +427,65 @@
             showProgressUI(true);
             document.getElementById('statusSpinner').classList.remove('d-none');
             clearLogs();
-            logTerminal(`Iniciando rastreo web para ${cctList.length} CCT(s)...`, 'warning');
+            logTerminal(`Iniciando rastreo para ${cctList.length} CCT(s)...`, 'warning');
+
+            // Cargar estado inicial en la tabla
+            cctList.forEach(cct => {
+                const exists = scrapedResults.find(r => r.cct === cct);
+                if (!exists) {
+                    scrapedResults.push({
+                        cct: cct,
+                        status: 'pending', // 'pending', 'loading', 'success', 'no_data', 'error'
+                        phones: [],
+                        emails: [],
+                        sources: []
+                    });
+                }
+            });
+            renderTable();
 
             const total = cctList.length;
 
             for (let i = 0; i < total; i++) {
                 const cct = cctList[i];
+                
+                // Actualizar estado a "Consultando"
+                updateItemStatus(cct, 'loading');
                 updateProgress(i + 1, total, `Rastreando CCT ${i+1} de ${total}: ${cct}`);
-                logTerminal(`🔍 Buscando CCT: [${cct}] en la web pública...`);
+                logTerminal(`🔍 Consultando CCT [${cct}]...`);
 
                 try {
                     const resultData = await scrapeCCTData(cct);
-                    addOrUpdateResult(resultData);
                     
-                    const totalPhones = resultData.phones.length;
-                    const totalEmails = resultData.emails.length;
-                    
-                    if (totalPhones > 0 || totalEmails > 0) {
-                        logTerminal(`✅ CCT ${cct}: ${totalPhones} teléfono(s) y ${totalEmails} correo(s) hallados.`, 'success');
+                    if (resultData.phones.length > 0 || resultData.emails.length > 0) {
+                        resultData.status = 'success';
+                        logTerminal(`✅ CCT ${cct}: Contactos encontrados.`, 'success');
                     } else {
-                        logTerminal(`⚠️ CCT ${cct}: No se encontraron contactos visibles en los snippets.`, 'warning');
+                        resultData.status = 'no_data';
+                        logTerminal(`⚠️ CCT ${cct}: Sin datos de contacto visibles.`, 'warning');
                     }
+                    
+                    addOrUpdateResult(resultData);
                 } catch (err) {
                     logTerminal(`❌ Error procesando CCT ${cct}: ${err.message}`, 'error');
+                    updateItemStatus(cct, 'error');
                 }
 
-                await new Promise(r => setTimeout(r, 500));
+                await new Promise(r => setTimeout(r, 400));
             }
 
             updateProgress(total, total, "¡Proceso de rastreo completado!");
-            logTerminal("🎉 Proceso finalizado con éxito.", 'success');
+            logTerminal("🎉 Consulta masiva finalizada.", 'success');
             showProgressUI(false);
             isProcessing = false;
+        }
+
+        function updateItemStatus(cct, status) {
+            const item = scrapedResults.find(r => r.cct === cct);
+            if (item) {
+                item.status = status;
+                renderTable();
+            }
         }
 
         async function scrapeCCTData(cct) {
@@ -473,7 +493,6 @@
             let foundEmails = new Map();
             let sourcesMap = new Map();
 
-            // Consultar motores mediante rotación de proxies
             const searchTargets = [
                 `https://www.bing.com/search?q="${cct}"+(telefono+OR+correo+OR+email+OR+contacto)`,
                 `https://lite.duckduckgo.com/lite/?q="${cct}"+(telefono+OR+correo+OR+email+OR+contacto)`
@@ -488,6 +507,7 @@
 
             return {
                 cct: cct,
+                status: 'pending',
                 phones: Array.from(foundPhones.entries()).map(([phone, source]) => ({ phone, source })),
                 emails: Array.from(foundEmails.entries()).map(([email, source]) => ({ email, source })),
                 sources: Array.from(sourcesMap.entries()).map(([url, data]) => ({ url, ...data }))
@@ -502,9 +522,7 @@
                     if (!res.ok) continue;
                     const text = await res.text();
                     if (text && text.length > 500) return text;
-                } catch (e) {
-                    // Intenta el siguiente proxy
-                }
+                } catch (e) {}
             }
             return null;
         }
@@ -512,11 +530,8 @@
         function parseSearchResults(htmlText, searchEngineUrl, phoneMap, emailMap, sourcesMap) {
             const parser = new DOMParser();
             const doc = parser.parseFromString(htmlText, 'text/html');
-
-            // Extraer el texto completo del documento parseado para maximizar hallazgos
             const fullText = doc.body ? doc.body.innerText : "";
 
-            // Parsear enlaces individuales de fuentes
             const links = doc.querySelectorAll('a');
             links.forEach(a => {
                 const href = a.getAttribute('href');
@@ -526,18 +541,14 @@
                 }
             });
 
-            // Extraer Correos
             const rawEmails = fullText.match(EMAIL_REGEX) || [];
             rawEmails.forEach(email => {
                 const clean = email.toLowerCase().trim();
                 if (!EXCLUDED_EMAILS.some(ext => clean.includes(ext)) && clean.length < 50) {
-                    if (!emailMap.has(clean)) {
-                        emailMap.set(clean, searchEngineUrl);
-                    }
+                    if (!emailMap.has(clean)) emailMap.set(clean, searchEngineUrl);
                 }
             });
 
-            // Extraer Teléfonos en México
             const rawPhones = fullText.match(PHONE_REGEX) || [];
             rawPhones.forEach(phone => {
                 const digits = phone.replace(/\D/g, '');
@@ -550,19 +561,35 @@
                 }
 
                 if (cleanPhone && !digits.startsWith('202') && !digits.startsWith('000')) {
-                    if (!phoneMap.has(cleanPhone)) {
-                        phoneMap.set(cleanPhone, searchEngineUrl);
-                    }
+                    if (!phoneMap.has(cleanPhone)) phoneMap.set(cleanPhone, searchEngineUrl);
                 }
             });
         }
 
-        // --- TABLA Y MODAL ---
         function addOrUpdateResult(data) {
-            scrapedResults = scrapedResults.filter(r => r.cct !== data.cct);
-            scrapedResults.push(data);
+            const idx = scrapedResults.findIndex(r => r.cct === data.cct);
+            if (idx !== -1) {
+                scrapedResults[idx] = data;
+            } else {
+                scrapedResults.push(data);
+            }
             renderTable();
             document.getElementById('btnExport').disabled = scrapedResults.length === 0;
+        }
+
+        function getStatusBadge(status) {
+            switch (status) {
+                case 'loading':
+                    return '<span class="badge bg-warning text-dark"><i class="fa-solid fa-spinner fa-spin me-1"></i> Consultando...</span>';
+                case 'success':
+                    return '<span class="badge bg-success"><i class="fa-solid fa-check me-1"></i> Encontrado</span>';
+                case 'no_data':
+                    return '<span class="badge bg-secondary"><i class="fa-solid fa-circle-info me-1"></i> Sin datos</span>';
+                case 'error':
+                    return '<span class="badge bg-danger"><i class="fa-solid fa-triangle-exclamation me-1"></i> Error</span>';
+                default:
+                    return '<span class="badge bg-light text-dark border"><i class="fa-solid fa-clock me-1"></i> En espera</span>';
+            }
         }
 
         function renderTable() {
@@ -571,7 +598,7 @@
             if (scrapedResults.length === 0) {
                 tbody.innerHTML = `
                     <tr id="emptyRow">
-                        <td colspan="6" class="text-center py-5 text-muted">
+                        <td colspan="7" class="text-center py-5 text-muted">
                             <i class="fa-solid fa-magnifying-glass fa-2x mb-3 d-block opacity-50"></i>
                             No hay resultados todavía. Ingresa una clave CCT arriba para comenzar el scraping.
                         </td>
@@ -619,6 +646,7 @@
                 tr.innerHTML = `
                     <td>${index + 1}</td>
                     <td><span class="cct-badge">${item.cct}</span></td>
+                    <td>${getStatusBadge(item.status)}</td>
                     <td>${phonesHTML}</td>
                     <td>${emailsHTML}</td>
                     <td>${sourcesHTML}</td>
@@ -640,6 +668,9 @@
             document.getElementById('modalTitle').innerHTML = `<i class="fa-solid fa-school me-2 text-primary"></i>Detalle CCT: <span class="cct-badge">${cct}</span>`;
             
             let modalHTML = `
+                <div class="mb-3">
+                    <h6 class="fw-bold">Estado de Consulta: ${getStatusBadge(item.status)}</h6>
+                </div>
                 <div class="mb-3">
                     <h6 class="fw-bold text-success"><i class="fa-solid fa-phone me-2"></i>Teléfonos (${item.phones.length}):</h6>
                     ${item.phones.length ? item.phones.map(p => `<div class="p-2 border rounded bg-white mb-1"><i class="fa-solid fa-phone text-success me-2"></i>${p.phone}</div>`).join('') : '<p class="text-muted small">Sin registros</p>'}
@@ -668,6 +699,7 @@
         function exportToExcel() {
             const excelData = scrapedResults.map(item => ({
                 'CLAVE CCT': item.cct,
+                'ESTADO': item.status === 'success' ? 'Encontrado' : (item.status === 'no_data' ? 'Sin Datos' : 'Error'),
                 'TELÉFONOS': item.phones.map(p => p.phone).join(', ') || 'No encontrado',
                 'CORREOS': item.emails.map(e => e.email).join(', ') || 'No encontrado',
                 'FUENTES DETECTADAS': item.sources.map(s => s.url).join(' | ') || 'N/A'
