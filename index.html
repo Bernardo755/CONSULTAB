@@ -148,11 +148,6 @@
             background-color: var(--primary-color);
             color: white;
         }
-
-        .source-popover {
-            max-width: 350px;
-            font-size: 0.85rem;
-        }
     </style>
 </head>
 <body>
@@ -162,10 +157,10 @@
         <div class="container">
             <a class="navbar-brand d-flex align-items-center gap-2 fw-bold text-primary" href="#">
                 <i class="fa-solid fa-magnifying-glass-location fa-lg"></i>
-                <span>CCT Web Scraper <small class="text-muted fs-6 fw-normal">| Búsqueda de Contactos Educativos</small></span>
+                <span>CCT Web Scraper <small class="text-muted fs-6 fw-normal">| Sin API Key / GitHub Edition</small></span>
             </a>
             <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-2">
-                <i class="fa-solid fa-bolt me-1"></i> Multi-Motor y Extracción Directa
+                <i class="fa-solid fa-bolt me-1"></i> Multi-Proxy Web Scraper
             </span>
         </div>
     </nav>
@@ -198,7 +193,7 @@
                                 <span class="input-group-text bg-white text-muted"><i class="fa-solid fa-barcode"></i></span>
                                 <input type="text" id="inputCCTSingle" class="form-control text-uppercase" placeholder="Ej. 15EPR0001A, 09DPR1234X..." maxlength="10">
                             </div>
-                            <div class="form-text">Ejemplo: 10 caracteres (2 dígitos Estado + 3 letras Tipo + 4 dígitos + 1 letra).</div>
+                            <div class="form-text">Ejemplo: 10 caracteres (ej. 15EPR0001A).</div>
                         </div>
                         <div class="col-md-5 d-flex gap-2">
                             <button class="btn btn-primary-custom btn-lg w-100" id="btnSearchSingle" onclick="startSingleSearch()">
@@ -219,7 +214,7 @@
                             <div>
                                 <label class="form-label fw-semibold">Opción B: Cargar desde Archivo Excel o CSV</label>
                                 <input type="file" id="fileImport" class="form-control" accept=".xlsx, .xls, .csv" onchange="handleFileImport(event)">
-                                <div class="form-text">El sistema detectará automáticamente la columna que contenga las claves CCT.</div>
+                                <div class="form-text">El sistema detectará automáticamente la columna con claves CCT.</div>
                             </div>
                             <button class="btn btn-primary-custom btn-lg w-100 mt-3" id="btnSearchBatch" onclick="startBatchSearch()">
                                 <i class="fa-solid fa-play me-2"></i>Iniciar Búsqueda Masiva
@@ -236,7 +231,7 @@
             <div class="d-flex justify-content-between align-items-center mb-2">
                 <h6 class="fw-bold m-0 d-flex align-items-center gap-2">
                     <span class="spinner-border spinner-border-sm text-primary" id="statusSpinner" role="status"></span>
-                    <span id="progressText">Rastreando internet en busca de teléfonos y correos...</span>
+                    <span id="progressText">Rastreando la web pública en busca de teléfonos y correos...</span>
                 </h6>
                 <span id="progressCount" class="badge bg-primary">0 / 0</span>
             </div>
@@ -279,7 +274,7 @@
                             <th style="width: 140px;">CCT</th>
                             <th style="width: 220px;">Teléfonos Encontrados</th>
                             <th>Correos Electrónicos Encontrados</th>
-                            <th style="width: 260px;">Fuentes de Donde Se Extrajo</th>
+                            <th style="width: 260px;">Fuentes Detectadas</th>
                             <th style="width: 90px;" class="text-center">Acción</th>
                         </tr>
                     </thead>
@@ -316,29 +311,53 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        // --- ESTADO GLOBAL DE LA APLICACIÓN ---
+        // --- ESTADO GLOBAL ---
         let scrapedResults = [];
         let isProcessing = false;
 
-        // Lista de proxies CORS públicos para evitar bloqueos del navegador
+        // Servidores Proxy CORS públicos con fallback
         const CORS_PROXIES = [
-            url => `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
-            url => `https://corsproxy.io/?${encodeURIComponent(url)}`
+            url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+            url => `https://corsproxy.io/?${encodeURIComponent(url)}`,
+            url => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`
         ];
 
-        // Expressiones Regulares para Detección de Contactos en México
+        // Expresiones Regulares
         const EMAIL_REGEX = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
-        // Teléfonos MX: 10 dígitos (formatos diversos con espacios, guiones, paréntesis o lada 52)
         const PHONE_REGEX = /(?:\+?52[\s.-]?)?\(?\d{2,4}\)?[\s.-]?\d{3,4}[\s.-]?\d{4}/g;
 
-        // Filtro de dominios/emails falsos positivos comunes en código web
         const EXCLUDED_EMAILS = [
             'sentry.io', 'w3.org', 'example.com', 'bootstrap', 'jquery', 'domain.com',
             'schema.org', 'github.com', 'google.com', 'facebook.com', 'twitter.com',
             'png', 'jpg', 'jpeg', 'webp', 'svg'
         ];
 
-        // --- MANEJO DE ENTRADA Y ARCHIVOS ---
+        // --- MANEJO DE LOGS Y UI ---
+        function logTerminal(msg, type = '') {
+            const logBox = document.getElementById('terminalLog');
+            const time = new Date().toLocaleTimeString();
+            logBox.innerHTML += `<p class="${type}">[${time}] ${msg}</p>`;
+            logBox.scrollTop = logBox.scrollHeight;
+        }
+
+        function clearLogs() {
+            document.getElementById('terminalLog').innerHTML = '<p>[Sistema listo] Esperando indicación de búsqueda...</p>';
+        }
+
+        function showProgressUI(show) {
+            const section = document.getElementById('progressSection');
+            if (show) section.classList.remove('d-none');
+            else document.getElementById('statusSpinner').classList.add('d-none');
+        }
+
+        function updateProgress(current, total, message) {
+            const pct = Math.round((current / total) * 100);
+            document.getElementById('progressBar').style.width = `${pct}%`;
+            document.getElementById('progressCount').innerText = `${current} / ${total}`;
+            document.getElementById('progressText').innerText = message;
+        }
+
+        // --- IMPORTACIÓN DE ARCHIVOS ---
         function handleFileImport(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -347,9 +366,7 @@
             
             if (file.name.endsWith('.csv')) {
                 Papa.parse(file, {
-                    complete: function(results) {
-                        extractCCTsFromMatrix(results.data);
-                    }
+                    complete: function(results) { extractCCTsFromMatrix(results.data); }
                 });
             } else {
                 const reader = new FileReader();
@@ -382,52 +399,40 @@
             });
 
             if (foundCCTs.length > 0) {
-                document.getElementById('inputCCTBatch').value = foundCCTs.join('
-');
+                document.getElementById('inputCCTBatch').value = foundCCTs.join('\n');
                 logTerminal(`¡Éxito! Se detectaron ${foundCCTs.length} CCTs en el archivo importado.`, 'success');
             } else {
-                alert("No se detectaron claves CCT válidas en el archivo. Asegúrate de que tengan formato de 10 caracteres (ej. 15EPR0001A).");
-                logTerminal("Error: No se encontraron CCTs válidos en el archivo.", 'error');
+                alert("No se detectaron claves CCT válidas en el archivo.");
+                logTerminal("Error: No se encontraron CCTs válidos.", 'error');
             }
         }
 
-        // --- BÚSQUEDA INDIVIDUAL ---
+        // --- BÚSQUEDAS ---
         async function startSingleSearch() {
             const input = document.getElementById('inputCCTSingle').value.trim().toUpperCase();
-            if (!input) {
-                alert("Por favor ingresa una clave CCT.");
-                return;
-            }
-            if (input.length !== 10) {
-                alert("Una clave CCT oficial consta de 10 caracteres alfanuméricos.");
-            }
+            if (!input) return alert("Por favor ingresa una clave CCT.");
             await processCCTList([input]);
         }
 
-        // --- BÚSQUEDA MASIVA ---
         async function startBatchSearch() {
             const rawText = document.getElementById('inputCCTBatch').value;
-            const lines = rawText.split('
-')
+            const lines = rawText.split('\n')
                 .map(l => l.trim().toUpperCase())
-                .filter(l => l.length >= 8); // Aceptar variaciones cercanas
+                .filter(l => l.length >= 8);
             
             const uniqueCCTs = [...new Set(lines)];
-
-            if (uniqueCCTs.length === 0) {
-                alert("Ingresa o importa al menos una clave CCT.");
-                return;
-            }
+            if (uniqueCCTs.length === 0) return alert("Ingresa al menos una clave CCT.");
 
             await processCCTList(uniqueCCTs);
         }
 
-        // --- MOTOR PRINCIPAL DE SCRAPING ---
+        // --- MOTOR DE SCRAPING CON MULTI-MOTOR Y ROTACIÓN DE PROXIES ---
         async function processCCTList(cctList) {
             if (isProcessing) return;
             isProcessing = true;
 
             showProgressUI(true);
+            document.getElementById('statusSpinner').classList.remove('d-none');
             clearLogs();
             logTerminal(`Iniciando rastreo web para ${cctList.length} CCT(s)...`, 'warning');
 
@@ -436,7 +441,7 @@
             for (let i = 0; i < total; i++) {
                 const cct = cctList[i];
                 updateProgress(i + 1, total, `Rastreando CCT ${i+1} de ${total}: ${cct}`);
-                logTerminal(`🔍 Searching Web for CCT: [${cct}]...`);
+                logTerminal(`🔍 Buscando CCT: [${cct}] en la web pública...`);
 
                 try {
                     const resultData = await scrapeCCTData(cct);
@@ -446,24 +451,15 @@
                     const totalEmails = resultData.emails.length;
                     
                     if (totalPhones > 0 || totalEmails > 0) {
-                        logTerminal(`✅ CCT ${cct}: Encontrados ${totalPhones} tel(s) y ${totalEmails} correo(s).`, 'success');
+                        logTerminal(`✅ CCT ${cct}: ${totalPhones} teléfono(s) y ${totalEmails} correo(s) hallados.`, 'success');
                     } else {
-                        logTerminal(`⚠️ CCT ${cct}: No se hallaron contactos en las fuentes públicas sondeadas.`, 'warning');
+                        logTerminal(`⚠️ CCT ${cct}: No se encontraron contactos visibles en los snippets.`, 'warning');
                     }
                 } catch (err) {
-                    console.error(err);
-                    logTerminal(`❌ Error al procesar CCT ${cct}: ${err.message}`, 'error');
-                    addOrUpdateResult({
-                        cct: cct,
-                        phones: [],
-                        emails: [],
-                        sources: [],
-                        error: "Error de conexión/Timeout"
-                    });
+                    logTerminal(`❌ Error procesando CCT ${cct}: ${err.message}`, 'error');
                 }
 
-                // Pequeña pausa para no saturar los proxies
-                await new Promise(r => setTimeout(r, 600));
+                await new Promise(r => setTimeout(r, 500));
             }
 
             updateProgress(total, total, "¡Proceso de rastreo completado!");
@@ -472,98 +468,21 @@
             isProcessing = false;
         }
 
-        // --- LÓGICA DE WEBSCRAPING REAL POR PROXY Y DUCKDUCKGO ---
         async function scrapeCCTData(cct) {
-            let foundPhones = new Map(); // phone -> source URL
-            let foundEmails = new Map(); // email -> source URL
-            let sourcesMap = new Map();  // url -> page title / snippet
+            let foundPhones = new Map();
+            let foundEmails = new Map();
+            let sourcesMap = new Map();
 
-            // Query estructurada para maximizar resultados en México
-            const query = `"${cct}" (telefono OR correo OR email OR contacto OR directorio OR "escuela")`;
-            const searchUrl = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`;
+            // Consultar motores mediante rotación de proxies
+            const searchTargets = [
+                `https://www.bing.com/search?q="${cct}"+(telefono+OR+correo+OR+email+OR+contacto)`,
+                `https://lite.duckduckgo.com/lite/?q="${cct}"+(telefono+OR+correo+OR+email+OR+contacto)`
+            ];
 
-            let htmlContent = "";
-            let proxySuccess = false;
-
-            // Intentar fetch a través de proxies CORS
-            for (const proxyFn of CORS_PROXIES) {
-                try {
-                    const targetUrl = proxyFn(searchUrl);
-                    const res = await fetch(targetUrl, { signal: AbortSignal.timeout(8000) });
-                    if (!res.ok) continue;
-
-                    if (targetUrl.includes('allorigins')) {
-                        const json = await res.json();
-                        htmlContent = json.contents || "";
-                    } else {
-                        htmlContent = await res.text();
-                    }
-
-                    if (htmlContent && htmlContent.length > 500) {
-                        proxySuccess = true;
-                        break;
-                    }
-                } catch (e) {
-                    // Probar siguiente proxy
-                }
-            }
-
-            if (!proxySuccess || !htmlContent) {
-                // Fallback: Generar fuente directa de búsqueda para el usuario
-                const googleSearchUrl = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
-                sourcesMap.set(googleSearchUrl, { title: "Búsqueda Directa Google", snippet: "Consulta manual recomendada" });
-                return {
-                    cct: cct,
-                    phones: [],
-                    emails: [],
-                    sources: Array.from(sourcesMap.entries()).map(([url, data]) => ({ url, ...data }))
-                };
-            }
-
-            // Parsear HTML de los resultados de búsqueda
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(htmlContent, 'text/html');
-
-            // 1. Extraer directo de los snippets de búsqueda
-            const resultsElements = doc.querySelectorAll('.result');
-            let linksToDeepScrape = [];
-
-            resultsElements.forEach(el => {
-                const titleEl = el.querySelector('.result__title');
-                const snippetEl = el.querySelector('.result__snippet');
-                const urlEl = el.querySelector('.result__url');
-
-                const title = titleEl ? titleEl.innerText.trim() : "Fuente Web";
-                const snippet = snippetEl ? snippetEl.innerText.trim() : "";
-                let rawUrl = urlEl ? urlEl.innerText.trim() : "";
-
-                if (rawUrl && !rawUrl.startsWith('http')) {
-                    rawUrl = 'https://' + rawUrl;
-                }
-
-                if (rawUrl) {
-                    sourcesMap.set(rawUrl, { title, snippet });
-                    linksToDeepScrape.push(rawUrl);
-                }
-
-                // Extraer del fragmento/snippet visible de DuckDuckGo
-                const combinedText = title + " " + snippet;
-                extractContactsFromText(combinedText, rawUrl || "Resultados de Búsqueda", foundPhones, foundEmails);
-            });
-
-            // 2. Deep Scraping: Inspeccionar las 2 primeras páginas encontradas si es necesario
-            const deepTargets = linksToDeepScrape.slice(0, 2);
-            for (const targetUrl of deepTargets) {
-                try {
-                    logTerminal(`  └─ Inspeccionando sitio web: ${targetUrl.substring(0, 45)}...`);
-                    const pageHtml = await fetchPageContent(targetUrl);
-                    if (pageHtml) {
-                        const pageDoc = parser.parseFromString(pageHtml, 'text/html');
-                        const bodyText = pageDoc.body ? pageDoc.body.innerText : "";
-                        extractContactsFromText(bodyText, targetUrl, foundPhones, foundEmails);
-                    }
-                } catch (e) {
-                    // Ignorar errores de paginas individuales
+            for (const targetUrl of searchTargets) {
+                const htmlContent = await fetchWithProxy(targetUrl);
+                if (htmlContent) {
+                    parseSearchResults(htmlContent, targetUrl, foundPhones, foundEmails, sourcesMap);
                 }
             }
 
@@ -575,67 +494,73 @@
             };
         }
 
-        async function fetchPageContent(url) {
+        async function fetchWithProxy(targetUrl) {
             for (const proxyFn of CORS_PROXIES) {
                 try {
-                    const target = proxyFn(url);
-                    const res = await fetch(target, { signal: AbortSignal.timeout(6000) });
+                    const url = proxyFn(targetUrl);
+                    const res = await fetch(url, { signal: AbortSignal.timeout(6000) });
                     if (!res.ok) continue;
-
-                    if (target.includes('allorigins')) {
-                        const json = await res.json();
-                        return json.contents;
-                    } else {
-                        return await res.text();
-                    }
-                } catch (e) {}
+                    const text = await res.text();
+                    if (text && text.length > 500) return text;
+                } catch (e) {
+                    // Intenta el siguiente proxy
+                }
             }
             return null;
         }
 
-        function extractContactsFromText(text, sourceUrl, phoneMap, emailMap) {
-            if (!text) return;
+        function parseSearchResults(htmlText, searchEngineUrl, phoneMap, emailMap, sourcesMap) {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(htmlText, 'text/html');
 
-            // 1. Correos
-            const rawEmails = text.match(EMAIL_REGEX) || [];
+            // Extraer el texto completo del documento parseado para maximizar hallazgos
+            const fullText = doc.body ? doc.body.innerText : "";
+
+            // Parsear enlaces individuales de fuentes
+            const links = doc.querySelectorAll('a');
+            links.forEach(a => {
+                const href = a.getAttribute('href');
+                const title = a.innerText.trim();
+                if (href && href.startsWith('http') && !href.includes('bing.com') && !href.includes('duckduckgo.com')) {
+                    sourcesMap.set(href, { title: title || "Fuente Web", snippet: "Extracción directa" });
+                }
+            });
+
+            // Extraer Correos
+            const rawEmails = fullText.match(EMAIL_REGEX) || [];
             rawEmails.forEach(email => {
-                const cleanEmail = email.toLowerCase().trim();
-                const isInvalid = EXCLUDED_EMAILS.some(ext => cleanEmail.includes(ext));
-                if (!isInvalid && cleanEmail.length < 60) {
-                    if (!emailMap.has(cleanEmail)) {
-                        emailMap.set(cleanEmail, sourceUrl);
+                const clean = email.toLowerCase().trim();
+                if (!EXCLUDED_EMAILS.some(ext => clean.includes(ext)) && clean.length < 50) {
+                    if (!emailMap.has(clean)) {
+                        emailMap.set(clean, searchEngineUrl);
                     }
                 }
             });
 
-            // 2. Teléfonos en México
-            const rawPhones = text.match(PHONE_REGEX) || [];
+            // Extraer Teléfonos en México
+            const rawPhones = fullText.match(PHONE_REGEX) || [];
             rawPhones.forEach(phone => {
                 const digits = phone.replace(/\D/g, '');
-                
-                // Un teléfono en México válido suele tener 10 dígitos (o 12 con lada 52)
                 let cleanPhone = "";
+
                 if (digits.length === 10) {
                     cleanPhone = digits.replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3');
                 } else if (digits.length === 12 && digits.startsWith('52')) {
                     cleanPhone = digits.substring(2).replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3');
                 }
 
-                // Filtrar secuencias numéricas falsas (ej. fechas como 20240512, códigos CCT)
                 if (cleanPhone && !digits.startsWith('202') && !digits.startsWith('000')) {
                     if (!phoneMap.has(cleanPhone)) {
-                        phoneMap.set(cleanPhone, sourceUrl);
+                        phoneMap.set(cleanPhone, searchEngineUrl);
                     }
                 }
             });
         }
 
-        // --- ACTUALIZACIÓN DE INTERFAZ Y TABLA ---
+        // --- TABLA Y MODAL ---
         function addOrUpdateResult(data) {
-            // Eliminar si existe previo
             scrapedResults = scrapedResults.filter(r => r.cct !== data.cct);
             scrapedResults.push(data);
-
             renderTable();
             document.getElementById('btnExport').disabled = scrapedResults.length === 0;
         }
@@ -659,20 +584,18 @@
             scrapedResults.forEach((item, index) => {
                 const tr = document.createElement('tr');
 
-                // Teléfonos Badges
-                let phonesHTML = '<span class="text-muted fs-7">Sin teléfono detectado</span>';
-                if (item.phones && item.phones.length > 0) {
+                let phonesHTML = '<span class="text-muted small">No detectado</span>';
+                if (item.phones.length > 0) {
                     phonesHTML = item.phones.map(p => `
                         <div class="contact-item">
                             <i class="fa-solid fa-phone text-success me-1"></i>
-                            <a href="tel:${p.phone.replace(/\D/g,'')}" class="text-decoration-none text-dark font-weight-bold">${p.phone}</a>
+                            <a href="tel:${p.phone.replace(/\D/g,'')}" class="text-decoration-none text-dark fw-semibold">${p.phone}</a>
                         </div>
                     `).join('');
                 }
 
-                // Correos Badges
-                let emailsHTML = '<span class="text-muted fs-7">Sin correo detectado</span>';
-                if (item.emails && item.emails.length > 0) {
+                let emailsHTML = '<span class="text-muted small">No detectado</span>';
+                if (item.emails.length > 0) {
                     emailsHTML = item.emails.map(e => `
                         <div class="contact-item">
                             <i class="fa-solid fa-envelope text-primary me-1"></i>
@@ -681,14 +604,13 @@
                     `).join('');
                 }
 
-                // Fuentes Badges
-                let sourcesHTML = '<span class="text-muted fs-7">Búsqueda directa</span>';
-                if (item.sources && item.sources.length > 0) {
+                let sourcesHTML = '<span class="text-muted small">Búsqueda directa</span>';
+                if (item.sources.length > 0) {
                     sourcesHTML = item.sources.slice(0, 2).map(s => {
                         let domain = "Fuente Web";
                         try { domain = new URL(s.url).hostname.replace('www.', ''); } catch(e){}
                         return `
-                            <a href="${s.url}" target="_blank" class="badge-source mb-1" title="${s.title || s.url}">
+                            <a href="${s.url}" target="_blank" class="badge-source mb-1" title="${s.title}">
                                 <i class="fa-solid fa-arrow-up-right-from-square text-secondary"></i> ${domain}
                             </a>`;
                     }).join('<br>');
@@ -701,7 +623,7 @@
                     <td>${emailsHTML}</td>
                     <td>${sourcesHTML}</td>
                     <td class="text-center">
-                        <button class="btn btn-sm btn-outline-primary" onclick="showDetailModal('${item.cct}')" title="Ver detalle completo de fuentes">
+                        <button class="btn btn-sm btn-outline-primary" onclick="showDetailModal('${item.cct}')" title="Ver detalle">
                             <i class="fa-solid fa-eye"></i>
                         </button>
                     </td>
@@ -711,47 +633,24 @@
             });
         }
 
-        // --- MODAL DE DETALLE ---
         function showDetailModal(cct) {
             const item = scrapedResults.find(r => r.cct === cct);
             if (!item) return;
 
-            document.getElementById('modalTitle').innerHTML = `<i class="fa-solid fa-school me-2 text-primary"></i>Detalles de Rastreo CCT: <span class="cct-badge">${cct}</span>`;
+            document.getElementById('modalTitle').innerHTML = `<i class="fa-solid fa-school me-2 text-primary"></i>Detalle CCT: <span class="cct-badge">${cct}</span>`;
             
             let modalHTML = `
                 <div class="mb-3">
-                    <h6 class="fw-bold text-success"><i class="fa-solid fa-phone me-2"></i>Teléfonos Registrados (${item.phones.length}):</h6>
-                    ${item.phones.length > 0 ? item.phones.map(p => `
-                        <div class="p-2 border rounded bg-light mb-1 d-flex justify-content-between align-items-center">
-                            <strong>${p.phone}</strong>
-                            <small class="text-muted"><a href="${p.source}" target="_blank">Ver origen</a></small>
-                        </div>
-                    `).join('') : '<p class="text-muted ms-3">Ninguno hallado.</p>'}
+                    <h6 class="fw-bold text-success"><i class="fa-solid fa-phone me-2"></i>Teléfonos (${item.phones.length}):</h6>
+                    ${item.phones.length ? item.phones.map(p => `<div class="p-2 border rounded bg-white mb-1"><i class="fa-solid fa-phone text-success me-2"></i>${p.phone}</div>`).join('') : '<p class="text-muted small">Sin registros</p>'}
                 </div>
-
                 <div class="mb-3">
-                    <h6 class="fw-bold text-primary"><i class="fa-solid fa-envelope me-2"></i>Correos Electrónicos (${item.emails.length}):</h6>
-                    ${item.emails.length > 0 ? item.emails.map(e => `
-                        <div class="p-2 border rounded bg-light mb-1 d-flex justify-content-between align-items-center">
-                            <strong>${e.email}</strong>
-                            <small class="text-muted"><a href="${e.source}" target="_blank">Ver origen</a></small>
-                        </div>
-                    `).join('') : '<p class="text-muted ms-3">Ninguno hallado.</p>'}
+                    <h6 class="fw-bold text-primary"><i class="fa-solid fa-envelope me-2"></i>Correos (${item.emails.length}):</h6>
+                    ${item.emails.length ? item.emails.map(e => `<div class="p-2 border rounded bg-white mb-1"><i class="fa-solid fa-envelope text-primary me-2"></i>${e.email}</div>`).join('') : '<p class="text-muted small">Sin registros</p>'}
                 </div>
-
                 <div>
-                    <h6 class="fw-bold text-secondary"><i class="fa-solid fa-globe me-2"></i>Fuentes Consultadas (${item.sources.length}):</h6>
-                    <div class="list-group">
-                        ${item.sources.map(s => `
-                            <a href="${s.url}" target="_blank" class="list-group-item list-group-item-action">
-                                <div class="d-flex w-100 justify-content-between">
-                                    <h6 class="mb-1 text-primary">${s.title || 'Página de Información'}</h6>
-                                </div>
-                                <p class="mb-1 text-muted small">${s.snippet || 'Sin fragmento disponible'}</p>
-                                <small class="text-secondary"><i class="fa-solid fa-link"></i> ${s.url}</small>
-                            </a>
-                        `).join('')}
-                    </div>
+                    <h6 class="fw-bold text-secondary"><i class="fa-solid fa-link me-2"></i>Fuentes Detectadas (${item.sources.length}):</h6>
+                    ${item.sources.length ? item.sources.map(s => `<div class="p-2 border rounded bg-white mb-1"><a href="${s.url}" target="_blank" class="text-truncate d-block small">${s.title || s.url}</a></div>`).join('') : '<p class="text-muted small">Sin fuentes directas</p>'}
                 </div>
             `;
 
@@ -760,80 +659,24 @@
             modal.show();
         }
 
-        // --- EXPORTAR RESULTADOS A EXCEL ---
-        function exportToExcel() {
-            if (scrapedResults.length === 0) return;
-
-            let excelData = [];
-
-            scrapedResults.forEach(item => {
-                const phonesStr = item.phones.map(p => p.phone).join(', ') || 'No encontrado';
-                const emailsStr = item.emails.map(e => e.email).join(', ') || 'No encontrado';
-                const sourcesStr = item.sources.map(s => s.url).join(' | ') || 'N/A';
-
-                excelData.push({
-                    'CLAVE CCT': item.cct,
-                    'TELÉFONOS ENCONTRADOS': phonesStr,
-                    'CORREOS ELECTRÓNICOS': emailsStr,
-                    'CANTIDAD TELÉFONOS': item.phones.length,
-                    'CANTIDAD CORREOS': item.emails.length,
-                    'FUENTES Y ENLACES WEB': sourcesStr
-                });
-            });
-
-            const worksheet = XLSX.utils.json_to_sheet(excelData);
-            const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, "Contactos CCT");
-
-            // Auto-ajustar ancho de columnas
-            worksheet['!cols'] = [
-                { wch: 15 },
-                { wch: 30 },
-                { wch: 35 },
-                { wch: 20 },
-                { wch: 20 },
-                { wch: 50 }
-            ];
-
-            XLSX.writeFile(workbook, `Contactos_Escuelas_CCT_${new Date().toISOString().slice(0,10)}.xlsx`);
-        }
-
-        // --- UTILIDADES DE INTERFAZ ---
-        function showProgressUI(show) {
-            const section = document.getElementById('progressSection');
-            if (show) {
-                section.classList.remove('d-none');
-            }
-        }
-
-        function updateProgress(current, total, text) {
-            const pct = Math.round((current / total) * 100);
-            document.getElementById('progressBar').style.width = pct + '%';
-            document.getElementById('progressCount').innerText = `${current} / ${total}`;
-            document.getElementById('progressText').innerText = text;
-        }
-
-        function logTerminal(msg, type = '') {
-            const logBox = document.getElementById('terminalLog');
-            const p = document.createElement('p');
-            p.className = type;
-            const time = new Date().toLocaleTimeString();
-            p.innerText = `[${time}] ${msg}`;
-            logBox.appendChild(p);
-            logBox.scrollTop = logBox.scrollHeight;
-        }
-
-        function clearLogs() {
-            document.getElementById('terminalLog').innerHTML = '';
-        }
-
         function clearResults() {
-            if (confirm("¿Deseas borrar los resultados de la tabla?")) {
-                scrapedResults = [];
-                renderTable();
-                document.getElementById('btnExport').disabled = true;
-                document.getElementById('progressSection').classList.add('d-none');
-            }
+            scrapedResults = [];
+            renderTable();
+            document.getElementById('btnExport').disabled = true;
+        }
+
+        function exportToExcel() {
+            const excelData = scrapedResults.map(item => ({
+                'CLAVE CCT': item.cct,
+                'TELÉFONOS': item.phones.map(p => p.phone).join(', ') || 'No encontrado',
+                'CORREOS': item.emails.map(e => e.email).join(', ') || 'No encontrado',
+                'FUENTES DETECTADAS': item.sources.map(s => s.url).join(' | ') || 'N/A'
+            }));
+
+            const ws = XLSX.utils.json_to_sheet(excelData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Contactos CCT");
+            XLSX.writeFile(wb, "Contactos_Escuelas_CCT.xlsx");
         }
     </script>
 </body>
