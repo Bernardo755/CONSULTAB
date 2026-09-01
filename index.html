@@ -222,51 +222,66 @@
             document.getElementById('btnExport').disabled = false;
         }
 
-        async function searchGoogleAPI(cct, apiKey, cx) {
-            const query = `"${cct}" (telefono OR correo OR email OR contacto OR directorio)`;
-            const url = `https://www.googleapis.com/customsearch/v1?q=${encodeURIComponent(query)}&key=${apiKey}&cx=${cx}`;
+      async function searchDDGProxy(cct) {
+    const query = `"${cct}" (telefono OR correo OR email OR contacto OR directorio)`;
+    const targetUrl = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`;
+    // Proxy público para saltar las restricciones CORS del navegador
+    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
 
-            let phones = new Set();
-            let emails = new Set();
-            let sources = [];
+    let phones = new Set();
+    let emails = new Set();
+    let sources = [];
 
-            try {
-                const response = await fetch(url);
-                const data = await response.json();
+    try {
+        const response = await fetch(proxyUrl);
+        const data = await response.json();
+        const htmlText = data.contents;
 
-                if (data.items) {
-                    data.items.forEach(item => {
-                        const text = (item.title || '') + " " + (item.snippet || '');
-                        sources.push({ title: item.title, url: item.link });
+        // Parsear el HTML de DuckDuckGo en el navegador
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(htmlText, 'text/html');
+        const results = doc.querySelectorAll('.result');
 
-                        // Extraer correos
-                        const rawEmails = text.match(EMAIL_REGEX) || [];
-                        rawEmails.forEach(e => {
-                            const clean = e.toLowerCase().trim();
-                            if (!EXCLUDED_EMAILS.some(x => clean.includes(x))) emails.add(clean);
-                        });
+        results.forEach(res => {
+            const titleEl = res.querySelector('.result__title');
+            const snippetEl = res.querySelector('.result__snippet');
+            const urlEl = res.querySelector('.result__url');
 
-                        // Extraer teléfonos
-                        const rawPhones = text.match(PHONE_REGEX) || [];
-                        rawPhones.forEach(p => {
-                            const digits = p.replace(/\D/g, '');
-                            if (digits.length === 10) {
-                                phones.add(`(${digits.slice(0,3)}) ${digits.slice(3,6)}-${digits.slice(6)}`);
-                            }
-                        });
-                    });
+            const title = titleEl ? titleEl.innerText.trim() : '';
+            const snippet = snippetEl ? snippetEl.innerText.trim() : '';
+            const url = urlEl ? urlEl.getAttribute('href') : '';
+
+            if (url) sources.push({ title, url });
+
+            const text = `${title} ${snippet}`;
+
+            // Extraer correos
+            const rawEmails = text.match(EMAIL_REGEX) || [];
+            rawEmails.forEach(e => {
+                const clean = e.toLowerCase().trim();
+                if (!EXCLUDED_EMAILS.some(x => clean.includes(x))) emails.add(clean);
+            });
+
+            // Extraer teléfonos
+            const rawPhones = text.match(PHONE_REGEX) || [];
+            rawPhones.forEach(p => {
+                const digits = p.replace(/\D/g, '');
+                if (digits.length === 10) {
+                    phones.add(`(${digits.slice(0,3)}) ${digits.slice(3,6)}-${digits.slice(6)}`);
                 }
-            } catch (err) {
-                console.error(err);
-            }
+            });
+        });
+    } catch (err) {
+        console.error("Error en el rastreo:", err);
+    }
 
-            return {
-                cct: cct,
-                phones: Array.from(phones),
-                emails: Array.from(emails),
-                sources: sources
-            };
-        }
+    return {
+        cct: cct,
+        phones: Array.from(phones),
+        emails: Array.from(emails),
+        sources: sources
+    };
+}
 
         function renderTable() {
             const tbody = document.getElementById('resultsTbody');
