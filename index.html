@@ -10,79 +10,6 @@
     <!-- Librería para generar el archivo Excel en el navegador -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
-
-/* Fondo oscuro translúcido */
-.modal-overlay {
-  display: none;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.7);
-  z-index: 1000;
-  justify-content: center;
-  align-items: center;
-}
-
-/* Ventana modal */
-.modal-container {
-  background: #fff;
-  width: 90%;
-  max-width: 1000px;
-  height: 85vh;
-  border-radius: 8px;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-}
-
-/* Encabezado con el botón cerrar */
-.modal-header {
-  padding: 10px 20px;
-  background: #1a252f;
-  color: #fff;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.btn-cerrar {
-  background: #e74c3c;
-  color: white;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: bold;
-}
-
-.btn-cerrar:hover {
-  background: #c0392b;
-}
-
-/* Iframe que carga App B */
-.modal-iframe {
-  width: 100%;
-  height: 100%;
-  border: none;
-}
-.contenedor-boton {
-  display: flex;
-  justify-content: center; /* Centra horizontalmente */
-  align-items: center;    /* Opcional: centra verticalmente si tiene altura */
-  width: 100%;            /* Ocupa todo el ancho disponible */
-  margin: 20px 0;         /* Espaciado opcional arriba y abajo */
-}
-
-
-
-
-
-
-
-        
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: rgb(30, 91, 79); 
@@ -211,6 +138,78 @@
             gap: 12px;
             margin-top: 15px;
         }
+
+
+
+        /* Fondo oscuro translúcido */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  z-index: 1000;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Ventana modal */
+.modal-container {
+  background: #fff;
+  width: 90%;
+  max-width: 1000px;
+  height: 85vh;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
+
+/* Encabezado con el botón cerrar */
+.modal-header {
+  padding: 10px 20px;
+  background: #1a252f;
+  color: #fff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.btn-cerrar {
+  background: #e74c3c;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.btn-cerrar:hover {
+  background: #c0392b;
+}
+
+/* Iframe que carga App B */
+.modal-iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+.contenedor-boton {
+  display: flex;
+  justify-content: center; /* Centra horizontalmente */
+  align-items: center;    /* Opcional: centra verticalmente si tiene altura */
+  width: 100%;            /* Ocupa todo el ancho disponible */
+  margin: 20px 0;         /* Espaciado opcional arriba y abajo */
+}
+
+
+
+
+        
     </style>
 </head>
 <body>
