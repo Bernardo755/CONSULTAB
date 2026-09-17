@@ -9,6 +9,8 @@
     <script src="https://unpkg.com/html5-qrcode"></script>
     <!-- Librería para generar el archivo Excel en el navegador -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -202,6 +204,91 @@
   width: 100%;            /* Ocupa todo el ancho disponible */
   margin: 20px 0;         /* Espaciado opcional arriba y abajo */
 }
+
+
+
+
+/* Contenedor Principal (Bloque) */
+    .bloque-lanzador {
+      background-color: var(--surface);
+      width: 100%;
+      max-width: 500px;
+      padding: 40px 30px;
+      border-radius: var(--radius);
+      box-shadow: 0 10px 25px rgba(0, 47, 42, 0.08);
+      border: 1px solid var(--border);
+      text-align: center;
+      position: relative; /* Necesario para posicionar el botón de cerrar */
+    }
+
+    /* Botón de Cerrar (Equis en la esquina) */
+    .btn-cerrar-frame {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background: #f1f5f9;
+      color: #64748b;
+      border: none;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+
+    .btn-cerrar-frame:hover {
+      background: #e2e8f0;
+      color: #0f172a;
+    }
+
+    .titulo-lanzador {
+      color: var(--primary);
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin-top: 10px;
+      margin-bottom: 30px;
+      letter-spacing: -0.5px;
+    }
+
+    /* Contenedor para centrar perfectamente el botón principal */
+    .contenedor-boton {
+      display: flex;
+      justify-content: center;
+      width: 100%;
+    }
+
+    .btn-lanzador {
+      background-color: var(--primary);
+      color: #ffffff;
+      border: none;
+      padding: 16px 28px;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 10px rgba(0, 47, 42, 0.2);
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn-lanzador:hover {
+      background-color: var(--primary-hover);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 15px rgba(0, 47, 42, 0.3);
+    }
+
+    .btn-lanzador:active {
+      transform: translateY(0);
+    }
+
+        
     </style>
 </head>
 <body>
@@ -264,7 +351,23 @@
     <iframe id="iframeAppB" class="modal-iframe" src=""></iframe>
   </div>
 </div>
-   
+
+        
+        
+   <!-- Bloque Solicitado -->
+  <div id="bloque-lanzador">
+    
+    <!-- Botón de Cerrar Frame / Ventana -->
+    <button class="btn-cerrar-frame" onclick="cerrarFrame()" title="Cerrar ventana">✕</button>
+
+    <h2 class="titulo-lanzador">CARGA DE NUEVAS TARJETAS O ESTATUS</h2>
+    
+    <div class="contenedor-boton">
+      <button class="btn-lanzador" onclick="abrirAppActualizacion()">
+        🚀 ABRIR APP DE ACTUALIZACION
+      </button>
+    </div>
+  </div>
 
         
         <!-- CAPTURA INTERMEDIA (LOTES) -->
@@ -563,6 +666,8 @@
             document.getElementById('panel-documental').style.display = 'none';
             document.getElementById('modulo-excel').style.display = 'none';
             document.getElementById('contenedor-boton').style.display = 'none';
+            document.getElementById('bloque-lanzador').style.display = 'none';
+           
             
             iniciarTemporizadorInactividad();
 
@@ -571,6 +676,7 @@
               document.getElementById('panel-documental').style.display = 'block';
                 document.getElementById('modulo-excel').style.display = 'block';
                 document.getElementById('contenedor-boton').style.display = 'block';
+                 document.getElementById('bloque-lanzador').style.display = 'block';
             }
 
             if (rol === "ADMIN") {
@@ -1432,7 +1538,31 @@ btnCerrar.addEventListener('click', () => {
   iframe.src = ''; // Limpia el iframe al salir
 });
 
+<!-- Script con las acciones -->
+  <script>
+    function abrirAppActualizacion() {
+      // Reemplaza con la URL de tu app desplegada
+      const urlApp = 'https://bernardo755.github.io/ACTUALIZADOR/';
+      window.open(urlApp, '_blank');
+    }
 
+    function cerrarFrame() {
+      // Intenta cerrar la ventana o iframe actual de forma automática
+      try {
+        window.close();
+      } catch (e) {
+        console.log("No se pudo cerrar la ventana automáticamente.");
+      }
+
+      // Oculta visualmente el bloque por si está embebido en una capa o iframe
+      const bloque = document.querySelector('.bloque-lanzador');
+      if (bloque) {
+        bloque.style.display = 'none';
+      }
+      
+      // Si prefieres redirigir a otra página al cerrar, descomenta la siguiente línea:
+      // window.location.href = 'URL_DE_RETORNO_AQUI';
+    }
         
     </script>
 </body>
