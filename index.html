@@ -208,80 +208,44 @@
 
 
 
-
-
-
-
-        :root {
-      --primary: #002F2A;
-      --primary-hover: #004d45;
-      --bg-color: #f8fafc;
-      --surface: #ffffff;
-      --text-main: #0f172a;
-      --border: #e2e8f0;
-      --radius: 12px;
-    }
-
-
-/* Contenedor Principal (Bloque) */
+/* Bloque Contenedor Principal */
     .bloque-lanzador {
       background-color: var(--surface);
       width: 100%;
-      max-width: 500px;
+      max-width: 550px;
       padding: 40px 30px;
       border-radius: var(--radius);
       box-shadow: 0 10px 25px rgba(0, 47, 42, 0.08);
       border: 1px solid var(--border);
       text-align: center;
-      position: relative; /* Necesario para posicionar el botón de cerrar */
     }
 
-    /* Botón de Cerrar (Equis en la esquina) */
-    .btn-cerrar-frame {
-      position: absolute;
-      top: 15px;
-      right: 15px;
-      background: #f1f5f9;
-      color: #64748b;
-      border: none;
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      font-size: 16px;
-      font-weight: bold;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.2s;
-    }
-
-    .btn-cerrar-frame:hover {
-      background: #e2e8f0;
-      color: #0f172a;
-    }
-
+    /* Título Centrado */
     .titulo-lanzador {
       color: var(--primary);
       font-size: 1.3rem;
       font-weight: 700;
-      margin-top: 10px;
+      margin-top: 0;
       margin-bottom: 30px;
       letter-spacing: -0.5px;
+      text-transform: uppercase;
     }
 
-    /* Contenedor para centrar perfectamente el botón principal */
+    /* Contenedor para Centrar el Botón */
     .contenedor-boton {
       display: flex;
       justify-content: center;
+      align-items: center;
       width: 100%;
+      margin: 20px 0;
     }
 
+    /* Botón de Apertura */
     .btn-lanzador {
       background-color: var(--primary);
       color: #ffffff;
       border: none;
-      padding: 16px 28px;
+      padding: 16px 32px;
       border-radius: 8px;
       font-size: 15px;
       font-weight: 600;
@@ -303,6 +267,63 @@
       transform: translateY(0);
     }
 
+    /* --- ESTILOS DEL MODAL / FRAME --- */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.7);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-container {
+      background: #fff;
+      width: 90%;
+      max-width: 1000px;
+      height: 85vh;
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    }
+
+    .modal-header {
+      padding: 12px 20px;
+      background: var(--primary); /* Ajustado a tu color principal */
+      color: #fff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 600;
+    }
+
+    .btn-cerrar {
+      background: #e74c3c;
+      color: white;
+      border: none;
+      padding: 6px 14px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background 0.2s;
+    }
+
+    .btn-cerrar:hover {
+      background: #c0392b;
+    }
+
+    .modal-iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+        
         
     </style>
 </head>
@@ -367,22 +388,33 @@
   </div>
 </div>
 
-        
-        
-   <!-- Bloque Solicitado -->
-  <div id="bloque-lanzador">
-    
-    <!-- Botón de Cerrar Frame / Ventana -->
-    <button class="btn-cerrar-frame" onclick="cerrarFrame()" title="Cerrar ventana">✕</button>
 
+
+        <!-- Bloque Principal con Título y Botón Centrados -->
+  <div class="bloque-lanzador">
     <h2 class="titulo-lanzador">CARGA DE NUEVAS TARJETAS O ESTATUS</h2>
     
     <div class="contenedor-boton">
-      <button class="btn-lanzador" onclick="abrirAppActualizacion()">
+      <button id="btnAbrirAppB" class="btn-lanzador">
         🚀 ABRIR APP DE ACTUALIZACION
       </button>
     </div>
   </div>
+
+  <!-- Estructura de la Ventana Modal / Frame -->
+  <div id="modalAppB" class="modal-overlay">
+    <div class="modal-container">
+      <div class="modal-header">
+        <span>Carga de Nuevas Tarjetas o Estatus</span>
+        <button id="btnCerrarAppB" class="btn-cerrar">Cerrar ✖</button>
+      </div>
+      <!-- Iframe que carga la app de actualización de forma independiente -->
+      <iframe id="iframeAppB" class="modal-iframe" src=""></iframe>
+    </div>
+  </div>
+        
+        
+  
 
         
         <!-- CAPTURA INTERMEDIA (LOTES) -->
@@ -1554,31 +1586,26 @@ btnCerrar.addEventListener('click', () => {
 });
 
 
-  
-    function abrirAppActualizacion() {
-      // Reemplaza con la URL de tu app desplegada
-      const urlApp = 'https://bernardo755.github.io/ACTUALIZADOR/';
-      window.open(urlApp, '_blank');
-    }
+    // 💡 REEMPLAZA ESTA URL CON EL ENLACE DE TU APLICACIÓN B / DESPLIEGUE WEB DE GAS
+    const URL_APP_B = 'https://bernardo755.github.io/ACTUALIZADOR/';
 
-    function cerrarFrame() {
-      // Intenta cerrar la ventana o iframe actual de forma automática
-      try {
-        window.close();
-      } catch (e) {
-        console.log("No se pudo cerrar la ventana automáticamente.");
-      }
+    const btnAbrir = document.getElementById('btnAbrirAppB');
+    const btnCerrar = document.getElementById('btnCerrarAppB');
+    const modal = document.getElementById('modalAppB');
+    const iframe = document.getElementById('iframeAppB');
 
-      // Oculta visualmente el bloque por si está embebido en una capa o iframe
-      const bloque = document.querySelector('.bloque-lanzador');
-      if (bloque) {
-        bloque.style.display = 'none';
-      }
-      
-      // Si prefieres redirigir a otra página al cerrar, descomenta la siguiente línea:
-      // window.location.href = 'URL_DE_RETORNO_AQUI';
-    }
-        
+    // Abrir la App dentro del modal (frame)
+    btnAbrir.addEventListener('click', () => {
+      iframe.src = URL_APP_B;
+      modal.style.display = 'flex';
+    });
+
+    // Cerrar y regresar a la App principal limpiando el iframe
+    btnCerrar.addEventListener('click', () => {
+      modal.style.display = 'none';
+      iframe.src = ''; 
+    });
+
     </script>
 </body>
 </html>
