@@ -256,8 +256,9 @@
         </div>
 
 <!-- Botón principal en tu App A -->
-         <h3 style="text-align: center;"> REGISTRO DE TRAMITES</h3>
+
 <div class="contenedor-boton">
+    <h3 style="text-align: center;"> REGISTRO DE TRAMITES</h3>
 <button id="btnAbrirAppB" class="btn-primary">Registrar Trámites</button>
     </div>
 <!-- Estructura de la ventana Modal -->
@@ -563,13 +564,13 @@
             document.getElementById('panel-edicion').style.display = 'none';
             document.getElementById('panel-admin').style.display = 'none';
             document.getElementById('panel-documental').style.display = 'none';
-             document.getElementById('modulo-excel').style.display = 'none';
+            document.getElementById('modulo-excel').style.display = 'none';
             document.getElementById('btnAbrirAppB').style.display = 'none';
             iniciarTemporizadorInactividad();
 
             if (rol === "ATENCION" || rol === "ADMIN") {
                 document.getElementById('panel-edicion').style.display = 'block';
-              document.getElementById('panel-documental').style.display = 'block';
+                document.getElementById('panel-documental').style.display = 'block';
                 document.getElementById('modulo-excel').style.display = 'block';
                 document.getElementById('btnAbrirAppB').style.display = 'block';
             }
