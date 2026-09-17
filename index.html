@@ -300,11 +300,12 @@
   <select id="selectFechaExcel" style="width: 100%; padding: 8px; margin: 10px 0; border: 1px solid #aaa; border-radius: 4px;">
     <option value="">-- Haz clic en actualizar primero --</option>
   </select>
-
 </div>
+
+
+    
 <!-- Botón principal en tu App A -->
 <button id="btnAbrirAppB" class="btn-primary">Registrar Trámites</button>
-
 <!-- Estructura de la ventana Modal -->
 <div id="modalAppB" class="modal-overlay">
   <div class="modal-container">
@@ -562,14 +563,14 @@
             document.getElementById('panel-admin').style.display = 'none';
             document.getElementById('panel-documental').style.display = 'none';
              document.getElementById('modulo-excel').style.display = 'none';
-            document.getElementById('ModalAppB').style.display = 'none';
+            document.getElementById('btnAbrirAppB').style.display = 'none';
             iniciarTemporizadorInactividad();
 
             if (rol === "ATENCION" || rol === "ADMIN") {
                 document.getElementById('panel-edicion').style.display = 'block';
               document.getElementById('panel-documental').style.display = 'block';
                 document.getElementById('modulo-excel').style.display = 'block';
-                document.getElementById('ModalAppB').style.display = 'block';
+                document.getElementById('btnAbrirAppB').style.display = 'block';
             }
 
             if (rol === "ADMIN") {
