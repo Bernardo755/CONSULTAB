@@ -138,78 +138,6 @@
             gap: 12px;
             margin-top: 15px;
         }
-
-
-
-        /* Fondo oscuro translúcido */
-.modal-overlay {
-  display: none;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.7);
-  z-index: 1000;
-  justify-content: center;
-  align-items: center;
-}
-
-/* Ventana modal */
-.modal-container {
-  background: #fff;
-  width: 90%;
-  max-width: 1000px;
-  height: 85vh;
-  border-radius: 8px;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-}
-
-/* Encabezado con el botón cerrar */
-.modal-header {
-  padding: 10px 20px;
-  background: #1a252f;
-  color: #fff;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.btn-cerrar {
-  background: #e74c3c;
-  color: white;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: bold;
-}
-
-.btn-cerrar:hover {
-  background: #c0392b;
-}
-
-/* Iframe que carga App B */
-.modal-iframe {
-  width: 100%;
-  height: 100%;
-  border: none;
-}
-.contenedor-boton {
-  display: flex;
-  justify-content: center; /* Centra horizontalmente */
-  align-items: center;    /* Opcional: centra verticalmente si tiene altura */
-  width: 100%;            /* Ocupa todo el ancho disponible */
-  margin: 20px 0;         /* Espaciado opcional arriba y abajo */
-}
-
-
-
-
-        
     </style>
 </head>
 <body>
@@ -254,25 +182,6 @@
             <div id="contenedor-resultados"></div>
         </div>
 
-<!-- Botón principal en tu App A -->
-
-<div class="contenedor-boton">
-    <h3 style="text-align: center;"> REGISTRO DE TRAMITES</h3>
-<button id="btnAbrirAppB" class="btn-primary">Registrar Trámites</button>
-   
-<!-- Estructura de la ventana Modal -->
-<div id="modalAppB" class="modal-overlay">
-  <div class="modal-container">
-    <div class="modal-header">
-      <span>Registro de Trámites</span>
-      <button id="btnCerrarAppB" class="btn-cerrar">Cerrar ✖</button>
-    </div>
-    <!-- Reemplaza la URL src por la de tu App B -->
-    <iframe id="iframeAppB" class="modal-iframe" src=""></iframe>
-  </div>
-</div>
- </div>
-        
         <!-- CAPTURA INTERMEDIA (LOTES) -->
         <div id="panel-edicion" class="sub-panel">
             <h3 style="text-align: center;"> Módulo de Edición (Captura por Bloques)</h3>
@@ -324,11 +233,15 @@
   <select id="selectFechaExcel" style="width: 100%; padding: 8px; margin: 10px 0; border: 1px solid #aaa; border-radius: 4px;">
     <option value="">-- Haz clic en actualizar primero --</option>
   </select>
-</div>
-
+  
   <button id="btnGenerarExcel" onclick="confirmarYGenerarExcel()" style="width: 100%; padding: 10px; background-color: #1a73e8; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">
     Generar y Descargar Reporte
   </button>
+</div>
+
+
+
+
 
         
         <!-- NUEVO MÓDULO: CONTROL DOCUMENTAL Y FOLIADO -->
@@ -563,15 +476,13 @@
             document.getElementById('panel-edicion').style.display = 'none';
             document.getElementById('panel-admin').style.display = 'none';
             document.getElementById('panel-documental').style.display = 'none';
-            document.getElementById('modulo-excel').style.display = 'none';
-            document.getElementById('btnAbrirAppB').style.display = 'none';
+             document.getElementById('modulo-excel').style.display = 'none';
             iniciarTemporizadorInactividad();
 
             if (rol === "ATENCION" || rol === "ADMIN") {
                 document.getElementById('panel-edicion').style.display = 'block';
-                document.getElementById('panel-documental').style.display = 'block';
+              document.getElementById('panel-documental').style.display = 'block';
                 document.getElementById('modulo-excel').style.display = 'block';
-                document.getElementById('btnAbrirAppB').style.display = 'block';
             }
 
             if (rol === "ADMIN") {
@@ -1412,34 +1323,6 @@ function detenerEscanerDoc() {
             document.getElementById('app-section').style.display = 'none';
             document.getElementById('login-section').style.display = 'block';
         }
-
-
-
-const URL_APP_B = 'https://bernardo755.github.io/PRUEBA/'; // Coloca aquí la URL exacta de tu App B
-
-const btnAbrir = document.getElementById('btnAbrirAppB');
-const btnCerrar = document.getElementById('btnCerrarAppB');
-const modal = document.getElementById('modalAppB');
-const iframe = document.getElementById('iframeAppB');
-
-// Abrir la App B dentro del iframe
-btnAbrir.addEventListener('click', () => {
-  iframe.src = URL_APP_B;
-  modal.style.display = 'flex';
-});
-
-// Cerrar y regresar a la App A
-btnCerrar.addEventListener('click', () => {
-  modal.style.display = 'none';
-  iframe.src = ''; // Limpia el iframe al salir
-});
-
-
-
-
-
-
-        
     </script>
 </body>
 </html>
