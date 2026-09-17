@@ -285,7 +285,19 @@
             </div>
         </div>
 
-
+<!-- Botón principal en tu App A -->
+<button id="btnAbrirAppB" class="btn-primary">Registrar Trámites</button>
+<!-- Estructura de la ventana Modal -->
+<div id="modalAppB" class="modal-overlay">
+  <div class="modal-container">
+    <div class="modal-header">
+      <span>Registro de Trámites</span>
+      <button id="btnCerrarAppB" class="btn-cerrar">Cerrar ✖</button>
+    </div>
+    <!-- Reemplaza la URL src por la de tu App B -->
+    <iframe id="iframeAppB" class="modal-iframe" src=""></iframe>
+  </div>
+</div>
 
 
 <!-- Interfaz del Módulo -->
@@ -302,32 +314,9 @@
   </select>
 </div>
 
-
-    
-<!-- Botón principal en tu App A -->
-<button id="btnAbrirAppB" class="btn-primary">Registrar Trámites</button>
-<!-- Estructura de la ventana Modal -->
-<div id="modalAppB" class="modal-overlay">
-  <div class="modal-container">
-    <div class="modal-header">
-      <span>Registro de Trámites</span>
-      <button id="btnCerrarAppB" class="btn-cerrar">Cerrar ✖</button>
-    </div>
-    <!-- Reemplaza la URL src por la de tu App B -->
-    <iframe id="iframeAppB" class="modal-iframe" src=""></iframe>
-  </div>
-</div>
-
-    
-  
   <button id="btnGenerarExcel" onclick="confirmarYGenerarExcel()" style="width: 100%; padding: 10px; background-color: #1a73e8; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">
     Generar y Descargar Reporte
   </button>
-
-    
-
-
-
 
         
         <!-- NUEVO MÓDULO: CONTROL DOCUMENTAL Y FOLIADO -->
