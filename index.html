@@ -208,23 +208,7 @@
     </style>
 </head>
 <body>
-<!-- Botón principal en tu App A -->
-<button id="btnAbrirAppB" class="btn-primary">Registrar Trámites</button>
 
-<!-- Estructura de la ventana Modal -->
-<div id="modalAppB" class="modal-overlay">
-  <div class="modal-container">
-    <div class="modal-header">
-      <span>Registro de Trámites</span>
-      <button id="btnCerrarAppB" class="btn-cerrar">Cerrar ✖</button>
-    </div>
-    <!-- Reemplaza la URL src por la de tu App B -->
-    <iframe id="iframeAppB" class="modal-iframe" src=""></iframe>
-  </div>
-</div>
-
-
-    
     <!-- CONTROL DE ACCESO -->
     <div id="login-section" class="tarjeta">
         <img src="Imagen11.png" alt="Logo" class="logo-app">
@@ -316,12 +300,30 @@
   <select id="selectFechaExcel" style="width: 100%; padding: 8px; margin: 10px 0; border: 1px solid #aaa; border-radius: 4px;">
     <option value="">-- Haz clic en actualizar primero --</option>
   </select>
+
+</div>
+<!-- Botón principal en tu App A -->
+<button id="btnAbrirAppB" class="btn-primary">Registrar Trámites</button>
+
+<!-- Estructura de la ventana Modal -->
+<div id="modalAppB" class="modal-overlay">
+  <div class="modal-container">
+    <div class="modal-header">
+      <span>Registro de Trámites</span>
+      <button id="btnCerrarAppB" class="btn-cerrar">Cerrar ✖</button>
+    </div>
+    <!-- Reemplaza la URL src por la de tu App B -->
+    <iframe id="iframeAppB" class="modal-iframe" src=""></iframe>
+  </div>
+</div>
+
+    
   
   <button id="btnGenerarExcel" onclick="confirmarYGenerarExcel()" style="width: 100%; padding: 10px; background-color: #1a73e8; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">
     Generar y Descargar Reporte
   </button>
-</div>
 
+    
 
 
 
@@ -560,12 +562,14 @@
             document.getElementById('panel-admin').style.display = 'none';
             document.getElementById('panel-documental').style.display = 'none';
              document.getElementById('modulo-excel').style.display = 'none';
+            document.getElementById('ModalAppB').style.display = 'none';
             iniciarTemporizadorInactividad();
 
             if (rol === "ATENCION" || rol === "ADMIN") {
                 document.getElementById('panel-edicion').style.display = 'block';
               document.getElementById('panel-documental').style.display = 'block';
                 document.getElementById('modulo-excel').style.display = 'block';
+                document.getElementById('ModalAppB').style.display = 'block';
             }
 
             if (rol === "ADMIN") {
