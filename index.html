@@ -68,7 +68,13 @@
   height: 100%;
   border: none;
 }
-
+.contenedor-boton {
+  display: flex;
+  justify-content: center; /* Centra horizontalmente */
+  align-items: center;    /* Opcional: centra verticalmente si tiene altura */
+  width: 100%;            /* Ocupa todo el ancho disponible */
+  margin: 20px 0;         /* Espaciado opcional arriba y abajo */
+}
 
 
 
@@ -251,7 +257,9 @@
 
 <!-- Botón principal en tu App A -->
          <h3 style="text-align: center;"> REGISTRO DE TRAMITES</h3>
+<div class="contenedor-boton">
 <button id="btnAbrirAppB" class="btn-primary">Registrar Trámites</button>
+    </div>
 <!-- Estructura de la ventana Modal -->
 <div id="modalAppB" class="modal-overlay">
   <div class="modal-container">
