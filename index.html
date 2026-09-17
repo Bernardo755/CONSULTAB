@@ -207,9 +207,8 @@
 
 
 
-
 /* Bloque Contenedor Principal */
-    .bloque-lanzador {
+    .bloque-lanzador-tarjetas {
       background-color: var(--surface);
       width: 100%;
       max-width: 550px;
@@ -221,7 +220,7 @@
     }
 
     /* Título Centrado */
-    .titulo-lanzador {
+    .titulo-lanzador-tarjetas {
       color: var(--primary);
       font-size: 1.3rem;
       font-weight: 700;
@@ -232,7 +231,7 @@
     }
 
     /* Contenedor para Centrar el Botón */
-    .contenedor-boton {
+    .contenedor-boton-tarjetas {
       display: flex;
       justify-content: center;
       align-items: center;
@@ -241,7 +240,7 @@
     }
 
     /* Botón de Apertura */
-    .btn-lanzador {
+    .btn-lanzador-tarjetas {
       background-color: var(--primary);
       color: #ffffff;
       border: none;
@@ -257,16 +256,72 @@
       gap: 10px;
     }
 
-    .btn-lanzador:hover {
+    .btn-lanzador-tarjetas:hover {
       background-color: var(--primary-hover);
       transform: translateY(-2px);
       box-shadow: 0 6px 15px rgba(0, 47, 42, 0.3);
     }
 
-    .btn-lanzador:active {
+    .btn-lanzador-tarjetas:active {
       transform: translateY(0);
     }
 
+    /* --- ESTILOS DEL MODAL / FRAME INDEPENDIENTE --- */
+    .modal-overlay-tarjetas {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.7);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-container-tarjetas {
+      background: #fff;
+      width: 90%;
+      max-width: 1000px;
+      height: 85vh;
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    }
+
+    .modal-header-tarjetas {
+      padding: 12px 20px;
+      background: var(--primary);
+      color: #fff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 600;
+    }
+
+    .btn-cerrar-tarjetas {
+      background: #e74c3c;
+      color: white;
+      border: none;
+      padding: 6px 14px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background 0.2s;
+    }
+
+    .btn-cerrar-tarjetas:hover {
+      background: #c0392b;
+    }
+
+    .modal-iframe-tarjetas {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
     
         
     </style>
@@ -334,26 +389,26 @@
 
 
 
-        <!-- Bloque Principal con Título y Botón Centrados -->
-  <div id="bloque-lanzador">
-    <h2 class="titulo-lanzador">CARGA DE NUEVAS TARJETAS O ESTATUS</h2>
+      <!-- Bloque Principal con Título y Botón Centrados -->
+  <div id="bloque-lanzador-tarjetas">
+    <h2 class="titulo-lanzador-tarjetas">CARGA DE NUEVAS TARJETAS O ESTATUS</h2>
     
-    <div class="contenedor-boton">
-      <button id="btnAbrirAppc" class="btn-lanzador">
+    <div class="contenedor-boton-tarjetas">
+      <button id="btnAbrirCargaTarjetas" class="btn-lanzador-tarjetas">
         🚀 ABRIR APP DE ACTUALIZACION
       </button>
     </div>
   </div>
 
   <!-- Estructura de la Ventana Modal / Frame -->
-  <div id="modalAppc" class="modal-overlay">
-    <div class="modal-container">
-      <div class="modal-header">
+  <div id="modalCargaTarjetas" class="modal-overlay-tarjetas">
+    <div class="modal-container-tarjetas">
+      <div class="modal-header-tarjetas">
         <span>Carga de Nuevas Tarjetas o Estatus</span>
-        <button id="btnCerrarAppc" class="btn-cerrar">Cerrar ✖</button>
+        <button id="btnCerrarCargaTarjetas" class="btn-cerrar-tarjetas">Cerrar ✖</button>
       </div>
-      <!-- Iframe que carga la app de actualización de forma independiente -->
-      <iframe id="iframeAppc" class="modal-iframe" src=""></iframe>
+      <!-- Iframe independiente -->
+      <iframe id="iframeCargaTarjetas" class="modal-iframe-tarjetas" src=""></iframe>
     </div>
   </div>
         
@@ -657,7 +712,7 @@
             document.getElementById('panel-documental').style.display = 'none';
             document.getElementById('modulo-excel').style.display = 'none';
             document.getElementById('contenedor-boton').style.display = 'none';
-            document.getElementById('bloque-lanzador').style.display = 'none';
+            document.getElementById('bloque-lanzador-tarjetas').style.display = 'none';
            
             
             iniciarTemporizadorInactividad();
@@ -667,7 +722,7 @@
               document.getElementById('panel-documental').style.display = 'block';
                 document.getElementById('modulo-excel').style.display = 'block';
                 document.getElementById('contenedor-boton').style.display = 'block';
-                 document.getElementById('bloque-lanzador').style.display = 'block';
+                 document.getElementById('bloque-lanzador-tarjetas').style.display = 'block';
             }
 
             if (rol === "ADMIN") {
@@ -1530,24 +1585,24 @@ btnCerrar.addEventListener('click', () => {
 });
 
 
-    //  REEMPLAZA ESTA URL CON EL ENLACE DE TU APLICACIÓN B / DESPLIEGUE WEB DE GAS
-    const URL_APP_c = 'https://bernardo755.github.io/ACTUALIZADOR/';
+    
+    const URL_CARGA_TARJETAS = 'https://bernardo755.github.io/ACTUALIZADOR/';
 
-    const btnAbrir = document.getElementById('btnAbrirAppc');
-    const btnCerrar = document.getElementById('btnCerrarAppc');
-    const modal = document.getElementById('modalAppc');
-    const iframe = document.getElementById('iframeAppc');
+    const btnAbrirTarjetas = document.getElementById('btnAbrirCargaTarjetas');
+    const btnCerrarTarjetas = document.getElementById('btnCerrarCargaTarjetas');
+    const modalTarjetas = document.getElementById('modalCargaTarjetas');
+    const iframeTarjetas = document.getElementById('iframeCargaTarjetas');
 
-    // Abrir la App dentro del modal (frame)
-    btnAbrir.addEventListener('click', () => {
-      iframe.src = URL_APP_c;
-      modal.style.display = 'flex';
+    // Abrir la app dentro de su propio iframe modal
+    btnAbrirTarjetas.addEventListener('click', () => {
+      iframeTarjetas.src = URL_CARGA_TARJETAS;
+      modalTarjetas.style.display = 'flex';
     });
 
-    // Cerrar y regresar a la App principal limpiando el iframe
-    btnCerrar.addEventListener('click', () => {
-      modal.style.display = 'none';
-      iframe.src = ''; 
+    // Cerrar el modal y limpiar este iframe en específico
+    btnCerrarTarjetas.addEventListener('click', () => {
+      modalTarjetas.style.display = 'none';
+      iframeTarjetas.src = ''; 
     });
 
     </script>
