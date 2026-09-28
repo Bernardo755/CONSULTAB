@@ -1213,91 +1213,157 @@
             return await respuesta.json();
         }
 
-        function configurarVistasPorRol(rol) {
-            // =========================================================
-            // CONTROL VISUAL POR ROL
-            // ---------------------------------------------------------
-            // ADMIN -> puede ver TODOS los módulos.
-            // ATENCION -> solo ve los módulos asignados a su perfil.
-            // =========================================================
 
-            const modulos = [
-                'acordeon-tramites',
-                'acordeon-tarjetas',
-                'acordeon-consulta',
-                'acordeon-edicion',
-                'acordeon-excel',
-                'acordeon-documental',
-                'acordeon-admin'
-            ];
 
-            // Normalizamos el valor recibido desde Code.gs para evitar
-            // problemas por espacios o diferencias entre mayúsculas/minúsculas.
-            const rolNormalizado = String(rol || '').trim().toUpperCase();
+function configurarVistasPorRol(rol) {
+    // =========================================================
+    // CONTROL DE ACCESO POR ROL
+    //
+    // ADMIN    -> TODOS LOS MÓDULOS
+    // ATENCION -> MÓDULOS ASIGNADOS
+    // USER     -> ÚNICAMENTE EL BUSCADOR PRINCIPAL
+    // =========================================================
 
-            // Aceptamos ADMIN y ADMINISTRADOR como rol administrativo.
-            const esAdmin = rolNormalizado === 'ADMIN' || rolNormalizado === 'ADMINISTRADOR';
-            const esAtencion = rolNormalizado === 'ATENCION' || rolNormalizado === 'ATENCIÓN';
+    const modulos = [
+        'acordeon-tramites',
+        'acordeon-tarjetas',
+        'acordeon-consulta',
+        'acordeon-edicion',
+        'acordeon-excel',
+        'acordeon-documental',
+        'acordeon-admin'
+    ];
 
-            if (!esAdmin && !esAtencion) {
-                cerrarSesion();
-                return;
-            }
+    const rolNormalizado = String(rol || '').trim().toUpperCase();
 
-            document.getElementById('login-section').style.display = 'none';
-            document.getElementById('app-section').style.display = 'block';
-            document.getElementById('saludo-usuario').innerText = 'Panel del Sistema';
+    const esAdmin =
+        rolNormalizado === 'ADMIN' ||
+        rolNormalizado === 'ADMINISTRADOR';
 
-            // Primero ocultamos TODOS los módulos.
-            // Usamos !important para que ningún estilo anterior pueda
-            // impedir que se aplique la autorización visual.
-            modulos.forEach(id => {
-                const modulo = document.getElementById(id);
-                if (modulo) {
-                    modulo.style.setProperty('display', 'none', 'important');
-                    modulo.hidden = true;
-                    modulo.open = false;
-                }
-            });
+    const esAtencion =
+        rolNormalizado === 'ATENCION' ||
+        rolNormalizado === 'ATENCIÓN';
 
-            iniciarTemporizadorInactividad();
+    const esUser =
+        rolNormalizado === 'USER' ||
+        rolNormalizado === 'USUARIO';
 
-            // ---------------------------------------------------------
-            // USUARIO DE ATENCIÓN
-            // ---------------------------------------------------------
-            if (esAtencion) {
-                const modulosAtencion = [
-                    'acordeon-edicion',
-                    'acordeon-documental',
-                    'acordeon-excel'
-                ];
+    // Si el rol no es válido, cerrar sesión
+    if (!esAdmin && !esAtencion && !esUser) {
+        cerrarSesion();
+        return;
+    }
 
-                modulosAtencion.forEach(id => {
-                    const modulo = document.getElementById(id);
-                    if (modulo) {
-                        modulo.hidden = false;
-                        modulo.style.setProperty('display', 'block', 'important');
-                    }
-                });
-            }
+    // Mostrar aplicación
+    document.getElementById('login-section').style.display = 'none';
+    document.getElementById('app-section').style.display = 'block';
 
-            // ---------------------------------------------------------
-            // ADMINISTRADOR
-            // ---------------------------------------------------------
-            // ADMIN ve los 7 módulos existentes, sin excepción.
-            if (esAdmin) {
-                modulos.forEach(id => {
-                    const modulo = document.getElementById(id);
-                    if (modulo) {
-                        modulo.hidden = false;
-                        modulo.style.setProperty('display', 'block', 'important');
-                    }
-                });
+    document.getElementById('saludo-usuario').innerText =
+        'Panel del Sistema';
 
-                cargarUsuariosParaAdmin();
-                cargarFiltrosDesplegablesBitacora();
-            }
+    // =========================================================
+    // PRIMERO OCULTAMOS TODOS LOS MÓDULOS
+    // =========================================================
+
+    modulos.forEach(id => {
+        const modulo = document.getElementById(id);
+
+        if (modulo) {
+            modulo.style.setProperty('display', 'none', 'important');
+            modulo.hidden = true;
+            modulo.open = false;
         }
+    });
+
+    // =========================================================
+    // USER
+    // =========================================================
+    // El buscador principal NO se oculta porque está fuera
+    // de los acordeones.
+    //
+    // USER NO PUEDE VER:
+    // - Registro de trámites
+    // - Carga de tarjetas
+    // - Consulta Estados
+    // - Edición
+    // - Reportes Excel
+    // - Validación documental
+    // - Administración
+    // =========================================================
+
+    if (esUser) {
+
+        // Nos aseguramos de que el buscador principal esté visible
+        const panelBusqueda =
+            document.getElementById('panel-busqueda');
+
+        if (panelBusqueda) {
+            panelBusqueda.style.display = 'block';
+        }
+
+        iniciarTemporizadorInactividad();
+        return;
+    }
+
+    // =========================================================
+    // ATENCION
+    // =========================================================
+
+    if (esAtencion) {
+
+        const modulosAtencion = [
+            'acordeon-edicion',
+            'acordeon-documental',
+            'acordeon-excel'
+        ];
+
+        modulosAtencion.forEach(id => {
+
+            const modulo = document.getElementById(id);
+
+            if (modulo) {
+                modulo.hidden = false;
+                modulo.style.setProperty(
+                    'display',
+                    'block',
+                    'important'
+                );
+            }
+
+        });
+
+        iniciarTemporizadorInactividad();
+        return;
+    }
+
+    // =========================================================
+    // ADMIN
+    // =========================================================
+
+    if (esAdmin) {
+
+        modulos.forEach(id => {
+
+            const modulo = document.getElementById(id);
+
+            if (modulo) {
+                modulo.hidden = false;
+                modulo.style.setProperty(
+                    'display',
+                    'block',
+                    'important'
+                );
+            }
+
+        });
+
+        cargarUsuariosParaAdmin();
+        cargarFiltrosDesplegablesBitacora();
+
+        iniciarTemporizadorInactividad();
+    }
+}
+        
 
         async function iniciarSesion() {
             const user = document.getElementById('user').value.trim();
