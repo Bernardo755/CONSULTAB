@@ -1340,28 +1340,63 @@ function configurarVistasPorRol(rol) {
     // ADMIN
     // =========================================================
 
-    if (esAdmin) {
+    // =========================================================
+// ADMIN
+// =========================================================
 
-        modulos.forEach(id => {
+if (esAdmin) {
 
-            const modulo = document.getElementById(id);
+    const modulosAdmin = [
+        'acordeon-tramites',
+        'acordeon-tarjetas',
+        'acordeon-consulta',
+        'acordeon-edicion',
+        'acordeon-excel',
+        'acordeon-documental',
+        'acordeon-admin'
+    ];
 
-            if (modulo) {
-                modulo.hidden = false;
-                modulo.style.setProperty(
-                    'display',
-                    'block',
-                    'important'
-                );
-            }
+    modulosAdmin.forEach(id => {
 
-        });
+        const modulo = document.getElementById(id);
 
-        cargarUsuariosParaAdmin();
-        cargarFiltrosDesplegablesBitacora();
+        if (modulo) {
 
-        iniciarTemporizadorInactividad();
-    }
+            modulo.hidden = false;
+            modulo.removeAttribute('hidden');
+
+            modulo.style.setProperty(
+                'display',
+                'block',
+                'important'
+            );
+
+            modulo.style.setProperty(
+                'visibility',
+                'visible',
+                'important'
+            );
+
+            modulo.style.setProperty(
+                'opacity',
+                '1',
+                'important'
+            );
+
+        } else {
+
+            console.warn(
+                'ADMIN: no se encontró el módulo:',
+                id
+            );
+
+        }
+    });
+
+    cargarUsuariosParaAdmin();
+    cargarFiltrosDesplegablesBitacora();
+
+    iniciarTemporizadorInactividad();
 }
         
 
