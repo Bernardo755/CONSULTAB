@@ -1214,8 +1214,28 @@
         }
 
         function configurarVistasPorRol(rol) {
-            // Esta función controla únicamente la interfaz. La autorización real
-            // debe hacerse en el servidor para CADA acción solicitada.
+            // =========================================================
+            // CONTROL VISUAL POR ROL
+            // ---------------------------------------------------------
+            // ADMIN   -> puede ver TODOS los módulos.
+            // ATENCION -> solo ve los módulos asignados a su perfil.
+            //
+            // IMPORTANTE: esto controla únicamente lo que aparece en la
+            // interfaz. La autorización real debe validarse en Code.gs
+            // para CADA acción solicitada al servidor.
+            // =========================================================
+
+            const modulos = [
+                'acordeon-tramites',
+                'acordeon-tarjetas',
+                'acordeon-consulta',
+                'acordeon-edicion',
+                'acordeon-excel',
+                'acordeon-documental',
+                'acordeon-admin'
+            ];
+
+            // Solo se aceptan los roles que realmente utiliza el sistema.
             if (rol !== "ATENCION" && rol !== "ADMIN") {
                 cerrarSesion();
                 return;
@@ -1223,29 +1243,56 @@
 
             document.getElementById('login-section').style.display = 'none';
             document.getElementById('app-section').style.display = 'block';
-            document.getElementById('saludo-usuario').innerText = `Panel del Sistema`;
-            document.getElementById('acordeon-edicion').style.display = 'none';
-            document.getElementById('acordeon-admin').style.display = 'none';
-            document.getElementById('acordeon-documental').style.display = 'none';
-            document.getElementById('acordeon-excel').style.display = 'none';
-            document.getElementById('acordeon-tramites').style.display = 'none';
-            document.getElementById('acordeon-tarjetas').style.display = 'none';
-            document.getElementById('acordeon-consulta').style.display = 'none';
-            
+            document.getElementById('saludo-usuario').innerText = 'Panel del Sistema';
+
+            // Primero ocultamos TODOS los módulos.
+            // De esta manera nunca queda visible una pestaña que el usuario
+            // no tenga autorizada en la interfaz.
+            modulos.forEach(id => {
+                const modulo = document.getElementById(id);
+                if (modulo) {
+                    modulo.style.display = 'none';
+                    modulo.open = false;
+                }
+            });
+
             iniciarTemporizadorInactividad();
 
-            if (rol === "ATENCION" || rol === "ADMIN") {
-                document.getElementById('acordeon-edicion').style.display = 'block';
-                document.getElementById('acordeon-documental').style.display = 'block';
-                document.getElementById('acordeon-excel').style.display = 'block';
-               
+            // ---------------------------------------------------------
+            // USUARIO DE ATENCIÓN
+            // ---------------------------------------------------------
+            // Estos son los módulos que ya tenía asignados el perfil
+            // ATENCION en el sistema.
+            if (rol === "ATENCION") {
+                const modulosAtencion = [
+                    'acordeon-edicion',
+                    'acordeon-documental',
+                    'acordeon-excel'
+                ];
+
+                modulosAtencion.forEach(id => {
+                    const modulo = document.getElementById(id);
+                    if (modulo) {
+                        modulo.style.display = '';
+                        modulo.hidden = false;
+                    }
+                });
             }
 
+            // ---------------------------------------------------------
+            // ADMINISTRADOR
+            // ---------------------------------------------------------
+            // ADMIN tiene acceso visual a TODOS los módulos existentes.
             if (rol === "ADMIN") {
-                document.getElementById('acordeon-admin').style.display = 'block';
-                document.getElementById('acordeon-tramites').style.display = 'block';
-                document.getElementById('acordeon-tarjetas').style.display = 'block';
-                document.getElementById('acordeon-consulta').style.display = 'block';
+                modulos.forEach(id => {
+                    const modulo = document.getElementById(id);
+                    if (modulo) {
+                        modulo.style.display = '';
+                        modulo.hidden = false;
+                    }
+                });
+
+                // Funciones exclusivas del administrador.
                 cargarUsuariosParaAdmin();
                 cargarFiltrosDesplegablesBitacora();
             }
