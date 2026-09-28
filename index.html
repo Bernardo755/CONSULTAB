@@ -4,15 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SISTEMA DE BUSQUEDA</title>
-    <!-- Librería SheetJS (xlsx) para generar archivos Excel descargables -->
-    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <!-- SheetJS (una sola vez) para generar archivos Excel -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://unpkg.com/html5-qrcode"></script>
-    <!-- Librería para generar el archivo Excel en el navegador -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
+        :root {
+            --surface: #ffffff;
+            --radius: 12px;
+            --border: #e2e8f0;
+            --primary: #1a252f;
+            --primary-hover: #2c3e50;
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: rgb(30, 91, 79); 
+            background-color: rgb(30, 91, 79);
             margin: 0;
             display: flex;
             flex-direction: column;
@@ -21,7 +27,7 @@
             min-height: 100vh;
             padding: 20px 0;
         }
-        
+
         .tarjeta {
             background: white;
             padding: 30px;
@@ -32,23 +38,18 @@
             max-width: 1050px;
             margin-bottom: 20px;
         }
-        .logo-app { 
-            width: 100%; 
-            max-width: 600px;
-            height: auto; 
-            margin-bottom: 30px;
-        }
+        .logo-app { width: 100%; max-width: 600px; height: auto; margin-bottom: 30px; }
         #login-section { display: block; max-width: 400px; margin: 0 auto; }
         #app-section { display: none; }
-        
-        .sub-panel {display: none; border-top: 2px solid #eee; margin-top: 20px; padding-top: 20px; text-align: left;}  
-#panel-edicion {
-    background-color: #6F7271; /* Cambia este código por el color que quieras */
-    padding: 20px;
-    border-radius: 8px;
-    border: 1px solid #b2dfdb;
-    align-items: center;
-}
+
+        .sub-panel { display: none; border-top: 2px solid #eee; margin-top: 20px; padding-top: 20px; text-align: left; }
+        #panel-edicion {
+            background-color: #6F7271;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #b2dfdb;
+            align-items: center;
+        }
         .controles-busqueda, .form-edicion, .form-admin {
             display: flex;
             flex-direction: row;
@@ -58,11 +59,11 @@
             margin-top: 15px;
         }
         .form-edicion { flex-direction: column; max-width: 600px; margin: 15px auto 0 auto; }
-        
-        input, select, button, textarea { 
-            padding: 12px; 
-            font-size: 15px; 
-            border: 1px solid #ccc; 
+
+        input, select, button, textarea {
+            padding: 12px;
+            font-size: 15px;
+            border: 1px solid #ccc;
             border-radius: 6px;
             outline: none;
             transition: all 0.3s ease;
@@ -72,35 +73,35 @@
             box-shadow: 0 0 0 3px rgba(30, 91, 79, 0.15);
         }
         textarea { resize: vertical; font-family: inherit; }
-        
+
         button { background-color: rgb(156, 35, 72); color: white; border: none; cursor: pointer; font-weight: bold; }
         button:hover { background-color: rgb(120, 25, 55); transform: translateY(-1px); }
         button:active { transform: translateY(1px); }
-        
+
         .btn-add { background-color: #2e7d32; }
         .btn-add:hover { background-color: #1b5e20; }
         .btn-send-block { background-color: #0288d1; width: 100%; font-size: 18px; margin-top: 15px; }
         .btn-send-block:hover { background-color: #01579b; }
-        .btn-logout { background-color: #555; width: 100%; margin-top: 30px;}
+        .btn-logout { background-color: #555; width: 100%; margin-top: 30px; }
         .btn-logout:hover { background-color: #333; }
-        
+
         .panel-bloqueo { background-color: #691C32; border: 1px solid #ffcdd2; padding: 15px; border-radius: 8px; margin-top: 20px; }
         .panel-bitacora { background-color: #f5f5f5; border: 1px solid #e0e0e0; padding: 20px; border-radius: 8px; }
 
-        /* --- DISEÑO DE TABLAS Y CONTENEDORES --- */
-        .contenedor-tabla { 
-            overflow-x: auto; 
-            margin-top: 20px; 
-            border: 1px solid #e0e0e0; 
-            border-radius: 8px; 
+        /* --- TABLAS --- */
+        .contenedor-tabla {
+            overflow-x: auto;
+            margin-top: 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.05);
         }
         table { width: 100%; border-collapse: collapse; font-size: 13.5px; background: white; text-align: left; }
-        th { 
-            background: rgb(24, 73, 63); 
-            color: white; 
-            padding: 14px 16px; 
-            text-transform: uppercase; 
+        th {
+            background: rgb(24, 73, 63);
+            color: white;
+            padding: 14px 16px;
+            text-transform: uppercase;
             font-size: 12px;
             letter-spacing: 0.5px;
             font-weight: 600;
@@ -108,12 +109,12 @@
         }
         td { padding: 12px 16px; border-bottom: 1px solid #eff2f1; white-space: nowrap; color: #333; }
         tr:hover { background-color: rgba(30, 91, 79, 0.04); }
-        
+
         .tabla-lote th { background: #37474f; }
         .btn-del { background: #c62828; padding: 6px 12px; font-size: 12px; border-radius: 4px; }
         .btn-del:hover { background: #b71c1c; }
 
-        /* --- SISTEMA DE RESALTADO DE ESTATUS (BADGES) --- */
+        /* --- BADGES DE ESTATUS --- */
         .status-badge {
             display: inline-block;
             padding: 5px 12px;
@@ -130,7 +131,7 @@
         .status-badge-envio { background-color: #e1f5fe; color: #0277bd; border: 1px solid #81d4fa; }
         .status-badge-default { background-color: #f5f5f5; color: #616161; border: 1px solid #e0e0e0; }
 
-        /* Estilos específicos para el módulo de control documental */
+        /* --- MÓDULO DOCUMENTAL --- */
         .panel-documental { background-color: #BC955C; border: 1px solid #b2dfdb; padding: 20px; border-radius: 8px; margin-top: 30px; }
         .grid-documental {
             display: grid;
@@ -139,486 +140,245 @@
             margin-top: 15px;
         }
 
+        /* --- BLOQUE 1: REGISTRO DE TRÁMITES --- */
+        .bloque-lanzador {
+            background-color: var(--surface);
+            width: 100%;
+            max-width: 550px;
+            padding: 40px 30px;
+            border-radius: var(--radius);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--border);
+            text-align: center;
+            margin: 20px auto;
+            font-family: sans-serif;
+            box-sizing: border-box;
+        }
+        .titulo-lanzador {
+            color: var(--primary);
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-top: 0;
+            margin-bottom: 30px;
+            letter-spacing: -0.5px;
+        }
+        .contenedor-boton { display: flex; justify-content: center; align-items: center; width: 100%; }
+        .btn-lanzador {
+            background-color: var(--primary);
+            color: #ffffff;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 10px rgba(26, 37, 47, 0.3);
+        }
+        .btn-lanzador:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(26, 37, 47, 0.4);
+        }
+        .btn-lanzador:active { transform: translateY(0); }
 
-/* --- 1. ESTILOS DEL RECUADRO Y BOTÓN PRINCIPAL --- */
-
-/* Bloque Contenedor Principal (La caja o recuadro) */
-.bloque-lanzador {
-  background-color: #ffffff; 
-  width: 100%;
-  max-width: 550px;
-  padding: 40px 30px;
-  border-radius: 12px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); /* Sombra suave */
-  border: 1px solid #e2e8f0;
-  text-align: center;
-  margin: 20px auto;
-  font-family: sans-serif;
-}
-
-/* Título dentro del recuadro */
-.titulo-lanzador {
-  color: #1a252f;
-  font-size: 1.3rem;
-  font-weight: 700;
-  margin-top: 0;
-  margin-bottom: 30px;
-  letter-spacing: -0.5px;
-}
-
-/* Contenedor para centrar el botón */
-.contenedor-boton {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-}
-
-/* Diseño del Botón que abre el modal */
-.btn-lanzador {
-  background-color: #1a252f; /* Combinado con el color de tu modal */
-  color: #ffffff;
-  border: none;
-  padding: 16px 32px;
-  border-radius: 8px;
-  font-size: 15px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 10px rgba(26, 37, 47, 0.3);
-}
-
-.btn-lanzador:hover {
-  background-color: #2c3e50; /* Tono un poco más claro al pasar el mouse */
-  transform: translateY(-2px);
-  box-shadow: 0 6px 15px rgba(26, 37, 47, 0.4);
-}
-
-.btn-lanzador:active {
-  transform: translateY(0);
-}
-
-
-/* --- 2. ESTILOS DE LA VENTANA MODAL --- */
-
-/* Fondo oscuro translúcido */
-.modal-overlay {
-  display: none;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.7);
-  z-index: 1000;
-  justify-content: center;
-  align-items: center;
-}
-
-/* Ventana modal */
-.modal-container {
-  background: #fff;
-  width: 90%;
-  max-width: 1000px;
-  height: 85vh;
-  border-radius: 8px;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-}
-
-/* Encabezado con el botón cerrar */
-.modal-header {
-  padding: 10px 20px;
-  background: #1a252f;
-  color: #fff;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.btn-cerrar {
-  background: #e74c3c;
-  color: white;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: bold;
-}
-
-.btn-cerrar:hover {
-  background: #c0392b;
-}
-
-/* Iframe que carga App B */
-.modal-iframe {
-  width: 100%;
-  height: 100%;
-  border: none;
-}
-
-
-
-
-
-
-
-        /* --- bloque dos VARIABLES DE COLOR (Ajusta los colores según tu diseño) --- */
-/* Variables de color */
-  :root {
-    --surface: #ffffff;
-    --radius: 12px;
-    --border: #e2e8f0;
-    --primary: #1a252f;
-    --primary-hover: #2c3e50;
-  }
-
-  /* BLOQUE 1: REGISTRO DE TRAMITES */
-  .bloque-lanzador {
-    background-color: var(--surface); 
-    width: 100%;
-    max-width: 550px;
-    padding: 40px 30px;
-    border-radius: var(--radius);
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-    border: 1px solid var(--border);
-    text-align: center;
-    margin: 20px auto;
-    font-family: sans-serif;
-  }
-  .titulo-lanzador {
-    color: var(--primary);
-    font-size: 1.3rem;
-    font-weight: 700;
-    margin-top: 0;
-    margin-bottom: 30px;
-    letter-spacing: -0.5px;
-  }
-  .contenedor-boton {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 100%;
-  }
-  .btn-lanzador {
-    background-color: var(--primary);
-    color: #ffffff;
-    border: none;
-    padding: 16px 32px;
-    border-radius: 8px;
-    font-size: 15px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    box-shadow: 0 4px 10px rgba(26, 37, 47, 0.3);
-  }
-  .btn-lanzador:hover {
-    background-color: var(--primary-hover);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 15px rgba(26, 37, 47, 0.4);
-  }
-  .btn-lanzador:active {
-    transform: translateY(0);
-  }
-  .modal-overlay {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.7);
-    z-index: 1000;
-    justify-content: center;
-    align-items: center;
-  }
-  .modal-container {
-    background: #fff;
-    width: 90%;
-    max-width: 1000px;
-    height: 85vh;
-    border-radius: 8px;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-  }
-  .modal-header {
-    padding: 10px 20px;
-    background: var(--primary);
-    color: #fff;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  .btn-cerrar {
-    background: #e74c3c;
-    color: white;
-    border: none;
-    padding: 6px 12px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: bold;
-  }
-  .btn-cerrar:hover {
-    background: #c0392b;
-  }
-  .modal-iframe {
-    width: 100%;
-    height: 100%;
-    border: none;
-  }
-
-  /* BLOQUE 2: CARGA DE NUEVAS TARJETAS */
-  .bloque-lanzador-tarjetas {
-    background-color: var(--surface);
-    width: 100%;
-    max-width: 550px;
-    padding: 40px 30px;
-    border-radius: var(--radius);
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-    border: 1px solid var(--border);
-    text-align: center;
-    margin: 20px auto;
-    font-family: sans-serif;
-  }
-  .titulo-lanzador-tarjetas {
-    color: var(--primary);
-    font-size: 1.3rem;
-    font-weight: 700;
-    margin-top: 0;
-    margin-bottom: 30px;
-    letter-spacing: -0.5px;
-    text-transform: uppercase;
-  }
-  .contenedor-boton-tarjetas {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 100%;
-    margin: 20px 0;
-  }
-  .btn-lanzador-tarjetas {
-    background-color: var(--primary);
-    color: #ffffff;
-    border: none;
-    padding: 16px 32px;
-    border-radius: 8px;
-    font-size: 15px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .btn-lanzador-tarjetas:hover {
-    background-color: var(--primary-hover);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
-  }
-  .btn-lanzador-tarjetas:active {
-    transform: translateY(0);
-  }
-  .modal-overlay-tarjetas {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.7);
-    z-index: 1000;
-    justify-content: center;
-    align-items: center;
-  }
-  .modal-container-tarjetas {
-    background: #fff;
-    width: 90%;
-    max-width: 1000px;
-    height: 85vh;
-    border-radius: 8px;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-  }
-  .modal-header-tarjetas {
-    padding: 12px 20px;
-    background: var(--primary);
-    color: #fff;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-weight: 600;
-    font-family: sans-serif;
-  }
-  .btn-cerrar-tarjetas {
-    background: #e74c3c;
-    color: white;
-    border: none;
-    padding: 6px 14px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: background 0.2s;
-  }
-  .btn-cerrar-tarjetas:hover {
-    background: #c0392b;
-  }
-  .modal-iframe-tarjetas {
-    width: 100%;
-    height: 100%;
-    border: none;
-  }
-
-
-
-
-
-
-        
-
-
-/* Bloque Contenedor Principal bloque tres */
-  .bloque-lanzador-consulta {
-    background-color: #ffffff; 
-    width: 100%;
-    max-width: 550px;
-    padding: 40px 30px;
-    border-radius: 12px;
-    box-shadow: 0 10px 25px rgba(30, 91, 79, 0.15); /* Sombra basada en #1e5b4f */
-    border: 1px solid #e2e8f0;
-    text-align: center;
-    margin: 20px auto;
-    font-family: sans-serif;
-  }
-
-  /* Título Centrado */
-  .titulo-lanzador-consulta {
-    color: #1e5b4f;
-    font-size: 1.3rem;
-    font-weight: 700;
-    margin-top: 0;
-    margin-bottom: 30px;
-    letter-spacing: -0.5px;
-    text-transform: uppercase;
-  }
-
-  /* Contenedor para Centrar el Botón */
-  .contenedor-boton-consulta {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 100%;
-    margin: 20px 0;
-  }
-
-  /* Botón de Apertura */
-  .btn-lanzador-consulta {
-    background-color: #1e5b4f;
-    color: #ffffff;
-    border: none;
-    padding: 16px 32px;
-    border-radius: 8px;
-    font-size: 15px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    box-shadow: 0 4px 10px rgba(30, 91, 79, 0.3);
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-  }
-
-  .btn-lanzador-consulta:hover {
-    background-color: #16483e; /* Tono más oscuro al pasar el mouse */
-    transform: translateY(-2px);
-    box-shadow: 0 6px 15px rgba(30, 91, 79, 0.4);
-  }
-
-  .btn-lanzador-consulta:active {
-    transform: translateY(0);
-  }
-
-  /* --- ESTILOS DEL MODAL / FRAME INDEPENDIENTE --- */
-  .modal-overlay-consulta {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(15, 23, 42, 0.85); /* Fondo oscuro semitransparente */
-    backdrop-filter: blur(4px);
-    z-index: 9999;
-    justify-content: center;
-    align-items: center;
-  }
-
-  .modal-container-consulta {
-    background: #0f172a;
-    width: 95%;
-    max-width: 1200px; /* Ancho ampliado para visualizar bien la tabla */
-    height: 90vh; /* Altura amplia */
-    border-radius: 12px;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-    border: 1px solid #1e5b4f;
-  }
-
-  .modal-header-consulta {
-    padding: 16px 24px;
-    background: #1e5b4f;
-    color: #fff;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-weight: 600;
-    font-family: sans-serif;
-  }
-
-  .btn-cerrar-consulta {
-    background: #ef4444;
-    color: white;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: background 0.2s;
-  }
-
-  .btn-cerrar-consulta:hover {
-    background: #dc2626;
-  }
-
-  .modal-iframe-consulta {
-    width: 100%;
-    height: 100%;
-    border: none;
-    background-color: #0f172a; /* Fondo oscuro mientras carga */
-  }
-
-        
-        
-
-        /* =========================================================
-           PRESENTACIÓN: MÓDULOS EN PESTAÑAS DESPLEGABLES
-           ========================================================= */
-        .modulos-acordeon {
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-container {
+            background: #fff;
+            width: 90%;
+            max-width: 1000px;
+            height: 85vh;
+            border-radius: 8px;
             display: flex;
             flex-direction: column;
-            gap: 12px;
-            margin-top: 22px;
-            text-align: left;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         }
+        .modal-header {
+            padding: 10px 20px;
+            background: var(--primary);
+            color: #fff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .btn-cerrar { background: #e74c3c; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .btn-cerrar:hover { background: #c0392b; }
+        .modal-iframe { width: 100%; height: 100%; border: none; }
 
+        /* --- BLOQUE 2: CARGA DE NUEVAS TARJETAS --- */
+        .bloque-lanzador-tarjetas {
+            background-color: var(--surface);
+            width: 100%;
+            max-width: 550px;
+            padding: 40px 30px;
+            border-radius: var(--radius);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--border);
+            text-align: center;
+            margin: 20px auto;
+            font-family: sans-serif;
+            box-sizing: border-box;
+        }
+        .titulo-lanzador-tarjetas {
+            color: var(--primary);
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-top: 0;
+            margin-bottom: 30px;
+            letter-spacing: -0.5px;
+            text-transform: uppercase;
+        }
+        .contenedor-boton-tarjetas { display: flex; justify-content: center; align-items: center; width: 100%; margin: 20px 0; }
+        .btn-lanzador-tarjetas {
+            background-color: var(--primary);
+            color: #ffffff;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .btn-lanzador-tarjetas:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+        }
+        .btn-lanzador-tarjetas:active { transform: translateY(0); }
+        .modal-overlay-tarjetas {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-container-tarjetas {
+            background: #fff;
+            width: 90%;
+            max-width: 1000px;
+            height: 85vh;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        .modal-header-tarjetas {
+            padding: 12px 20px;
+            background: var(--primary);
+            color: #fff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+            font-family: sans-serif;
+        }
+        .btn-cerrar-tarjetas { background: #e74c3c; color: white; border: none; padding: 6px 14px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: background 0.2s; }
+        .btn-cerrar-tarjetas:hover { background: #c0392b; }
+        .modal-iframe-tarjetas { width: 100%; height: 100%; border: none; }
+
+        /* --- BLOQUE 3: CONSULTA ESTADOS --- */
+        .bloque-lanzador-consulta {
+            background-color: #ffffff;
+            width: 100%;
+            max-width: 550px;
+            padding: 40px 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(30, 91, 79, 0.15);
+            border: 1px solid #e2e8f0;
+            text-align: center;
+            margin: 20px auto;
+            font-family: sans-serif;
+            box-sizing: border-box;
+        }
+        .titulo-lanzador-consulta {
+            color: #1e5b4f;
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-top: 0;
+            margin-bottom: 30px;
+            letter-spacing: -0.5px;
+            text-transform: uppercase;
+        }
+        .contenedor-boton-consulta { display: flex; justify-content: center; align-items: center; width: 100%; margin: 20px 0; }
+        .btn-lanzador-consulta {
+            background-color: #1e5b4f;
+            color: #ffffff;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 10px rgba(30, 91, 79, 0.3);
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .btn-lanzador-consulta:hover {
+            background-color: #16483e;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(30, 91, 79, 0.4);
+        }
+        .btn-lanzador-consulta:active { transform: translateY(0); }
+        .modal-overlay-consulta {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-color: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(4px);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-container-consulta {
+            background: #0f172a;
+            width: 95%;
+            max-width: 1200px;
+            height: 90vh;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border: 1px solid #1e5b4f;
+        }
+        .modal-header-consulta {
+            padding: 16px 24px;
+            background: #1e5b4f;
+            color: #fff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+            font-family: sans-serif;
+        }
+        .btn-cerrar-consulta { background: #ef4444; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: background 0.2s; }
+        .btn-cerrar-consulta:hover { background: #dc2626; }
+        .modal-iframe-consulta { width: 100%; height: 100%; border: none; background-color: #0f172a; }
+
+        /* --- MÓDULOS EN PESTAÑAS DESPLEGABLES --- */
+        .modulos-acordeon { display: flex; flex-direction: column; gap: 12px; margin-top: 22px; text-align: left; }
         .modulo-acordeon {
             background: #fff;
             border: 1px solid #dfe7e4;
@@ -626,7 +386,6 @@
             overflow: hidden;
             box-shadow: 0 3px 10px rgba(0,0,0,.06);
         }
-
         .modulo-acordeon > summary {
             list-style: none;
             cursor: pointer;
@@ -641,69 +400,25 @@
             gap: 12px;
             user-select: none;
         }
+        .modulo-acordeon > summary::-webkit-details-marker { display: none; }
+        .modulo-acordeon > summary::after { content: "＋"; font-size: 20px; line-height: 1; color: #1e5b4f; }
+        .modulo-acordeon[open] > summary { background: #eef6f3; border-bottom: 1px solid #dfe7e4; }
+        .modulo-acordeon[open] > summary::after { content: "−"; }
+        .modulo-acordeon > .modulo-contenido { padding: 4px 0 18px; }
 
-        .modulo-acordeon > summary::-webkit-details-marker {
-            display: none;
-        }
-
-        .modulo-acordeon > summary::after {
-            content: "＋";
-            font-size: 20px;
-            line-height: 1;
-            color: #1e5b4f;
-        }
-
-        .modulo-acordeon[open] > summary {
-            background: #eef6f3;
-            border-bottom: 1px solid #dfe7e4;
-        }
-
-        .modulo-acordeon[open] > summary::after {
-            content: "−";
-        }
-
-        .modulo-acordeon > .modulo-contenido {
-            padding: 4px 0 18px;
-        }
-
+        /* CORRECCIÓN: los sub-paneles dentro de un acordeón deben mostrarse */
         .modulo-acordeon > .modulo-contenido > .sub-panel {
+            display: block;
             border-top: none;
             margin-top: 0;
         }
 
         /* --- KIT DOCUMENTAL: selector Sí / No --- */
-        #kit-documental-wrapper {
-            display: none;
-            margin-top: 2px;
-        }
-
-        .kit-documental-titulo {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 700;
-            color: #37474f;
-        }
-
-        .kit-documental-opciones {
-            display: inline-flex;
-            border: 1px solid #cfd8d5;
-            border-radius: 8px;
-            overflow: hidden;
-            background: #fff;
-        }
-
-        .kit-documental-opciones label {
-            position: relative;
-            cursor: pointer;
-            margin: 0;
-        }
-
-        .kit-documental-opciones input {
-            position: absolute;
-            opacity: 0;
-            pointer-events: none;
-        }
-
+        #kit-documental-wrapper { display: none; margin-top: 2px; }
+        .kit-documental-titulo { display: block; margin-bottom: 8px; font-weight: 700; color: #37474f; }
+        .kit-documental-opciones { display: inline-flex; border: 1px solid #cfd8d5; border-radius: 8px; overflow: hidden; background: #fff; }
+        .kit-documental-opciones label { position: relative; cursor: pointer; margin: 0; }
+        .kit-documental-opciones input { position: absolute; opacity: 0; pointer-events: none; }
         .kit-documental-opciones span {
             display: block;
             min-width: 90px;
@@ -714,22 +429,9 @@
             background: #fff;
             transition: .2s ease;
         }
-
-        .kit-documental-opciones label + label span {
-            border-left: 1px solid #cfd8d5;
-        }
-
-        .kit-documental-opciones input:checked + span {
-            background: #1e5b4f;
-            color: #fff;
-        }
-
-        .kit-documental-ayuda {
-            margin: 6px 0 0;
-            font-size: 12px;
-            color: #607d8b;
-        }
-
+        .kit-documental-opciones label + label span { border-left: 1px solid #cfd8d5; }
+        .kit-documental-opciones input:checked + span { background: #1e5b4f; color: #fff; }
+        .kit-documental-ayuda { margin: 6px 0 0; font-size: 12px; color: #607d8b; }
     </style>
 </head>
 <body>
@@ -749,9 +451,9 @@
     <!-- CUERPO CENTRAL -->
     <div id="app-section" class="tarjeta">
         <img src="Imagen11.png" alt="Logo" class="logo-app">
-        <img src="user___Imagen4t (5).gif" alt="saludo"> 
+        <img src="user___Imagen4t (5).gif" alt="saludo">
         <h2 id="saludo-usuario">Buscador de Registros</h2>
-        
+
         <!-- CONSULTAS -->
         <div id="panel-busqueda">
             <h3> Módulo de Consulta</h3>
@@ -762,390 +464,334 @@
                     <option value="CURP">CURP</option>
                     <option value="Folio">Folio</option>
                 </select>
-               <button onclick="ejecutarBusqueda()">Buscar</button>
-        <!-- Nuevo botón para abrir la cámara -->
-        <button type="button" onclick="iniciarEscanerQR()">📷 Escanear QR</button>
-    </div> 
-    
-    <!-- Contenedor para la cámara (oculto por defecto) -->
-    <div id="lector-qr" style="width: 300px; display: none; margin-top: 15px;"></div>
+                <button onclick="ejecutarBusqueda()">Buscar</button>
+                <button type="button" onclick="iniciarEscanerQR()">📷 Escanear QR</button>
+            </div>
 
+            <!-- Contenedor de la cámara (oculto por defecto) -->
+            <div id="lector-qr" style="width: 300px; display: none; margin-top: 15px;"></div>
 
             <div id="contenedor-resultados"></div>
         </div>
 
+        <div id="modulos-acordeon" class="modulos-acordeon">
 
-<!-- Botón principal en tu App A -->
-
-<!-- Botón principal en tu App A -->
-<!-- Se conserva tu ID "contenedor-boton" y el display: none, pero se añade la clase del recuadro -->
-<div id="modulos-acordeon" class="modulos-acordeon">
-<details id="acordeon-tramites" class="modulo-acordeon">
-    <summary>📋 REGISTRO DE TRÁMITES</summary>
-    <div class="modulo-contenido">
-<div id="contenedor-boton" class="bloque-lanzador" style="display: none;"> 
-  <h3 class="titulo-lanzador">REGISTRO DE TRÁMITES</h3>
-  
-  <div class="contenedor-boton">
-    <!-- Se conserva tu ID "btnAbrirAppB" para que tu JavaScript siga funcionando -->
-    <button id="btnAbrirAppB" class="btn-lanzador">Registrar Trámites</button>
-  </div>
-</div>
-
-<!-- Estructura de la ventana Modal -->
-<div id="modalAppB" class="modal-overlay">
-  <div class="modal-container">
-    <div class="modal-header">
-      <span>Registro de Trámites</span>
-      <button id="btnCerrarAppB" class="btn-cerrar">Cerrar ✖</button>
-    </div>
-    <!-- Reemplaza la URL src por la de tu App B -->
-    <iframe id="iframeAppB" class="modal-iframe" src=""></iframe>
-  </div>
-</div>
-
-<!-- Bloque Principal con Título y Botón Centrados -->
-<!-- Se añadió la clase para que tome los estilos del recuadro -->
-    </div>
-</details>
-
-<details id="acordeon-tarjetas" class="modulo-acordeon">
-    <summary>🚀 CARGA DE NUEVAS TARJETAS O ESTATUS</summary>
-    <div class="modulo-contenido">
-<div id="bloque-lanzador-tarjetas" class="bloque-lanzador-tarjetas">
-  <h2 class="titulo-lanzador-tarjetas">CARGA DE NUEVAS TARJETAS O ESTATUS</h2>
-  
-  <div class="contenedor-boton-tarjetas">
-    <button id="btnAbrirCargaTarjetas" class="btn-lanzador-tarjetas">
-      🚀 ABRIR APP DE ACTUALIZACION
-    </button>
-  </div>
-</div>
-
-<!-- Estructura de la Ventana Modal / Frame -->
-<div id="modalCargaTarjetas" class="modal-overlay-tarjetas">
-  <div class="modal-container-tarjetas">
-    <div class="modal-header-tarjetas">
-      <span>Carga de Nuevas Tarjetas o Estatus</span>
-      <button id="btnCerrarCargaTarjetas" class="btn-cerrar-tarjetas">Cerrar ✖</button>
-    </div>
-    <!-- Iframe independiente -->
-    <iframe id="iframeCargaTarjetas" class="modal-iframe-tarjetas" src=""></iframe>
-  </div>
-</div>
-
-
-
-
-
-
-<!-- Bloque Principal con Título y Botón Centrados -->
-    </div>
-</details>
-
-<details id="acordeon-consulta" class="modulo-acordeon">
-    <summary>🔎 CONSULTA ESTADOS</summary>
-    <div class="modulo-contenido">
-<div id="bloque-lanzador-consulta" class="bloque-lanzador-consulta">
-  <h2 class="titulo-lanzador-consulta">CONSULTA ESTADOS</h2>
-  
-  <div class="contenedor-boton-consulta">
-    <button id="btnAbrirConsulta" class="btn-lanzador-consulta">
-      <svg style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-      ABRIR BÚSQUEDA
-    </button>
-  </div>
-</div>
-
-<!-- Estructura de la Ventana Modal / Frame -->
-<div id="modalConsulta" class="modal-overlay-consulta">
-  <div class="modal-container-consulta">
-    <div class="modal-header-consulta">
-      <span>Módulo de Consulta (tres niveles)</span>
-      <button id="btnCerrarConsulta" class="btn-cerrar-consulta">Cerrar ✖</button>
-    </div>
-    <!-- Iframe independiente -->
-    <iframe id="iframeConsulta" class="modal-iframe-consulta" src=""></iframe>
-  </div>
-</div>
-
-
-
-
-
-
-
-
-
-        
-
-        <!-- CAPTURA INTERMEDIA (LOTES) -->
-            </div>
-</details>
-
-<details id="acordeon-edicion" class="modulo-acordeon">
-    <summary>📝 EDICIÓN — CAPTURA POR BLOQUES</summary>
-    <div class="modulo-contenido">
-<div id="panel-edicion" class="sub-panel">
-            <h3 style="text-align: center;"> Módulo de Edición (Captura por Bloques)</h3>
-            <div class="form-edicion">
-                <label style="font-weight: bold;">Actividad a realizar</label>
-                <select id="actividadRealizar" onchange="cambiarOpcionesEstatus()">
-                    <option value="">-- Selecciona una actividad --</option>
-                    <option value="SOBRANTES">REGISTRO DE SOBRANTES</option>
-                    <option value="ENTREGADAS">REGISTRO DE ENTREGADAS</option>
-                </select>
-
-                <div id="campos-edicion" style="display: none; flex-direction: column; gap: 15px; margin-top: 15px; background: #f9f9f9; padding: 15px; border-radius: 8px; border: 1px dashed #ccc;">
-                    <h4 style="margin:0;">Agregar registro al bloque temporal:</h4>
-                    <input type="text" id="editFolio" placeholder="Escribe o escanea el Folio">
-                    <select id="editEstatus"></select>
-
-                    <div id="kit-documental-wrapper">
-                        <span class="kit-documental-titulo">KIT DOCUMENTAL</span>
-                        <div class="kit-documental-opciones" role="radiogroup" aria-label="KIT DOCUMENTAL">
-                            <label>
-                                <input type="radio" name="kitDocumental" value="SI">
-                                <span>SÍ</span>
-                            </label>
-                            <label>
-                                <input type="radio" name="kitDocumental" value="NO">
-                                <span>NO</span>
-                            </label>
+            <!-- REGISTRO DE TRÁMITES -->
+            <details id="acordeon-tramites" class="modulo-acordeon">
+                <summary>📋 REGISTRO DE TRÁMITES</summary>
+                <div class="modulo-contenido">
+                    <!-- CORRECCIÓN: se quitó style="display:none" -->
+                    <div id="contenedor-boton" class="bloque-lanzador">
+                        <h3 class="titulo-lanzador">REGISTRO DE TRÁMITES</h3>
+                        <div class="contenedor-boton">
+                            <button id="btnAbrirAppB" class="btn-lanzador">Registrar Trámites</button>
                         </div>
-                        <p class="kit-documental-ayuda">
-                            Selecciona una opción para registros de entregadas.
-                        </p>
                     </div>
 
-                    <textarea id="editObservaciones" placeholder="Observaciones (Opcional)" rows="2"></textarea>
-                    <button class="btn-add" onclick="agregarAlBloqueLocal()">+ Agregar a la Lista</button>
-                </div>
-                
-                <div id="area-lote-temporal" style="display:none; margin-top:20px;">
-                    <h4 style="margin:0; color: #37474f;">Registros acumulados listos para enviar (<span id="contador-lote">0</span>):</h4>
-                    <div class="contenedor-tabla">
-                        <table class="tabla-lote">
-                            <thead>
-                                <tr>
-                                    <th>Folio</th><th>Estatus a Asignar</th><th>Observaciones</th><th>Acción</th>
-                                </tr>
-                            </thead>
-                            <tbody id="lote-body"></tbody>
-                        </table>
-                    </div>
-                    <button class="btn-send-block" id="btnEnviarBloque" onclick="enviarLoteAlServidor()">🚀 Enviar todo el Bloque</button>
-                </div>
-            </div>
-        </div>
-
-
-
-
-<!-- Interfaz del Módulo -->
-    </div>
-</details>
-
-<details id="acordeon-excel" class="modulo-acordeon">
-    <summary>📊 GENERAR REPORTE DE ENTREGAS</summary>
-    <div class="modulo-contenido">
-<div id="modulo-excel" tyle="padding: 20px; flex-direction: border: 1px solid #ccc; border-radius: 8px; max-width: 400px; background-color: #f9f9f9; font-family: sans-serif;">
-  <h3 style="margin-top: 0; color: #333;">Generar Reporte de Entregas</h3>
-  
-  <button id="btnCargarFechas" onclick="cargarFechas()" style="width: 100%; padding: 8px; margin-bottom: 15px; background-color: #34a853; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">
-    🔄 Cargar / Actualizar Fechas
-  </button>
-
-  <label for="selectFechaExcel" style="font-weight: bold; font-size: 14px;">Selecciona la Fecha:</label>
-  <select id="selectFechaExcel" style="width: 100%; padding: 8px; margin: 10px 0; border: 1px solid #aaa; border-radius: 4px;">
-    <option value="">-- Haz clic en actualizar primero --</option>
-  </select>
-  
-  <button id="btnGenerarExcel" onclick="confirmarYGenerarExcel()" style="width: 100%; padding: 10px; background-color: #1a73e8; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">
-    Generar y Descargar Reporte
-  </button>
-</div>
-
-
-
-
-
-        
-        <!-- NUEVO MÓDULO: CONTROL DOCUMENTAL Y FOLIADO -->
-            </div>
-</details>
-
-<details id="acordeon-documental" class="modulo-acordeon">
-    <summary>🗂️ VALIDACIÓN Y FICHAS DOCUMENTALES</summary>
-    <div class="modulo-contenido">
-<div id="panel-documental" class="sub-panel panel-documental" style="display:block;">
-            <h3 style="text-align: center;">Módulo de Validación y Fichas Documentales</h3>
-            <p style="text-align: center;">Busca un registro para complementar con datos físicos:</p>
-            
-            <div class="controles-busqueda">
-                <input type="text" id="docValorBusqueda" placeholder="Valor a buscar...">
-                <!-- Botón para abrir el escáner -->
-<button type="button" id="btnEscanearDoc" onclick="iniciarEscanerDoc()">📷 Escanear QR</button>
-
-<!-- Contenedor de la cámara (oculto por defecto) -->
-<div id="contenedor-escaner-doc" style="display: none; margin-top: 15px; max-width: 400px; border: 1px solid #ccc; padding: 10px; border-radius: 5px;">
-    <div id="reader-doc" style="width: 100%;"></div>
-    <button type="button" onclick="detenerEscanerDoc()" style="margin-top: 10px; padding: 8px 15px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; width: 100%;">
-        Cancelar / Detener Cámara
-    </button>
-</div>
-                <select id="docColumnaBusqueda">
-                    <option value="Nombre">Nombre</option>
-                    <option value="CURP">CURP</option>
-                    <option value="Folio">Folio</option>
-                </select>
-                <button onclick="ejecutarBusquedaDocumental()">Buscar Registro</button>
-            </div>
-            
-            <div id="doc-contenedor-resultados"></div>
-
-            <!-- Formulario de detalles para integrar a la lista acumulada -->
-            <div id="doc-formulario-detalles" style="display:none; margin-top:20px; background: #fff; padding: 20px; border-radius: 8px; border: 1px solid #b2dfdb;">
-                <h4 style="margin-top:0; color: #004d40;">Detalle Documental del Registro Seleccionado</h4>
-                <div class="grid-documental">
-                    <div>
-                        <label style="font-size:12px; font-weight:bold;">Número de Caja:</label>
-                        <input type="text" id="docCaja" placeholder="Ej. Caja 1" style="width:100%;">
-                    </div>
-                    <div>
-                        <label style="font-size:12px; font-weight:bold;">Número de Fojas:</label>
-                        <input type="number" id="docFojas" placeholder="Total fojas" oninput="validarCoincidenciaFojas()" style="width:100%;">
-                    </div>
-                    <div>
-                        <label style="font-size:12px; font-weight:bold;">Cantidad de Identifiaciones:</label>
-                        <input type="number" id="docIne" placeholder="0" oninput="validarCoincidenciaFojas()" style="width:100%;">
-                    </div>
-                    <div>
-                        <label style="font-size:12px; font-weight:bold;">Tipo de Identificación:</label>
-                        <input type="text" id="docTipoIdentificacion" placeholder="Ej. Credencial / Pasaporte" style="width:100%;">
-                    </div>
-                    <div>
-                        <label style="font-size:12px; font-weight:bold;">Actas de Nacimiento:</label>
-                        <input type="number" id="docActa" placeholder="0" oninput="validarCoincidenciaFojas()" style="width:100%;">
-                    </div>
-                    <div>
-                        <label style="font-size:12px; font-weight:bold;">CURP (Cant. Docs):</label>
-                        <input type="number" id="docCurpDoc" placeholder="0" oninput="validarCoincidenciaFojas()" style="width:100%;">
-                    </div>
-                    <div>
-                        <label style="font-size:12px; font-weight:bold;">Comprobante:</label>
-                        <input type="number" id="docComprobante" placeholder="0" oninput="validarCoincidenciaFojas()" style="width:100%;">
-                    </div>
-                    <div>
-                        <label style="font-size:12px; font-weight:bold;">Cantidad de Acuses:</label>
-                        <input type="number" id="docAcuses" placeholder="0" oninput="validarCoincidenciaFojas()" style="width:100%;">
+                    <div id="modalAppB" class="modal-overlay">
+                        <div class="modal-container">
+                            <div class="modal-header">
+                                <span>Registro de Trámites</span>
+                                <button id="btnCerrarAppB" class="btn-cerrar">Cerrar ✖</button>
+                            </div>
+                            <iframe id="iframeAppB" class="modal-iframe" src=""></iframe>
+                        </div>
                     </div>
                 </div>
+            </details>
 
-                <div style="margin-top: 15px;">
-                    <label style="font-size:12px; font-weight:bold;">Observaciones:</label>
-                    <textarea id="docObservaciones" placeholder="Observaciones adicionales..." rows="2" style="width:100%; box-sizing:border-box;"></textarea>
+            <!-- CARGA DE NUEVAS TARJETAS -->
+            <details id="acordeon-tarjetas" class="modulo-acordeon">
+                <summary>🚀 CARGA DE NUEVAS TARJETAS O ESTATUS</summary>
+                <div class="modulo-contenido">
+                    <div id="bloque-lanzador-tarjetas" class="bloque-lanzador-tarjetas">
+                        <h2 class="titulo-lanzador-tarjetas">CARGA DE NUEVAS TARJETAS O ESTATUS</h2>
+                        <div class="contenedor-boton-tarjetas">
+                            <button id="btnAbrirCargaTarjetas" class="btn-lanzador-tarjetas">
+                                🚀 ABRIR APP DE ACTUALIZACION
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="modalCargaTarjetas" class="modal-overlay-tarjetas">
+                        <div class="modal-container-tarjetas">
+                            <div class="modal-header-tarjetas">
+                                <span>Carga de Nuevas Tarjetas o Estatus</span>
+                                <button id="btnCerrarCargaTarjetas" class="btn-cerrar-tarjetas">Cerrar ✖</button>
+                            </div>
+                            <iframe id="iframeCargaTarjetas" class="modal-iframe-tarjetas" src=""></iframe>
+                        </div>
+                    </div>
                 </div>
+            </details>
 
-                <!-- Indicador visual de coincidencia de fojas -->
-                <div id="indicador-coincidencia" style="margin-top: 15px; padding: 10px; border-radius: 6px; font-weight: bold; text-align: center; background: #eee; color: #555;">
-                    Ingrese las fojas y los documentos para verificar la coincidencia.
+            <!-- CONSULTA ESTADOS -->
+            <details id="acordeon-consulta" class="modulo-acordeon">
+                <summary>🔎 CONSULTA ESTADOS</summary>
+                <div class="modulo-contenido">
+                    <div id="bloque-lanzador-consulta" class="bloque-lanzador-consulta">
+                        <h2 class="titulo-lanzador-consulta">CONSULTA ESTADOS</h2>
+                        <div class="contenedor-boton-consulta">
+                            <button id="btnAbrirConsulta" class="btn-lanzador-consulta">
+                                <svg style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                                ABRIR BÚSQUEDA
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="modalConsulta" class="modal-overlay-consulta">
+                        <div class="modal-container-consulta">
+                            <div class="modal-header-consulta">
+                                <span>Módulo de Consulta (tres niveles)</span>
+                                <button id="btnCerrarConsulta" class="btn-cerrar-consulta">Cerrar ✖</button>
+                            </div>
+                            <iframe id="iframeConsulta" class="modal-iframe-consulta" src=""></iframe>
+                        </div>
+                    </div>
                 </div>
+            </details>
 
-                <div style="margin-top: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
-                    <button class="btn-add" onclick="agregarAListaDocumental()">+ Agregar a Lista Documental</button>
-                
+            <!-- EDICIÓN (CAPTURA POR BLOQUES) -->
+            <details id="acordeon-edicion" class="modulo-acordeon">
+                <summary>📝 EDICIÓN — CAPTURA POR BLOQUES</summary>
+                <div class="modulo-contenido">
+                    <div id="panel-edicion" class="sub-panel">
+                        <h3 style="text-align: center;"> Módulo de Edición (Captura por Bloques)</h3>
+                        <div class="form-edicion">
+                            <label style="font-weight: bold;">Actividad a realizar</label>
+                            <select id="actividadRealizar" onchange="cambiarOpcionesEstatus()">
+                                <option value="">-- Selecciona una actividad --</option>
+                                <option value="SOBRANTES">REGISTRO DE SOBRANTES</option>
+                                <option value="ENTREGADAS">REGISTRO DE ENTREGADAS</option>
+                            </select>
+
+                            <div id="campos-edicion" style="display: none; flex-direction: column; gap: 15px; margin-top: 15px; background: #f9f9f9; padding: 15px; border-radius: 8px; border: 1px dashed #ccc;">
+                                <h4 style="margin:0;">Agregar registro al bloque temporal:</h4>
+                                <input type="text" id="editFolio" placeholder="Escribe o escanea el Folio">
+                                <select id="editEstatus"></select>
+
+                                <div id="kit-documental-wrapper">
+                                    <span class="kit-documental-titulo">KIT DOCUMENTAL</span>
+                                    <div class="kit-documental-opciones" role="radiogroup" aria-label="KIT DOCUMENTAL">
+                                        <label>
+                                            <input type="radio" name="kitDocumental" value="SI">
+                                            <span>SÍ</span>
+                                        </label>
+                                        <label>
+                                            <input type="radio" name="kitDocumental" value="NO">
+                                            <span>NO</span>
+                                        </label>
+                                    </div>
+                                    <p class="kit-documental-ayuda">Selecciona una opción para registros de entregadas.</p>
+                                </div>
+
+                                <textarea id="editObservaciones" placeholder="Observaciones (Opcional)" rows="2"></textarea>
+                                <button class="btn-add" onclick="agregarAlBloqueLocal()">+ Agregar a la Lista</button>
+                            </div>
+
+                            <div id="area-lote-temporal" style="display:none; margin-top:20px;">
+                                <h4 style="margin:0; color: #37474f;">Registros acumulados listos para enviar (<span id="contador-lote">0</span>):</h4>
+                                <div class="contenedor-tabla">
+                                    <table class="tabla-lote">
+                                        <thead>
+                                            <tr><th>Folio</th><th>Estatus a Asignar</th><th>Observaciones</th><th>Acción</th></tr>
+                                        </thead>
+                                        <tbody id="lote-body"></tbody>
+                                    </table>
+                                </div>
+                                <button class="btn-send-block" id="btnEnviarBloque" onclick="enviarLoteAlServidor()">🚀 Enviar todo el Bloque</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </div>
+            </details>
 
-            <!-- Tabla de lista acumulada documental -->
-            <div id="area-lista-documental" style="display:none; margin-top:25px;">
-                <h4 style="color: #004d40;">Registros Documentales Acumulados (<span id="contador-documental">0</span>):</h4>
-                <div class="contenedor-tabla">
-                    <table style="background: white;">
-                        <thead>
-                            <tr style="background: #004d40; color:white;">
-                                <th>Folio</th><th>Nombre</th><th>CURP</th><th>Caja</th><th>Fojas</th><th>Estatus Coincidencia</th><th>Acción</th>
-                            </tr>
-                        </thead>
-                        <tbody id="documental-body"></tbody>
-                    </table>
-                </div>
-                <div style="margin-top: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
-                    <button class="btn-send-block" onclick="preguntarYGenerarExcel()" style="background-color: #2e7d32; margin: 0; flex: 1;">📊 Generar y Descargar Reporte Excel</button>
-                    <button class="btn-send-block" onclick="sincronizarListaDocumentalServidor()" style="background-color: #0288d1; margin: 0; flex: 1;">🚀 Sincronizar Datos al Servidor</button>
-                    <button class="btn-send-block" onclick="limpiarRegistrosDocumentalesAgregados()" style="background-color: #d32f2f; margin: 0; flex: 1;">🧹 Limpiar Bloque</button>
-                </div>
-            </div>
-        </div>
+            <!-- REPORTE EXCEL -->
+            <details id="acordeon-excel" class="modulo-acordeon">
+                <summary>📊 GENERAR REPORTE DE ENTREGAS</summary>
+                <div class="modulo-contenido">
+                    <!-- CORRECCIÓN: "tyle" -> "style" y se quitó "flex-direction:" sin valor -->
+                    <div id="modulo-excel" style="padding: 20px; border: 1px solid #ccc; border-radius: 8px; max-width: 400px; margin: 0 auto; background-color: #f9f9f9; font-family: sans-serif;">
+                        <h3 style="margin-top: 0; color: #333;">Generar Reporte de Entregas</h3>
 
-        <!-- ADMINISTRADORES -->
-            </div>
-</details>
+                        <button id="btnCargarFechas" onclick="cargarFechas()" style="width: 100%; padding: 8px; margin-bottom: 15px; background-color: #34a853; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">
+                            🔄 Cargar / Actualizar Fechas
+                        </button>
 
-<details id="acordeon-admin" class="modulo-acordeon">
-    <summary>🔐 ADMINISTRACIÓN Y SEGURIDAD</summary>
-    <div class="modulo-contenido">
-<div id="panel-admin" class="sub-panel">
-            <div class="panel-bitacora">
-                <h3 style="text-align: center;">Visualizador de Bitácora</h3>
-                <p style="text-align: center;">Filtra y analiza los movimientos realizados en la plataforma en tiempo real:</p>
-                
-                <div style="display: flex; flex-direction: row; gap: 15px; flex-wrap: wrap; background: #e0f2f1; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
-                    <div style="display: flex; flex-direction: column; gap: 5px;">
-                        <label style="font-weight: bold; font-size: 13px; color: #004d40;">Por Día Registrado:</label>
-                        <select id="filtroBitacoraFecha" onchange="buscarEnBitacora()">
-                            <option value="">Cargando fechas...</option>
+                        <label for="selectFechaExcel" style="font-weight: bold; font-size: 14px;">Selecciona la Fecha:</label>
+                        <select id="selectFechaExcel" style="width: 100%; padding: 8px; margin: 10px 0; border: 1px solid #aaa; border-radius: 4px;">
+                            <option value="">-- Haz clic en actualizar primero --</option>
                         </select>
-                    </div>
-                    <div style="display: flex; flex-direction: column; gap: 5px;">
-                        <label style="font-weight: bold; font-size: 13px; color: #004d40;">Por Usuario Activo:</label>
-                        <select id="filtroBitacoraUsuario" onchange="buscarEnBitacora()">
-                            <option value="">Cargando usuarios...</option>
-                        </select>
-                    </div>
-                    <div style="display: flex; align-items: flex-end;">
-                        <button onclick="limpiarYVerTodoBitacora()" style="background-color: #757575;">Ver Todo / Limpiar</button>
-                    </div>
-                </div>
-                
-                <div id="contenedor-bitacora"></div>
-            </div>
 
-            <!-- PANEL DE SEGURIDAD -->
-            <div class="panel-bloqueo">
-                <h3 style="text-align: center;">Control de Seguridad (Solo Administradores)</h3>
-                <p style="text-align: center;">Selecciona un usuario del sistema para revocar sus accesos de forma permanente:</p>
-                <div class="form-admin">
-                    <select id="listaUsuariosAdmin"><option>Cargando usuarios...</option></select>
-                    <button style="background-color: #d32f2f;" onclick="ejecutarBloqueo()">Bloquear Acceso</button>
+                        <button id="btnGenerarExcel" onclick="confirmarYGenerarExcel()" style="width: 100%; padding: 10px; background-color: #1a73e8; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">
+                            Generar y Descargar Reporte
+                        </button>
+                    </div>
                 </div>
-            </div>
+            </details>
+
+            <!-- VALIDACIÓN Y FICHAS DOCUMENTALES -->
+            <details id="acordeon-documental" class="modulo-acordeon">
+                <summary>🗂️ VALIDACIÓN Y FICHAS DOCUMENTALES</summary>
+                <div class="modulo-contenido">
+                    <div id="panel-documental" class="sub-panel panel-documental" style="display:block;">
+                        <h3 style="text-align: center;">Módulo de Validación y Fichas Documentales</h3>
+                        <p style="text-align: center;">Busca un registro para complementar con datos físicos:</p>
+
+                        <div class="controles-busqueda">
+                            <input type="text" id="docValorBusqueda" placeholder="Valor a buscar...">
+                            <button type="button" id="btnEscanearDoc" onclick="iniciarEscanerDoc()">📷 Escanear QR</button>
+
+                            <div id="contenedor-escaner-doc" style="display: none; margin-top: 15px; max-width: 400px; border: 1px solid #ccc; padding: 10px; border-radius: 5px;">
+                                <div id="reader-doc" style="width: 100%;"></div>
+                                <button type="button" onclick="detenerEscanerDoc()" style="margin-top: 10px; padding: 8px 15px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; width: 100%;">
+                                    Cancelar / Detener Cámara
+                                </button>
+                            </div>
+                            <select id="docColumnaBusqueda">
+                                <option value="Nombre">Nombre</option>
+                                <option value="CURP">CURP</option>
+                                <option value="Folio">Folio</option>
+                            </select>
+                            <button onclick="ejecutarBusquedaDocumental()">Buscar Registro</button>
+                        </div>
+
+                        <div id="doc-contenedor-resultados"></div>
+
+                        <div id="doc-formulario-detalles" style="display:none; margin-top:20px; background: #fff; padding: 20px; border-radius: 8px; border: 1px solid #b2dfdb;">
+                            <h4 style="margin-top:0; color: #004d40;">Detalle Documental del Registro Seleccionado</h4>
+                            <div class="grid-documental">
+                                <div>
+                                    <label style="font-size:12px; font-weight:bold;">Número de Caja:</label>
+                                    <input type="text" id="docCaja" placeholder="Ej. Caja 1" style="width:100%;">
+                                </div>
+                                <div>
+                                    <label style="font-size:12px; font-weight:bold;">Número de Fojas:</label>
+                                    <input type="number" id="docFojas" placeholder="Total fojas" oninput="validarCoincidenciaFojas()" style="width:100%;">
+                                </div>
+                                <div>
+                                    <label style="font-size:12px; font-weight:bold;">Cantidad de Identificaciones:</label>
+                                    <input type="number" id="docIne" placeholder="0" oninput="validarCoincidenciaFojas()" style="width:100%;">
+                                </div>
+                                <div>
+                                    <label style="font-size:12px; font-weight:bold;">Tipo de Identificación:</label>
+                                    <input type="text" id="docTipoIdentificacion" placeholder="Ej. Credencial / Pasaporte" style="width:100%;">
+                                </div>
+                                <div>
+                                    <label style="font-size:12px; font-weight:bold;">Actas de Nacimiento:</label>
+                                    <input type="number" id="docActa" placeholder="0" oninput="validarCoincidenciaFojas()" style="width:100%;">
+                                </div>
+                                <div>
+                                    <label style="font-size:12px; font-weight:bold;">CURP (Cant. Docs):</label>
+                                    <input type="number" id="docCurpDoc" placeholder="0" oninput="validarCoincidenciaFojas()" style="width:100%;">
+                                </div>
+                                <div>
+                                    <label style="font-size:12px; font-weight:bold;">Comprobante:</label>
+                                    <input type="number" id="docComprobante" placeholder="0" oninput="validarCoincidenciaFojas()" style="width:100%;">
+                                </div>
+                                <div>
+                                    <label style="font-size:12px; font-weight:bold;">Cantidad de Acuses:</label>
+                                    <input type="number" id="docAcuses" placeholder="0" oninput="validarCoincidenciaFojas()" style="width:100%;">
+                                </div>
+                            </div>
+
+                            <div style="margin-top: 15px;">
+                                <label style="font-size:12px; font-weight:bold;">Observaciones:</label>
+                                <textarea id="docObservaciones" placeholder="Observaciones adicionales..." rows="2" style="width:100%; box-sizing:border-box;"></textarea>
+                            </div>
+
+                            <div id="indicador-coincidencia" style="margin-top: 15px; padding: 10px; border-radius: 6px; font-weight: bold; text-align: center; background: #eee; color: #555;">
+                                Ingrese las fojas y los documentos para verificar la coincidencia.
+                            </div>
+
+                            <div style="margin-top: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
+                                <button class="btn-add" onclick="agregarAListaDocumental()">+ Agregar a Lista Documental</button>
+                            </div>
+                        </div>
+
+                        <div id="area-lista-documental" style="display:none; margin-top:25px;">
+                            <h4 style="color: #004d40;">Registros Documentales Acumulados (<span id="contador-documental">0</span>):</h4>
+                            <div class="contenedor-tabla">
+                                <table style="background: white;">
+                                    <thead>
+                                        <tr style="background: #004d40; color:white;">
+                                            <th>Folio</th><th>Nombre</th><th>CURP</th><th>Caja</th><th>Fojas</th><th>Estatus Coincidencia</th><th>Acción</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="documental-body"></tbody>
+                                </table>
+                            </div>
+                            <div style="margin-top: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
+                                <button class="btn-send-block" onclick="preguntarYGenerarExcel()" style="background-color: #2e7d32; margin: 0; flex: 1;">📊 Generar y Descargar Reporte Excel</button>
+                                <button class="btn-send-block" onclick="sincronizarListaDocumentalServidor()" style="background-color: #0288d1; margin: 0; flex: 1;">🚀 Sincronizar Datos al Servidor</button>
+                                <button class="btn-send-block" onclick="limpiarRegistrosDocumentalesAgregados()" style="background-color: #d32f2f; margin: 0; flex: 1;">🧹 Limpiar Bloque</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </details>
+
+            <!-- ADMINISTRACIÓN Y SEGURIDAD -->
+            <details id="acordeon-admin" class="modulo-acordeon">
+                <summary>🔐 ADMINISTRACIÓN Y SEGURIDAD</summary>
+                <div class="modulo-contenido">
+                    <div id="panel-admin" class="sub-panel">
+                        <div class="panel-bitacora">
+                            <h3 style="text-align: center;">Visualizador de Bitácora</h3>
+                            <p style="text-align: center;">Filtra y analiza los movimientos realizados en la plataforma en tiempo real:</p>
+
+                            <div style="display: flex; flex-direction: row; gap: 15px; flex-wrap: wrap; background: #e0f2f1; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                                <div style="display: flex; flex-direction: column; gap: 5px;">
+                                    <label style="font-weight: bold; font-size: 13px; color: #004d40;">Por Día Registrado:</label>
+                                    <select id="filtroBitacoraFecha" onchange="buscarEnBitacora()">
+                                        <option value="">Cargando fechas...</option>
+                                    </select>
+                                </div>
+                                <div style="display: flex; flex-direction: column; gap: 5px;">
+                                    <label style="font-weight: bold; font-size: 13px; color: #004d40;">Por Usuario Activo:</label>
+                                    <select id="filtroBitacoraUsuario" onchange="buscarEnBitacora()">
+                                        <option value="">Cargando usuarios...</option>
+                                    </select>
+                                </div>
+                                <div style="display: flex; align-items: flex-end;">
+                                    <button onclick="limpiarYVerTodoBitacora()" style="background-color: #757575;">Ver Todo / Limpiar</button>
+                                </div>
+                            </div>
+
+                            <div id="contenedor-bitacora"></div>
+                        </div>
+
+                        <div class="panel-bloqueo">
+                            <h3 style="text-align: center;">Control de Seguridad (Solo Administradores)</h3>
+                            <p style="text-align: center;">Selecciona un usuario del sistema para revocar sus accesos de forma permanente:</p>
+                            <div class="form-admin">
+                                <select id="listaUsuariosAdmin"><option>Cargando usuarios...</option></select>
+                                <button style="background-color: #d32f2f;" onclick="ejecutarBloqueo()">Bloquear Acceso</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </details>
+
         </div>
 
-            </div>
-</details>
-
-</div>
-
-<button class="btn-logout" onclick="cerrarSesion()">Cerrar Sesión</button>
+        <button class="btn-logout" onclick="cerrarSesion()">Cerrar Sesión</button>
     </div>
 
     <script>
         // CONFIGURACIONES Y VARIABLES GLOBALES
-        const API_URL = 'https://script.google.com/macros/s/AKfycbzF1G9Eunl8KoaGmo7aSzFCZpg0Dln6tRJnvIkNBywGLiBYD483lKdqT5Ka8jNGvI-d/exec';
-        let usuarioActual = ""; 
+        const API_URL = 'https://script.google.com/macros/s/AKfycbzF1G9Eunl8KoaGmo7aSzFCZpg0Dln6tRJnvIkNBywGLiBYD483lKdqT5Ka8jNGvI-d/exec'; // ⚠️ Coloca aquí la URL completa de tu Web App de Apps Script
+        let usuarioActual = "";
         let rolActual = "";
         let datosDispositivo = { ip: "Obteniendo...", ubicacion: "Obteniendo..." };
         let loteTemporal = [];
 
-        // Variables globales para el nuevo módulo documental
         let registroSeleccionadoDoc = null;
         let listaDocumentalAcumulada = [];
 
         // --- SISTEMA DE SEGURIDAD (INACTIVIDAD) ---
         let timerInactividad;
-        const TIEMPO_LIMITE_INACTIVIDAD = 15 * 60 * 1000; // 15 minutos en milisegundos
+        const TIEMPO_LIMITE_INACTIVIDAD = 15 * 60 * 1000;
 
         function iniciarTemporizadorInactividad() {
             detenerTemporizadorInactividad();
@@ -1172,23 +818,13 @@
             cerrarSesion();
         }
 
-        document.getElementById('pass').addEventListener('keypress', e => { 
-            if (e.key === 'Enter') iniciarSesion(); 
-        });
-        document.getElementById('valorBusqueda').addEventListener('keydown', e => { 
-            if (e.key === 'Enter') e.preventDefault();
-        });
-        document.getElementById('editFolio').addEventListener('keydown', e => { 
-            if (e.key === 'Enter') e.preventDefault();
-        });
-        document.getElementById('docValorBusqueda').addEventListener('keydown', e => { 
-            if (e.key === 'Enter') e.preventDefault();
-        });
+        document.getElementById('pass').addEventListener('keypress', e => { if (e.key === 'Enter') iniciarSesion(); });
+        document.getElementById('valorBusqueda').addEventListener('keydown', e => { if (e.key === 'Enter') e.preventDefault(); });
+        document.getElementById('editFolio').addEventListener('keydown', e => { if (e.key === 'Enter') e.preventDefault(); });
+        document.getElementById('docValorBusqueda').addEventListener('keydown', e => { if (e.key === 'Enter') e.preventDefault(); });
 
         window.onload = async function() {
-            // IMPORTANTE: no se restaura una sesión ni un rol desde sessionStorage.
-            // El rol mostrado en pantalla solo se obtiene después de una validación
-            // exitosa contra el servidor.
+            // No se restaura sesión ni rol desde sessionStorage.
             try {
                 const response = await fetch('https://ipapi.co/json/');
                 const data = await response.json();
@@ -1200,8 +836,7 @@
         };
 
         async function enviarPeticion(datos) {
-            // El usuario enviado por el navegador NO debe ser considerado prueba
-            // de identidad. El servidor debe autenticar y autorizar cada acción.
+            // El servidor debe autenticar y autorizar cada acción (esto es solo informativo).
             datos.usuario = usuarioActual;
             datos.ip = datosDispositivo.ip;
             datos.ubicacion = datosDispositivo.ubicacion;
@@ -1213,192 +848,67 @@
             return await respuesta.json();
         }
 
+        function configurarVistasPorRol(rol) {
+            // ADMIN -> todos | ATENCION -> edición, documental, excel | USER -> solo buscador principal
+            const modulos = [
+                'acordeon-tramites', 'acordeon-tarjetas', 'acordeon-consulta',
+                'acordeon-edicion', 'acordeon-excel', 'acordeon-documental', 'acordeon-admin'
+            ];
 
+            const rolNormalizado = String(rol || '').trim().toUpperCase();
+            const esAdmin = rolNormalizado === 'ADMIN' || rolNormalizado === 'ADMINISTRADOR';
+            const esAtencion = rolNormalizado === 'ATENCION' || rolNormalizado === 'ATENCIÓN';
+            const esUser = rolNormalizado === 'USER' || rolNormalizado === 'USUARIO';
 
-function configurarVistasPorRol(rol) {
-    // =========================================================
-    // CONTROL DE ACCESO POR ROL
-    //
-    // ADMIN    -> TODOS LOS MÓDULOS
-    // ATENCION -> MÓDULOS ASIGNADOS
-    // USER     -> ÚNICAMENTE EL BUSCADOR PRINCIPAL
-    // =========================================================
-
-    const modulos = [
-        'acordeon-tramites',
-        'acordeon-tarjetas',
-        'acordeon-consulta',
-        'acordeon-edicion',
-        'acordeon-excel',
-        'acordeon-documental',
-        'acordeon-admin'
-    ];
-
-    const rolNormalizado = String(rol || '').trim().toUpperCase();
-
-    const esAdmin =
-        rolNormalizado === 'ADMIN' ||
-        rolNormalizado === 'ADMINISTRADOR';
-
-    const esAtencion =
-        rolNormalizado === 'ATENCION' ||
-        rolNormalizado === 'ATENCIÓN';
-
-    const esUser =
-        rolNormalizado === 'USER' ||
-        rolNormalizado === 'USUARIO';
-
-    // Si el rol no es válido, cerrar sesión
-    if (!esAdmin && !esAtencion && !esUser) {
-        cerrarSesion();
-        return;
-    }
-
-    // Mostrar aplicación
-    document.getElementById('login-section').style.display = 'none';
-    document.getElementById('app-section').style.display = 'block';
-
-    document.getElementById('saludo-usuario').innerText =
-        'Panel del Sistema';
-
-    // =========================================================
-    // PRIMERO OCULTAMOS TODOS LOS MÓDULOS
-    // =========================================================
-
-    modulos.forEach(id => {
-        const modulo = document.getElementById(id);
-
-        if (modulo) {
-            modulo.style.setProperty('display', 'none', 'important');
-            modulo.hidden = true;
-            modulo.open = false;
-        }
-    });
-
-    // =========================================================
-    // USER
-    // =========================================================
-    // El buscador principal NO se oculta porque está fuera
-    // de los acordeones.
-    //
-    // USER NO PUEDE VER:
-    // - Registro de trámites
-    // - Carga de tarjetas
-    // - Consulta Estados
-    // - Edición
-    // - Reportes Excel
-    // - Validación documental
-    // - Administración
-    // =========================================================
-
-    if (esUser) {
-
-        // Nos aseguramos de que el buscador principal esté visible
-        const panelBusqueda =
-            document.getElementById('panel-busqueda');
-
-        if (panelBusqueda) {
-            panelBusqueda.style.display = 'block';
-        }
-
-        iniciarTemporizadorInactividad();
-        return;
-    }
-
-    // =========================================================
-    // ATENCION
-    // =========================================================
-
-    if (esAtencion) {
-
-        const modulosAtencion = [
-            'acordeon-edicion',
-            'acordeon-documental',
-            'acordeon-excel'
-        ];
-
-        modulosAtencion.forEach(id => {
-
-            const modulo = document.getElementById(id);
-
-            if (modulo) {
-                modulo.hidden = false;
-                modulo.style.setProperty(
-                    'display',
-                    'block',
-                    'important'
-                );
+            if (!esAdmin && !esAtencion && !esUser) {
+                cerrarSesion();
+                return;
             }
 
-        });
+            document.getElementById('login-section').style.display = 'none';
+            document.getElementById('app-section').style.display = 'block';
+            document.getElementById('saludo-usuario').innerText = 'Panel del Sistema';
 
-        iniciarTemporizadorInactividad();
-        return;
-    }
+            // Ocultar todos los módulos primero
+            modulos.forEach(id => {
+                const modulo = document.getElementById(id);
+                if (modulo) {
+                    modulo.style.setProperty('display', 'none', 'important');
+                    modulo.hidden = true;
+                    modulo.open = false;
+                }
+            });
 
-    // =========================================================
-    // ADMIN
-    // =========================================================
+            const mostrarModulo = id => {
+                const modulo = document.getElementById(id);
+                if (!modulo) { console.warn('No se encontró el módulo:', id); return; }
+                modulo.hidden = false;
+                modulo.removeAttribute('hidden');
+                modulo.style.setProperty('display', 'block', 'important');
+                modulo.style.setProperty('visibility', 'visible', 'important');
+                modulo.style.setProperty('opacity', '1', 'important');
+            };
 
-    // =========================================================
-// ADMIN
-// =========================================================
+            if (esUser) {
+                const panelBusqueda = document.getElementById('panel-busqueda');
+                if (panelBusqueda) panelBusqueda.style.display = 'block';
+                iniciarTemporizadorInactividad();
+                return;
+            }
 
-if (esAdmin) {
+            if (esAtencion) {
+                ['acordeon-edicion', 'acordeon-documental', 'acordeon-excel'].forEach(mostrarModulo);
+                iniciarTemporizadorInactividad();
+                return;
+            }
 
-    const modulosAdmin = [
-        'acordeon-tramites',
-        'acordeon-tarjetas',
-        'acordeon-consulta',
-        'acordeon-edicion',
-        'acordeon-excel',
-        'acordeon-documental',
-        'acordeon-admin'
-    ];
-
-    modulosAdmin.forEach(id => {
-
-        const modulo = document.getElementById(id);
-
-        if (modulo) {
-
-            modulo.hidden = false;
-            modulo.removeAttribute('hidden');
-
-            modulo.style.setProperty(
-                'display',
-                'block',
-                'important'
-            );
-
-            modulo.style.setProperty(
-                'visibility',
-                'visible',
-                'important'
-            );
-
-            modulo.style.setProperty(
-                'opacity',
-                '1',
-                'important'
-            );
-
-        } else {
-
-            console.warn(
-                'ADMIN: no se encontró el módulo:',
-                id
-            );
-
+            if (esAdmin) {
+                modulos.forEach(mostrarModulo);
+                cargarUsuariosParaAdmin();
+                cargarFiltrosDesplegablesBitacora();
+                iniciarTemporizadorInactividad();
+            }
         }
-    });
-
-    cargarUsuariosParaAdmin();
-    cargarFiltrosDesplegablesBitacora();
-
-    iniciarTemporizadorInactividad();
-}
-}       
 
         async function iniciarSesion() {
             const user = document.getElementById('user').value.trim();
@@ -1424,13 +934,13 @@ if (esAdmin) {
         async function cargarFiltrosDesplegablesBitacora() {
             const selectFecha = document.getElementById('filtroBitacoraFecha');
             const selectUsuario = document.getElementById('filtroBitacoraUsuario');
-            
+
             try {
                 const filtros = await enviarPeticion({ action: "obtener_filtros_bitacora" });
-                
+
                 selectFecha.innerHTML = '<option value="">-- Todas las fechas --</option>';
                 selectUsuario.innerHTML = '<option value="">-- Todos los usuarios --</option>';
-                
+
                 if (filtros.fechas && filtros.fechas.length > 0) {
                     filtros.fechas.forEach(f => {
                         let opt = document.createElement('option');
@@ -1438,7 +948,7 @@ if (esAdmin) {
                         selectFecha.appendChild(opt);
                     });
                 }
-                
+
                 if (filtros.usuarios && filtros.usuarios.length > 0) {
                     filtros.usuarios.forEach(u => {
                         let opt = document.createElement('option');
@@ -1455,7 +965,7 @@ if (esAdmin) {
         async function consultarBitacoraServidor(fFecha, fUsuario) {
             const contenedor = document.getElementById('contenedor-bitacora');
             contenedor.innerHTML = '<p style="font-weight:bold; color:#00796b;">Filtrando registros de auditoría...</p>';
-            
+
             try {
                 const logs = await enviarPeticion({
                     action: "obtener_bitacora",
@@ -1463,12 +973,12 @@ if (esAdmin) {
                     filtroUsuario: fUsuario
                 });
 
-                if(logs.error) {
+                if (logs.error) {
                     contenedor.innerHTML = `<p style="color:red; font-weight:bold;">${escaparHTML(logs.error)}</p>`;
                     return;
                 }
 
-                if(!Array.isArray(logs) || logs.length === 0) {
+                if (!Array.isArray(logs) || logs.length === 0) {
                     contenedor.innerHTML = '<p style="color:orange; font-weight:bold;">No se encontraron eventos en la bitácora para esta selección.</p>';
                     return;
                 }
@@ -1480,7 +990,7 @@ if (esAdmin) {
                                 </tr>
                             </thead>
                             <tbody>`;
-                
+
                 logs.reverse().forEach(l => {
                     html += `<tr>
                                 <td>${escaparHTML(l.fecha)}</td>
@@ -1490,19 +1000,19 @@ if (esAdmin) {
                                 <td><small style="color:#555;">${escaparHTML(l.ubicacion)}</small></td>
                              </tr>`;
                 });
-                
+
                 html += '</tbody></table></div>';
                 contenedor.innerHTML = html;
 
-            } catch(e) {
+            } catch (e) {
                 contenedor.innerHTML = '<p style="color:red; font-weight:bold;">Error de comunicación al procesar la bitácora.</p>';
             }
         }
 
         function buscarEnBitacora() {
-            const fecha = document.getElementById('filtroBitacoraFecha').value; 
+            const fecha = document.getElementById('filtroBitacoraFecha').value;
             const usuario = document.getElementById('filtroBitacoraUsuario').value;
-            
+
             if (!fecha && !usuario) {
                 document.getElementById('contenedor-bitacora').innerHTML = '';
                 return;
@@ -1523,7 +1033,7 @@ if (esAdmin) {
             const selectorEstatus = document.getElementById('editEstatus');
             const kitWrapper = document.getElementById('kit-documental-wrapper');
 
-            if(!actividad) {
+            if (!actividad) {
                 contenedorCampos.style.display = 'none';
                 kitWrapper.style.display = 'none';
                 document.querySelectorAll('input[name="kitDocumental"]').forEach(r => r.checked = false);
@@ -1535,7 +1045,7 @@ if (esAdmin) {
 
             let opciones = (actividad === "SOBRANTES")
                 ? ["SOBRANTE", "SOBRANTE CON OBSERVACIONES"]
-                : ["ENTREGADA POR 1301","ENTREGADA POR 1302","ENTREGADA POR 1303","ENTREGADA POR 1304","ENTREGADA POR 1305","ENTREGADA POR 1306","ENTREGADA POR 1307", "ENVIADA A OTRO ESTADO", "ENVIADA A OTRA SARE"];
+                : ["ENTREGADA POR 1301", "ENTREGADA POR 1302", "ENTREGADA POR 1303", "ENTREGADA POR 1304", "ENTREGADA POR 1305", "ENTREGADA POR 1306", "ENTREGADA POR 1307", "ENVIADA A OTRO ESTADO", "ENVIADA A OTRA SARE"];
 
             opciones.forEach(opt => {
                 let el = document.createElement('option');
@@ -1559,33 +1069,25 @@ if (esAdmin) {
             const actividad = document.getElementById('actividadRealizar').value;
             const folio = folioInput.value.trim();
 
-            if(!folio) return alert("Por favor ingresa o escanea un folio.");
-            if(loteTemporal.some(item => item.folio === folio)) return alert("Este folio ya está en la lista de espera.");
+            if (!folio) return alert("Por favor ingresa o escanea un folio.");
+            if (loteTemporal.some(item => item.folio === folio)) return alert("Este folio ya está en la lista de espera.");
 
-            // Para ENTREGADAS es obligatorio indicar el KIT DOCUMENTAL.
             let textoKit = "";
             if (actividad === "ENTREGADAS") {
                 const kitSeleccionado = document.querySelector('input[name="kitDocumental"]:checked');
                 if (!kitSeleccionado) {
                     return alert("Selecciona SI o NO en KIT DOCUMENTAL antes de agregar el registro.");
                 }
-
                 textoKit = kitSeleccionado.value === "SI"
                     ? "CON KIT DOCUMENTAL EN SARE"
                     : "SIN KIT DOCUMENTAL EN SARE";
             }
 
-            // Mantiene la fecha automática y agrega el texto del KIT después de la fecha.
             const textoBase = obsInput.value.trim();
             const fechaActual = new Date().toLocaleDateString('es-MX');
 
-            let observacionesConFecha = textoBase !== ""
-                ? `${textoBase} ${fechaActual}`
-                : fechaActual;
-
-            if (textoKit) {
-                observacionesConFecha += ` ${textoKit}`;
-            }
+            let observacionesConFecha = textoBase !== "" ? `${textoBase} ${fechaActual}` : fechaActual;
+            if (textoKit) observacionesConFecha += ` ${textoKit}`;
 
             loteTemporal.push({
                 folio: folio,
@@ -1609,7 +1111,7 @@ if (esAdmin) {
             const area = document.getElementById('area-lote-temporal');
             const tbody = document.getElementById('lote-body');
             document.getElementById('contador-lote').innerText = loteTemporal.length;
-            if(loteTemporal.length === 0) { area.style.display = 'none'; tbody.innerHTML = ''; return; }
+            if (loteTemporal.length === 0) { area.style.display = 'none'; tbody.innerHTML = ''; return; }
             area.style.display = 'block'; tbody.innerHTML = '';
             loteTemporal.forEach((item, index) => {
                 const tr = document.createElement('tr');
@@ -1621,134 +1123,117 @@ if (esAdmin) {
         }
 
         async function enviarLoteAlServidor() {
-            if(loteTemporal.length === 0) return;
+            if (loteTemporal.length === 0) return;
             const btn = document.getElementById('btnEnviarBloque');
-            if(!confirm(`¿Deseas sincronizar este bloque de ${loteTemporal.length} registros?`)) return;
+            if (!confirm(`¿Deseas sincronizar este bloque de ${loteTemporal.length} registros?`)) return;
             btn.innerText = "Procesando matriz..."; btn.disabled = true;
 
             try {
                 const res = await enviarPeticion({ action: "actualizar_lote", lote: loteTemporal });
-                if(res.exito) {
+                if (res.exito) {
                     let msg = `¡Éxito total! Se actualizaron ${res.exitosos} registros.`;
-                    if(res.noEncontrados.length > 0) msg += `\n\nFolios no hallados en la base: ${res.noEncontrados.join(", ")}`;
+                    if (res.noEncontrados.length > 0) msg += `\n\nFolios no hallados en la base: ${res.noEncontrados.join(", ")}`;
                     alert(msg);
                     loteTemporal = []; actualizarTablaInterfazLote();
                 } else { alert("Error: " + res.error); }
-            } catch(e) { alert("Error de red o timeout."); } 
+            } catch (e) { alert("Error de red o timeout."); }
             finally { btn.innerText = "🚀 Enviar todo el Bloque"; btn.disabled = false; }
         }
 
+        // --- REPORTE EXCEL POR FECHA ---
+        async function cargarFechas() {
+            const btn = document.getElementById('btnCargarFechas');
+            const select = document.getElementById('selectFechaExcel');
 
+            btn.innerText = "⏳ Buscando fechas...";
+            btn.disabled = true;
+            select.innerHTML = '<option value="">Cargando...</option>';
 
+            try {
+                const respuesta = await enviarPeticion({ action: "obtener_fechas_w" });
 
+                if (respuesta.error) {
+                    alert("Error del servidor: " + respuesta.error);
+                    select.innerHTML = '<option value="">Error al cargar</option>';
+                } else if (respuesta.fechas && respuesta.fechas.length > 0) {
+                    select.innerHTML = '<option value="">-- Selecciona una fecha --</option>';
+                    respuesta.fechas.forEach(fecha => {
+                        let opt = document.createElement('option');
+                        opt.value = fecha;
+                        opt.innerText = fecha;
+                        select.appendChild(opt);
+                    });
+                } else {
+                    select.innerHTML = '<option value="">No hay fechas disponibles</option>';
+                }
+            } catch (e) {
+                alert("Error de comunicación al buscar fechas.");
+                select.innerHTML = '<option value="">Error de conexión</option>';
+            } finally {
+                btn.innerText = "🔄 Cargar / Actualizar Fechas";
+                btn.disabled = false;
+            }
+        }
 
-// 1. NUEVO: Función que se ejecuta SOLO cuando presionas el botón de actualizar fechas
-// Usamos asyn/await y enviarPeticion tal como en tu código de bitácora
-  async function cargarFechas() {
-     const btn = document.getElementById('btnCargarFechas');
-     const select = document.getElementById('selectFechaExcel');
-     
-     btn.innerText = "⏳ Buscando fechas...";
-     btn.disabled = true;
-     select.innerHTML = '<option value="">Cargando...</option>';
+        async function confirmarYGenerarExcel() {
+            const fechaSeleccionada = document.getElementById('selectFechaExcel').value;
 
-     try {
-         const respuesta = await enviarPeticion({ action: "obtener_fechas_w" });
+            if (!fechaSeleccionada) {
+                return alert("⚠️ Por favor, selecciona una fecha primero.");
+            }
 
-         if (respuesta.error) {
-             alert("Error del servidor: " + respuesta.error);
-             select.innerHTML = '<option value="">Error al cargar</option>';
-         } else if (respuesta.fechas && respuesta.fechas.length > 0) {
-             select.innerHTML = '<option value="">-- Selecciona una fecha --</option>';
-             respuesta.fechas.forEach(fecha => {
-                 let opt = document.createElement('option');
-                 opt.value = fecha;
-                 opt.innerText = fecha;
-                 select.appendChild(opt);
-             });
-         } else {
-             select.innerHTML = '<option value="">No hay fechas disponibles</option>';
-         }
-     } catch (e) {
-         alert("Error de comunicación al buscar fechas.");
-         select.innerHTML = '<option value="">Error de conexión</option>';
-     } finally {
-         btn.innerText = "🔄 Cargar / Actualizar Fechas";
-         btn.disabled = false;
-     }
-  }
+            if (!confirm(`¿Estás seguro de que deseas generar el archivo Excel para la fecha: ${fechaSeleccionada}?`)) {
+                return;
+            }
 
-  async function confirmarYGenerarExcel() {
-     const fechaSeleccionada = document.getElementById('selectFechaExcel').value;
-     
-     if (!fechaSeleccionada) {
-        return alert("⚠️ Por favor, selecciona una fecha primero.");
-     }
+            const btn = document.getElementById('btnGenerarExcel');
+            btn.innerText = "⏳ Generando archivo...";
+            btn.disabled = true;
 
-     if (!confirm(`¿Estás seguro de que deseas generar el archivo Excel para la fecha: ${fechaSeleccionada}?`)) {
-         return;
-     }
+            try {
+                const respuesta = await enviarPeticion({
+                    action: "obtener_datos_excel",
+                    fecha: fechaSeleccionada
+                });
 
-     const btn = document.getElementById('btnGenerarExcel');
-     btn.innerText = "⏳ Generando archivo...";
-     btn.disabled = true;
+                if (respuesta.error) {
+                    alert("Error del servidor: " + respuesta.error);
+                } else if (respuesta.datos && respuesta.datos.length > 1) {
+                    crearArchivoExcel(respuesta.datos, fechaSeleccionada);
+                } else {
+                    alert("No se encontraron registros para esta fecha.");
+                }
+            } catch (e) {
+                alert("Error de red al procesar el Excel.");
+            } finally {
+                btn.innerText = "Generar y Descargar Reporte"; // CORRECCIÓN: mismo texto original
+                btn.disabled = false;
+            }
+        }
 
-     try {
-         const respuesta = await enviarPeticion({ 
-             action: "obtener_datos_excel", 
-             fecha: fechaSeleccionada 
-         });
+        function crearArchivoExcel(datos, fecha) {
+            const workbook = XLSX.utils.book_new();
+            const worksheet = XLSX.utils.aoa_to_sheet(datos);
 
-         if (respuesta.error) {
-             alert("Error del servidor: " + respuesta.error);
-         } else if (respuesta.datos && respuesta.datos.length > 1) { 
-             // Si length es > 1 significa que hay datos además de los encabezados
-             crearArchivoExcel(respuesta.datos, fechaSeleccionada);
-         } else {
-             alert("No se encontraron registros para esta fecha.");
-         }
-     } catch (e) {
-         alert("Error de red al procesar el Excel.");
-     } finally {
-         btn.innerText = "Generar y Descargar Excel";
-         btn.disabled = false;
-     }
-  }
+            worksheet['!cols'] = [
+                {wch: 15}, {wch: 25}, {wch: 20}, {wch: 20},
+                {wch: 20}, {wch: 20}, {wch: 20}, {wch: 20},
+                {wch: 20}, {wch: 20}, {wch: 20}, {wch: 15}
+            ];
 
-  // Función que procesa los datos y descarga el Excel
-  function crearArchivoExcel(datos, fecha) {
-     const workbook = XLSX.utils.book_new();
-     const worksheet = XLSX.utils.aoa_to_sheet(datos); 
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Reporte");
 
-     // Ajuste básico de columnas
-     const wscols = [
-        {wch: 15}, {wch: 25}, {wch: 20}, {wch: 20}, 
-        {wch: 20}, {wch: 20}, {wch: 20}, {wch: 20}, 
-        {wch: 20}, {wch: 20}, {wch: 20}, {wch: 15}
-     ];
-     worksheet['!cols'] = wscols;
+            const nombreArchivo = `Reporte_Entregas_${fecha.replace(/\//g, '-')}.xlsx`;
+            XLSX.writeFile(workbook, nombreArchivo);
+        }
 
-     XLSX.utils.book_append_sheet(workbook, worksheet, "Reporte");
-     
-     // Limpiar la fecha para evitar problemas al guardar el archivo (ej. 29/07/2026 -> 29-07-2026)
-     const nombreArchivo = `Reporte_Entregas_${fecha.replace(/\//g, '-')}.xlsx`;
-     XLSX.writeFile(workbook, nombreArchivo);
-  }
-        
-
-
-
-
-
-        
-
-        // --- LÓGICA DEL NUEVO MÓDULO DOCUMENTAL ---
+        // --- LÓGICA DEL MÓDULO DOCUMENTAL ---
         async function ejecutarBusquedaDocumental() {
             const valor = document.getElementById('docValorBusqueda').value.trim();
             const columna = document.getElementById('docColumnaBusqueda').value;
             const contenedor = document.getElementById('doc-contenedor-resultados');
             const formDetalles = document.getElementById('doc-formulario-detalles');
-            
+
             if (!valor) return alert("Por favor ingresa un valor para buscar.");
             contenedor.innerHTML = '<p style="font-weight:bold; color: #555;">Consultando base de datos...</p>';
             formDetalles.style.display = 'none';
@@ -1762,10 +1247,10 @@ if (esAdmin) {
                 let html = `<div class="contenedor-tabla"><table style="background:white;"><thead><tr>
                             <th>ACCIÓN</th><th>FOLIO</th><th>NOMBRE</th><th>CURP</th><th>SARE</th><th>MUNICIPIO</th><th>ESTATUS</th>
                             </tr></thead><tbody>`;
-                
+
                 resultados.forEach((f, idx) => {
                     html += `<tr>
-                                <td><button style="padding:5px 10px; background:#00796b;" onclick='seleccionarRegistroDoc(${JSON.stringify(f)})'>Seleccionar</button></td>
+                                <td><button style="padding:5px 10px; background:#00796b;" onclick='seleccionarRegistroDoc(${JSON.stringify(f).replace(/'/g, "&#39;")})'>Seleccionar</button></td>
                                 <td><b>${escaparHTML(f.FOLIO || f.Folio || '')}</b></td>
                                 <td>${escaparHTML(f.NOMBRE_COMPLETO)}</td>
                                 <td>${escaparHTML(f.CURP)}</td>
@@ -1782,18 +1267,12 @@ if (esAdmin) {
         function seleccionarRegistroDoc(registro) {
             registroSeleccionadoDoc = registro;
             document.getElementById('doc-formulario-detalles').style.display = 'block';
-            document.getElementById('docCaja').value = '';
-            document.getElementById('docFojas').value = '';
-            document.getElementById('docIne').value = '';
-            document.getElementById('docTipoIdentificacion').value = '';
-            document.getElementById('docActa').value = '';
-            document.getElementById('docCurpDoc').value = '';
-            document.getElementById('docComprobante').value = '';
-            document.getElementById('docAcuses').value = '';
-            document.getElementById('docObservaciones').value = '';
-            document.getElementById('indicador-coincidencia').innerHTML = "Ingrese las fojas y los documentos para verificar la coincidencia.";
-            document.getElementById('indicador-coincidencia').style.background = "#eee";
-            document.getElementById('indicador-coincidencia').style.color = "#555";
+            ['docCaja', 'docFojas', 'docIne', 'docTipoIdentificacion', 'docActa', 'docCurpDoc', 'docComprobante', 'docAcuses', 'docObservaciones']
+                .forEach(id => document.getElementById(id).value = '');
+            const ind = document.getElementById('indicador-coincidencia');
+            ind.innerHTML = "Ingrese las fojas y los documentos para verificar la coincidencia.";
+            ind.style.background = "#eee";
+            ind.style.color = "#555";
             window.location.hash = "doc-formulario-detalles";
         }
 
@@ -1834,7 +1313,7 @@ if (esAdmin) {
             if (!fojasVal) return alert("Por favor ingresa el número de fojas.");
 
             const validacion = validarCoincidenciaFojas();
-            
+
             const itemCompleto = {
                 ...registroSeleccionadoDoc,
                 caja: document.getElementById('docCaja').value.trim() || "S/C",
@@ -1851,7 +1330,7 @@ if (esAdmin) {
 
             listaDocumentalAcumulada.push(itemCompleto);
             actualizarTablaListaDocumental();
-            
+
             document.getElementById('doc-formulario-detalles').style.display = 'none';
             document.getElementById('doc-contenedor-resultados').innerHTML = '';
             document.getElementById('docValorBusqueda').value = '';
@@ -1885,8 +1364,8 @@ if (esAdmin) {
             area.style.display = 'block';
             tbody.innerHTML = '';
             listaDocumentalAcumulada.forEach((item, index) => {
-                const badgeEstatus = item.coincide 
-                    ? '<span class="status-badge status-badge-entregada">Coincide</span>' 
+                const badgeEstatus = item.coincide
+                    ? '<span class="status-badge status-badge-entregada">Coincide</span>'
                     : '<span class="status-badge status-badge-sobrante">No Coincide</span>';
 
                 const tr = document.createElement('tr');
@@ -1958,12 +1437,8 @@ if (esAdmin) {
             });
 
             let wb = XLSX.utils.book_new();
-            let ws1 = XLSX.utils.json_to_sheet(datosHoja1);
-            let ws2 = XLSX.utils.json_to_sheet(datosHoja2);
-
-            XLSX.utils.book_append_sheet(wb, ws1, "Registros Documentales");
-            XLSX.utils.book_append_sheet(wb, ws2, "Resumen por Caja");
-
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(datosHoja1), "Registros Documentales");
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(datosHoja2), "Resumen por Caja");
             XLSX.writeFile(wb, "Reporte_Documental_Sistema.xlsx");
         }
 
@@ -2001,7 +1476,6 @@ if (esAdmin) {
             if (!fojasVal) return alert("Por favor ingresa al menos las fojas para formar la cadena.");
 
             const caja = document.getElementById('docCaja').value.trim() || "S/C";
-            const fojas = fojasVal;
             const ine = document.getElementById('docIne').value.trim() || "0";
             const tipoId = document.getElementById('docTipoIdentificacion').value.trim() || "N/A";
             const acta = document.getElementById('docActa').value.trim() || "0";
@@ -2010,10 +1484,10 @@ if (esAdmin) {
             const acuses = document.getElementById('docAcuses').value.trim() || "0";
             const obs = document.getElementById('docObservaciones').value.trim() || "Sin observaciones";
 
-            const cadenaValores = `${caja}, ${fojas}, ${ine}, ${tipoId}, ${acta}, ${curpDoc}, ${comp}, ${acuses}, ${obs}`;
+            const cadenaValores = `${caja}, ${fojasVal}, ${ine}, ${tipoId}, ${acta}, ${curpDoc}, ${comp}, ${acuses}, ${obs}`;
 
             const folioBusqueda = registroSeleccionadoDoc.FOLIO || registroSeleccionadoDoc.Folio;
-            if(!folioBusqueda) return alert("El registro seleccionado no cuenta con un Folio válido para actualizar.");
+            if (!folioBusqueda) return alert("El registro seleccionado no cuenta con un Folio válido para actualizar.");
 
             if (!confirm(`¿Deseas enviar la cadena de texto a la columna V para el folio ${folioBusqueda}?\n\nCadena:\n${cadenaValores}`)) return;
 
@@ -2038,156 +1512,107 @@ if (esAdmin) {
             }
         }
 
+        // --- ESCÁNER QR (BUSCADOR PRINCIPAL) ---
+        let html5QrCode;
 
+        function iniciarEscanerQR() {
+            const contenedorLector = document.getElementById('lector-qr');
+            contenedorLector.style.display = 'block';
 
+            if (!html5QrCode) {
+                html5QrCode = new Html5Qrcode("lector-qr");
+            }
 
-// --- LÓGICA DEL ESCÁNER QR/CÓDIGO DE BARRAS ---
-
-let html5QrCode;
-
-function iniciarEscanerQR() {
-    const contenedorLector = document.getElementById('lector-qr');
-    contenedorLector.style.display = 'block'; // Mostrar la cámara
-
-    // Inicializar el lector si no existe
-    if (!html5QrCode) {
-        html5QrCode = new Html5Qrcode("lector-qr");
-    }
-
-    const configEscaner = { 
-        fps: 10, // Cuadros por segundo
-        qrbox: { width: 250, height: 250 } // Área de escaneo
-    };
-
-    // Iniciar cámara trasera ("environment")
-    html5QrCode.start(
-        { facingMode: "environment" }, 
-        configEscaner,
-        (textoDecodificado, resultadoDecodificado) => {
-            // ÉXITO: Se leyó un QR
-            
-            // 1. Extraer solo los primeros 18 caracteres
-            const primeros18 = textoDecodificado.substring(0, 18);
-            
-            // 2. Pegarlos en el textbox
-            document.getElementById('valorBusqueda').value = primeros18;
-            
-            // 3. Detener la cámara y ocultar el contenedor
-            detenerEscaner();
-        },
-        (mensajeError) => {
-            // Ignorar errores de lectura frame por frame
+            html5QrCode.start(
+                { facingMode: "environment" },
+                { fps: 10, qrbox: { width: 250, height: 250 } },
+                (textoDecodificado) => {
+                    document.getElementById('valorBusqueda').value = textoDecodificado.substring(0, 18);
+                    detenerEscaner();
+                },
+                () => { /* ignorar errores de lectura frame por frame */ }
+            ).catch((err) => {
+                console.error("Error al iniciar la cámara:", err);
+                alert("No se pudo acceder a la cámara. Verifica los permisos del navegador.");
+            });
         }
-    ).catch((err) => {
-        console.error("Error al iniciar la cámara:", err);
-        alert("No se pudo acceder a la cámara. Verifica los permisos del navegador.");
-    });
-}
 
-function detenerEscaner() {
-    if (html5QrCode && html5QrCode.isScanning) {
-        html5QrCode.stop().then(() => {
-            document.getElementById('lector-qr').style.display = 'none';
-        }).catch((err) => {
-            console.error("Error al detener el escáner", err);
-        });
-    }
-}
-
-
-
-
-
-
-        
-
-// --- LÓGICA DEL ESCÁNER QR INTEGRADO AL MÓDULO DOCUMENTAL ---
-
-let html5QrCodeDoc = null;
-function iniciarEscanerDoc() {
-    const contenedorEscaner = document.getElementById('contenedor-escaner-doc');
-    contenedorEscaner.style.display = 'block'; // Mostramos el área de la cámara
-    // Instanciamos solo si no existe para evitar duplicidad
-    if (!html5QrCodeDoc) {
-        html5QrCodeDoc = new Html5Qrcode("reader-doc");
-    }
-    const config = { fps: 10, qrbox: { width: 250, height: 250 } };
-    html5QrCodeDoc.start({ facingMode: "environment" }, config, 
-        (decodedText, decodedResult) => {
-            // 1. Limpiar el texto escaneado (solo deja letras, números y espacios)
-            let textoLimpio = decodedText.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ]+/g, ' ').trim();
-            // 2. Extraer ÚNICAMENTE los primeros 18 caracteres
-            let textoLimitado = textoLimpio.substring(0, 18);
-            // 3. Pegar el valor limpio y limitado en el textbox de búsqueda
-            document.getElementById('docValorBusqueda').value = textoLimitado;
-            // 4. Detener la cámara y ocultar el contenedor automáticamente
-            detenerEscanerDoc();
-            // Opcional: ejecutarBusquedaDocumental();
-        }, 
-        (errorMessage) => {
-            // Ignoramos los errores continuos de búsqueda de la cámara
+        function detenerEscaner() {
+            if (html5QrCode && html5QrCode.isScanning) {
+                html5QrCode.stop().then(() => {
+                    document.getElementById('lector-qr').style.display = 'none';
+                }).catch((err) => {
+                    console.error("Error al detener el escáner", err);
+                });
+            }
         }
-    ).catch((err) => {
-        alert("Error al iniciar la cámara. Asegúrate de dar los permisos correspondientes.");
-        console.error(err);
-        contenedorEscaner.style.display = 'none';
-    });
-}
-function detenerEscanerDoc() {
-    if (html5QrCodeDoc) {
-        // Llamamos al método .stop() real de la librería
-        html5QrCodeDoc.stop().then(() => {
-            console.log("Cámara detenida correctamente.");
-            // Ocultamos el contenedor una vez que la cámara se apaga
-            document.getElementById('contenedor-escaner-doc').style.display = 'none';
-            // Opcional: limpiar la UI del escáner
-            // html5QrCodeDoc.clear(); 
-        }).catch((err) => {
-            console.error("Error al detener el escáner: ", err);
-        });
-    } else {
-        // Si no hay instancia, solo ocultamos el contenedor por seguridad
-        document.getElementById('contenedor-escaner-doc').style.display = 'none';
-    }
-}
 
+        // --- ESCÁNER QR (MÓDULO DOCUMENTAL) ---
+        let html5QrCodeDoc = null;
 
+        function iniciarEscanerDoc() {
+            const contenedorEscaner = document.getElementById('contenedor-escaner-doc');
+            contenedorEscaner.style.display = 'block';
+            if (!html5QrCodeDoc) {
+                html5QrCodeDoc = new Html5Qrcode("reader-doc");
+            }
+            html5QrCodeDoc.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } },
+                (decodedText) => {
+                    let textoLimpio = decodedText.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ]+/g, ' ').trim();
+                    document.getElementById('docValorBusqueda').value = textoLimpio.substring(0, 18);
+                    detenerEscanerDoc();
+                },
+                () => { /* ignorar errores continuos */ }
+            ).catch((err) => {
+                alert("Error al iniciar la cámara. Asegúrate de dar los permisos correspondientes.");
+                console.error(err);
+                contenedorEscaner.style.display = 'none';
+            });
+        }
 
-        
+        function detenerEscanerDoc() {
+            if (html5QrCodeDoc && html5QrCodeDoc.isScanning) {
+                html5QrCodeDoc.stop().then(() => {
+                    document.getElementById('contenedor-escaner-doc').style.display = 'none';
+                }).catch((err) => {
+                    console.error("Error al detener el escáner: ", err);
+                });
+            } else {
+                document.getElementById('contenedor-escaner-doc').style.display = 'none';
+            }
+        }
 
-
-        
-    
+        // --- ADMINISTRACIÓN ---
         async function cargarUsuariosParaAdmin() {
             const select = document.getElementById('listaUsuariosAdmin');
             try {
                 const usuarios = await enviarPeticion({ action: "obtener_usuarios" });
-                if(usuarios.error) return select.innerHTML = `<option>${escaparHTML(usuarios.error)}</option>`;
+                if (usuarios.error) return select.innerHTML = `<option>${escaparHTML(usuarios.error)}</option>`;
                 select.innerHTML = '';
                 usuarios.forEach(u => {
-                    if(u.usuario !== usuarioActual) {
+                    if (u.usuario !== usuarioActual) {
                         let opt = document.createElement('option'); opt.value = u.usuario;
                         opt.innerText = `${u.usuario} [${u.estado}]`; select.appendChild(opt);
                     }
                 });
-            } catch(e) { select.innerHTML = '<option>Error al cargar usuarios</option>'; }
+            } catch (e) { select.innerHTML = '<option>Error al cargar usuarios</option>'; }
         }
 
         async function ejecutarBloqueo() {
             const userParaBloquear = document.getElementById('listaUsuariosAdmin').value;
-            if(!userParaBloquear || userParaBloquear.includes("Cargando")) return alert("Selecciona un usuario válido.");
-            if(!confirm(`¿Revocar acceso permanentemente a ${userParaBloquear}?`)) return;
+            if (!userParaBloquear || userParaBloquear.includes("Cargando")) return alert("Selecciona un usuario válido.");
+            if (!confirm(`¿Revocar acceso permanentemente a ${userParaBloquear}?`)) return;
             try {
                 const res = await enviarPeticion({ action: "bloquear_usuario", usuarioAQuitar: userParaBloquear });
-                if(res.exito) { alert("Usuario bloqueado."); cargarUsuariosParaAdmin(); }
-            } catch(e) { alert("Error."); }
+                if (res.exito) { alert("Usuario bloqueado."); cargarUsuariosParaAdmin(); }
+            } catch (e) { alert("Error."); }
         }
 
         function escaparHTML(t) { return t ? String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;") : ""; }
 
         function obtenerBadgeEstatus(estatus) {
             if (!estatus) return `<span class="status-badge status-badge-default">S/E</span>`;
-            
+
             const estatusMayus = estatus.toUpperCase().trim();
             let claseEstatus = 'status-badge-default';
 
@@ -2218,8 +1643,6 @@ function detenerEscanerDoc() {
                             <th>FOLIO</th><th>NOMBRE</th><th>CURP</th><th>SARE</th><th>MUNICIPIO</th><th>CCT</th><th>ESCUELA</th><th>NIVEL</th><th>MES REMESA</th><th>OBSERVACIONES</th><th>ESTATUS</th>
                             </tr></thead><tbody>`;
                 resultados.forEach(f => {
-                    const estatusHTML = obtenerBadgeEstatus(f.ESTATUS);
-                    
                     html += `<tr>
                                 <td><b>${escaparHTML(f.FOLIO || f.Folio || '')}</b></td>
                                 <td>${escaparHTML(f.NOMBRE_COMPLETO)}</td>
@@ -2231,7 +1654,7 @@ function detenerEscanerDoc() {
                                 <td>${escaparHTML(f.NIVEL)}</td>
                                 <td>${escaparHTML(f.MES_REMESA)}</td>
                                 <td><small style="color:#666;">${escaparHTML(f.OBSERVACIONES || '')}</small></td>
-                                <td>${estatusHTML}</td>
+                                <td>${obtenerBadgeEstatus(f.ESTATUS)}</td>
                              </tr>`;
                 });
                 html += '</tbody></table></div>'; contenedor.innerHTML = html;
@@ -2240,13 +1663,13 @@ function detenerEscanerDoc() {
 
         async function cerrarSesion() {
             detenerTemporizadorInactividad();
-            
-            if(loteTemporal.length > 0 && !confirm("Perderás los cambios no enviados. ¿Salir?")) {
+
+            if (loteTemporal.length > 0 && !confirm("Perderás los cambios no enviados. ¿Salir?")) {
                 iniciarTemporizadorInactividad();
                 return;
             }
             sessionStorage.clear(); usuarioActual = ""; rolActual = ""; loteTemporal = []; listaDocumentalAcumulada = [];
-            
+
             document.getElementById('user').value = '';
             document.getElementById('pass').value = '';
 
@@ -2264,69 +1687,33 @@ function detenerEscanerDoc() {
             document.getElementById('login-section').style.display = 'block';
         }
 
+        // --- MODALES (IFRAMES) ---
+        const URL_APP_B = 'https://bernardo755.github.io/PRUEBA/';
+        const btnAbrir = document.getElementById('btnAbrirAppB');
+        const btnCerrar = document.getElementById('btnCerrarAppB');
+        const modal = document.getElementById('modalAppB');
+        const iframe = document.getElementById('iframeAppB');
 
-const URL_APP_B = 'https://bernardo755.github.io/PRUEBA/'; // Coloca aquí la URL exacta de tu App B
+        btnAbrir.addEventListener('click', () => { iframe.src = URL_APP_B; modal.style.display = 'flex'; });
+        btnCerrar.addEventListener('click', () => { modal.style.display = 'none'; iframe.src = ''; });
 
-const btnAbrir = document.getElementById('btnAbrirAppB');
-const btnCerrar = document.getElementById('btnCerrarAppB');
-const modal = document.getElementById('modalAppB');
-const iframe = document.getElementById('iframeAppB');
+        const URL_CARGA_TARJETAS = 'https://bernardo755.github.io/ACTUALIZADOR/';
+        const btnAbrirTarjetas = document.getElementById('btnAbrirCargaTarjetas');
+        const btnCerrarTarjetas = document.getElementById('btnCerrarCargaTarjetas');
+        const modalTarjetas = document.getElementById('modalCargaTarjetas');
+        const iframeTarjetas = document.getElementById('iframeCargaTarjetas');
 
-// Abrir la App B dentro del iframe
-btnAbrir.addEventListener('click', () => {
-  iframe.src = URL_APP_B;
-  modal.style.display = 'flex';
-});
+        btnAbrirTarjetas.addEventListener('click', () => { iframeTarjetas.src = URL_CARGA_TARJETAS; modalTarjetas.style.display = 'flex'; });
+        btnCerrarTarjetas.addEventListener('click', () => { modalTarjetas.style.display = 'none'; iframeTarjetas.src = ''; });
 
-// Cerrar y regresar a la App A
-btnCerrar.addEventListener('click', () => {
-  modal.style.display = 'none';
-  iframe.src = ''; // Limpia el iframe al salir
-});
+        const URL_SISTEMA_CONSULTA = 'https://bernardo755.github.io/ESTADOS/';
+        const btnAbrirConsulta = document.getElementById('btnAbrirConsulta');
+        const btnCerrarConsulta = document.getElementById('btnCerrarConsulta');
+        const modalConsulta = document.getElementById('modalConsulta');
+        const iframeConsulta = document.getElementById('iframeConsulta');
 
-
-         const URL_CARGA_TARJETAS = 'https://bernardo755.github.io/ACTUALIZADOR/';
-
-    const btnAbrirTarjetas = document.getElementById('btnAbrirCargaTarjetas');
-    const btnCerrarTarjetas = document.getElementById('btnCerrarCargaTarjetas');
-    const modalTarjetas = document.getElementById('modalCargaTarjetas');
-    const iframeTarjetas = document.getElementById('iframeCargaTarjetas');
-
-    // Abrir la app dentro de su propio iframe modal
-    btnAbrirTarjetas.addEventListener('click', () => {
-      iframeTarjetas.src = URL_CARGA_TARJETAS;
-      modalTarjetas.style.display = 'flex';
-    });
-
-    // Cerrar el modal y limpiar este iframe en específico
-    btnCerrarTarjetas.addEventListener('click', () => {
-      modalTarjetas.style.display = 'none';
-      iframeTarjetas.src = ''; 
-    });
-
-
-
-
-        // ⚠️ REEMPLAZA ESTA URL con la URL de implementación de tu Web App de Google Apps Script 
-  const URL_SISTEMA_CONSULTA = 'https://bernardo755.github.io/ESTADOS/';
-
-  const btnAbrirConsulta = document.getElementById('btnAbrirConsulta');
-  const btnCerrarConsulta = document.getElementById('btnCerrarConsulta');
-  const modalConsulta = document.getElementById('modalConsulta');
-  const iframeConsulta = document.getElementById('iframeConsulta');
-
-  // Abrir la app dentro de su propio iframe modal
-  btnAbrirConsulta.addEventListener('click', () => {
-    iframeConsulta.src = URL_SISTEMA_CONSULTA;
-    modalConsulta.style.display = 'flex';
-  });
-
-  // Cerrar el modal y limpiar este iframe en específico
-  btnCerrarConsulta.addEventListener('click', () => {
-    modalConsulta.style.display = 'none';
-    iframeConsulta.src = ''; 
-  });
-        
+        btnAbrirConsulta.addEventListener('click', () => { iframeConsulta.src = URL_SISTEMA_CONSULTA; modalConsulta.style.display = 'flex'; });
+        btnCerrarConsulta.addEventListener('click', () => { modalConsulta.style.display = 'none'; iframeConsulta.src = ''; });
     </script>
 </body>
 </html>
