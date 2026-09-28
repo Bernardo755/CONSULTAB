@@ -1217,12 +1217,8 @@
             // =========================================================
             // CONTROL VISUAL POR ROL
             // ---------------------------------------------------------
-            // ADMIN   -> puede ver TODOS los módulos.
+            // ADMIN -> puede ver TODOS los módulos.
             // ATENCION -> solo ve los módulos asignados a su perfil.
-            //
-            // IMPORTANTE: esto controla únicamente lo que aparece en la
-            // interfaz. La autorización real debe validarse en Code.gs
-            // para CADA acción solicitada al servidor.
             // =========================================================
 
             const modulos = [
@@ -1235,8 +1231,15 @@
                 'acordeon-admin'
             ];
 
-            // Solo se aceptan los roles que realmente utiliza el sistema.
-            if (rol !== "ATENCION" && rol !== "ADMIN") {
+            // Normalizamos el valor recibido desde Code.gs para evitar
+            // problemas por espacios o diferencias entre mayúsculas/minúsculas.
+            const rolNormalizado = String(rol || '').trim().toUpperCase();
+
+            // Aceptamos ADMIN y ADMINISTRADOR como rol administrativo.
+            const esAdmin = rolNormalizado === 'ADMIN' || rolNormalizado === 'ADMINISTRADOR';
+            const esAtencion = rolNormalizado === 'ATENCION' || rolNormalizado === 'ATENCIÓN';
+
+            if (!esAdmin && !esAtencion) {
                 cerrarSesion();
                 return;
             }
@@ -1246,12 +1249,13 @@
             document.getElementById('saludo-usuario').innerText = 'Panel del Sistema';
 
             // Primero ocultamos TODOS los módulos.
-            // De esta manera nunca queda visible una pestaña que el usuario
-            // no tenga autorizada en la interfaz.
+            // Usamos !important para que ningún estilo anterior pueda
+            // impedir que se aplique la autorización visual.
             modulos.forEach(id => {
                 const modulo = document.getElementById(id);
                 if (modulo) {
-                    modulo.style.display = 'none';
+                    modulo.style.setProperty('display', 'none', 'important');
+                    modulo.hidden = true;
                     modulo.open = false;
                 }
             });
@@ -1261,9 +1265,7 @@
             // ---------------------------------------------------------
             // USUARIO DE ATENCIÓN
             // ---------------------------------------------------------
-            // Estos son los módulos que ya tenía asignados el perfil
-            // ATENCION en el sistema.
-            if (rol === "ATENCION") {
+            if (esAtencion) {
                 const modulosAtencion = [
                     'acordeon-edicion',
                     'acordeon-documental',
@@ -1273,8 +1275,8 @@
                 modulosAtencion.forEach(id => {
                     const modulo = document.getElementById(id);
                     if (modulo) {
-                        modulo.style.display = '';
                         modulo.hidden = false;
+                        modulo.style.setProperty('display', 'block', 'important');
                     }
                 });
             }
@@ -1282,17 +1284,16 @@
             // ---------------------------------------------------------
             // ADMINISTRADOR
             // ---------------------------------------------------------
-            // ADMIN tiene acceso visual a TODOS los módulos existentes.
-            if (rol === "ADMIN") {
+            // ADMIN ve los 7 módulos existentes, sin excepción.
+            if (esAdmin) {
                 modulos.forEach(id => {
                     const modulo = document.getElementById(id);
                     if (modulo) {
-                        modulo.style.display = '';
                         modulo.hidden = false;
+                        modulo.style.setProperty('display', 'block', 'important');
                     }
                 });
 
-                // Funciones exclusivas del administrador.
                 cargarUsuariosParaAdmin();
                 cargarFiltrosDesplegablesBitacora();
             }
