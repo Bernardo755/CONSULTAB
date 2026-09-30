@@ -778,11 +778,20 @@
         <button class="btn-logout" onclick="cerrarSesion()">Cerrar Sesión</button>
     </div>
 
+    <!-- ===============================================================
+         Config separado: URLs/endpoints NO quedan escritos aquí en el
+         HTML principal, se cargan desde config.js (ver nota de seguridad
+         al final de este archivo en la respuesta del asistente).
+         =============================================================== -->
+    <script src="config.js"></script>
+
     <script>
         // CONFIGURACIONES Y VARIABLES GLOBALES
-        const API_URL = 'https://script.google.com/macros/s/AKfycbzF1G9Eunl8KoaGmo7aSzFCZpg0Dln6tRJnvIkNBywGLiBYD483lKdqT5Ka8jNGvI-d/exec'; // ⚠️ Coloca aquí la URL completa de tu Web App de Apps Script
+        // API_URL y las URLs de los iframes ahora viven en config.js (window.APP_CONFIG)
+        const API_URL = window.APP_CONFIG.API_URL;
         let usuarioActual = "";
         let rolActual = "";
+        let sareUsuarioActual = ""; // valor de la columna E (hoja Usuarios) del usuario logueado
         let datosDispositivo = { ip: "Obteniendo...", ubicacion: "Obteniendo..." };
         let loteTemporal = [];
 
@@ -849,7 +858,7 @@
         }
 
         function configurarVistasPorRol(rol) {
-            // ADMIN -> todos | ATENCION -> edición, documental, excel | USER -> solo buscador principal
+            // ADMIN/RESP -> todos | ATENCION -> edición, documental, excel | USER -> solo buscador principal
             const modulos = [
                 'acordeon-tramites', 'acordeon-tarjetas', 'acordeon-consulta',
                 'acordeon-edicion', 'acordeon-excel', 'acordeon-documental', 'acordeon-admin'
@@ -857,10 +866,11 @@
 
             const rolNormalizado = String(rol || '').trim().toUpperCase();
             const esAdmin = rolNormalizado === 'ADMIN' || rolNormalizado === 'ADMINISTRADOR';
+            const esResp = rolNormalizado === 'RESP' || rolNormalizado === 'RESPONSABLE';
             const esAtencion = rolNormalizado === 'ATENCION' || rolNormalizado === 'ATENCIÓN';
             const esUser = rolNormalizado === 'USER' || rolNormalizado === 'USUARIO';
 
-            if (!esAdmin && !esAtencion && !esUser) {
+            if (!esAdmin && !esResp && !esAtencion && !esUser) {
                 cerrarSesion();
                 return;
             }
@@ -902,7 +912,7 @@
                 return;
             }
 
-            if (esAdmin) {
+            if (esAdmin || esResp) {
                 modulos.forEach(mostrarModulo);
                 cargarUsuariosParaAdmin();
                 cargarFiltrosDesplegablesBitacora();
@@ -922,6 +932,7 @@
                 const res = await enviarPeticion({ action: "login", password: pass });
                 if (res.exito) {
                     rolActual = res.rol;
+                    sareUsuarioActual = res.sare || ""; // columna E de la hoja Usuarios
                     msj.innerText = "";
                     configurarVistasPorRol(rolActual);
                 } else {
@@ -1053,6 +1064,19 @@
                 el.innerText = opt;
                 selectorEstatus.appendChild(el);
             });
+
+            // Preseleccionar automáticamente la opción "ENTREGADA POR XXXX" que coincide
+            // con los últimos 4 caracteres de la columna E (hoja Usuarios) del usuario logueado.
+            if (actividad === "ENTREGADAS" && sareUsuarioActual) {
+                const ultimos4 = String(sareUsuarioActual).trim().slice(-4);
+                if (ultimos4) {
+                    const coincidencia = Array.from(selectorEstatus.options)
+                        .find(o => o.value.slice(-4) === ultimos4);
+                    if (coincidencia) {
+                        selectorEstatus.value = coincidencia.value;
+                    }
+                }
+            }
 
             const esEntregada = actividad === "ENTREGADAS";
             kitWrapper.style.display = esEntregada ? 'block' : 'none';
@@ -1668,7 +1692,7 @@
                 iniciarTemporizadorInactividad();
                 return;
             }
-            sessionStorage.clear(); usuarioActual = ""; rolActual = ""; loteTemporal = []; listaDocumentalAcumulada = [];
+            sessionStorage.clear(); usuarioActual = ""; rolActual = ""; sareUsuarioActual = ""; loteTemporal = []; listaDocumentalAcumulada = [];
 
             document.getElementById('user').value = '';
             document.getElementById('pass').value = '';
@@ -1688,7 +1712,8 @@
         }
 
         // --- MODALES (IFRAMES) ---
-        const URL_APP_B = 'https://bernardo755.github.io/PRUEBA/';
+        // Las URLs de los iframes ahora viven en config.js (window.APP_CONFIG)
+        const URL_APP_B = window.APP_CONFIG.URL_APP_B;
         const btnAbrir = document.getElementById('btnAbrirAppB');
         const btnCerrar = document.getElementById('btnCerrarAppB');
         const modal = document.getElementById('modalAppB');
@@ -1697,7 +1722,7 @@
         btnAbrir.addEventListener('click', () => { iframe.src = URL_APP_B; modal.style.display = 'flex'; });
         btnCerrar.addEventListener('click', () => { modal.style.display = 'none'; iframe.src = ''; });
 
-        const URL_CARGA_TARJETAS = 'https://bernardo755.github.io/ACTUALIZADOR/';
+        const URL_CARGA_TARJETAS = window.APP_CONFIG.URL_CARGA_TARJETAS;
         const btnAbrirTarjetas = document.getElementById('btnAbrirCargaTarjetas');
         const btnCerrarTarjetas = document.getElementById('btnCerrarCargaTarjetas');
         const modalTarjetas = document.getElementById('modalCargaTarjetas');
@@ -1706,7 +1731,7 @@
         btnAbrirTarjetas.addEventListener('click', () => { iframeTarjetas.src = URL_CARGA_TARJETAS; modalTarjetas.style.display = 'flex'; });
         btnCerrarTarjetas.addEventListener('click', () => { modalTarjetas.style.display = 'none'; iframeTarjetas.src = ''; });
 
-        const URL_SISTEMA_CONSULTA = 'https://bernardo755.github.io/ESTADOS/';
+        const URL_SISTEMA_CONSULTA = window.APP_CONFIG.URL_SISTEMA_CONSULTA;
         const btnAbrirConsulta = document.getElementById('btnAbrirConsulta');
         const btnCerrarConsulta = document.getElementById('btnCerrarConsulta');
         const modalConsulta = document.getElementById('modalConsulta');
