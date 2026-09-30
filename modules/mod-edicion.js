@@ -223,17 +223,15 @@ async function enviarLoteAlServidor() {
             loteTemporal = [];
             actualizarTablaInterfazLote();
 
-            // Al terminar un bloque enviado, también se reinicia KIT.
-            document.querySelectorAll('input[name="kitDocumental"]')
-                .forEach(r => r.checked = false);
-        } else {
-            alert("Error: " + res.error);
-        }
-    } catch (e) {
-        alert("Error de red o timeout.");
-    } finally {
-        btn.innerText = "🚀 Enviar todo el Bloque";
-        btn.disabled = false;
-    }
+           } else {
+    alert("Error: " + res.error);
+}
+
+} catch (e) {
+    alert("Error de red o timeout.");
+
+} finally {
+    btn.innerText = "🚀 Enviar todo el Bloque";
+    btn.disabled = false;
 }
 
