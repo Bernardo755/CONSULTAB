@@ -28,7 +28,7 @@
 
 window.APP_CONFIG = {
   // URL de implementación (.../exec) de tu Web App de Apps Script (doPost)
-  API_URL: 'https://script.google.com/macros/s/TU_ID_DE_IMPLEMENTACION_AQUI/exec',
+  API_URL: 'https://script.google.com/macros/s/AKfycbwGkcKp0FDzuUvPS7R1KVbKgTK4AQT2IsKIRcpN9tuuwTN_OVJ2x7WOWwo50zlIq6pdFA/exec',
 
   // URLs de las apps externas que se abren dentro de los <iframe> de los modales
   URL_APP_B: 'https://bernardo755.github.io/PRUEBA/',
