@@ -202,7 +202,10 @@ async function enviarLoteAlServidor() {
     if (loteTemporal.length === 0) return;
 
     const btn = document.getElementById('btnEnviarBloque');
-    if (!confirm(`¿Deseas sincronizar este bloque de ${loteTemporal.length} registros?`)) return;
+
+    if (!confirm(`¿Deseas sincronizar este bloque de ${loteTemporal.length} registros?`)) {
+        return;
+    }
 
     btn.innerText = "Procesando matriz...";
     btn.disabled = true;
@@ -214,24 +217,35 @@ async function enviarLoteAlServidor() {
         });
 
         if (res.exito) {
+
             let msg = `¡Éxito total! Se actualizaron ${res.exitosos} registros.`;
+
             if (res.noEncontrados.length > 0) {
                 msg += `\n\nFolios no hallados en la base: ${res.noEncontrados.join(", ")}`;
             }
+
             alert(msg);
 
+            // Limpiar únicamente el lote enviado
             loteTemporal = [];
             actualizarTablaInterfazLote();
 
-           } else {
-    alert("Error: " + res.error);
+            // =====================================================
+            // KIT NO SE REINICIA.
+            // La selección actual de KIT permanece durante la sesión.
+            // =====================================================
+
+        } else {
+            alert("Error: " + res.error);
+        }
+
+    } catch (e) {
+
+        alert("Error de red o timeout.");
+
+    } finally {
+
+        btn.innerText = "🚀 Enviar todo el Bloque";
+        btn.disabled = false;
+    }
 }
-
-} catch (e) {
-    alert("Error de red o timeout.");
-
-} finally {
-    btn.innerText = "🚀 Enviar todo el Bloque";
-    btn.disabled = false;
-}
-
